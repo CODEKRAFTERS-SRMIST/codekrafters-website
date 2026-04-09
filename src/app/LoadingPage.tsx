@@ -10,7 +10,7 @@ export default function LoadingPage() {
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
           className="text-[#F9B000] text-3xl md:text-5xl font-extrabold tracking-widest"
         >
           CODEKRAFTERS
@@ -20,7 +20,7 @@ export default function LoadingPage() {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.7 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.15, duration: 0.25 }}
           className="text-[#FFEFB4] text-sm tracking-wide"
         >
           IT'S MORE THAN A CLUB
@@ -32,7 +32,7 @@ export default function LoadingPage() {
             initial={{ x: "-100%" }}
             animate={{ x: "100%" }}
             transition={{
-              duration: 1.2,
+              duration: 0.8,
               ease: "easeInOut",
               repeat: Infinity,
             }}

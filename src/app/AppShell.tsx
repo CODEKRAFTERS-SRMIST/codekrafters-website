@@ -4,10 +4,10 @@ import React, { useState, useEffect } from "react";
 import LoadingPage from "./LoadingPage";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const [step, setStep] = useState<'loading' | 'prelanding' | 'main'>('loading');
+  const [step, setStep] = useState<'loading' | 'main'>('loading');
 
   useEffect(() => {
-    const loadingTimeout = setTimeout(() => setStep('main'), 3000);
+    const loadingTimeout = setTimeout(() => setStep('main'), 600);
     return () => clearTimeout(loadingTimeout);
   }, []);
 

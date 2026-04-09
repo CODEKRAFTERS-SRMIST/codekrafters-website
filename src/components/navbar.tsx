@@ -10,7 +10,6 @@ import {
   FolderKanban,
   BookOpen,
   Link as LinkIcon,
-  UserPlus,
 } from "lucide-react";
 
 export function Navbar() {
@@ -28,7 +27,7 @@ export function Navbar() {
     { label: "PROJECTS", href: "/projects", id: "projects", icon: FolderKanban },
     { label: "BLOG", href: "/blog", id: "blog", icon: BookOpen },
     { label: "KRAFTERSLINK", href: "/krafterslink", id: "krafterslink", icon: LinkIcon },
-    { label: "JOIN US", href: "/join", id: "join", icon: UserPlus },
+    { label: "JOIN US", href: "/join", id: "join", icon: Users },
   ];
 
   useEffect(() => {
@@ -62,6 +61,8 @@ export function Navbar() {
 
         >
           <button
+            aria-expanded={isExpanded}
+            aria-controls="navbar-menu"
             onClick={() => {
   if (window.innerWidth < 768) {
     setIsExpanded((p) => !p);
@@ -88,6 +89,7 @@ export function Navbar() {
           </button>
 
           <div
+            id="navbar-menu"
             className="mt-2"
             style={{
               opacity: isExpanded ? 1 : 0,
