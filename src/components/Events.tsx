@@ -1,6 +1,7 @@
 'use client';
 
 import React from "react";
+import Image from "next/image";
 import { Russo_One, Montserrat } from 'next/font/google';
 
 const russoOne = Russo_One({ subsets: ["latin"], weight: "400" });
@@ -9,10 +10,13 @@ const montserrat = Montserrat({ subsets: ["latin"], weight: ["800", "900"] });
 function Card({ src, label }: { src: string; label: string }) {
   return (
     <div className="relative group mx-2 sm:mx-3 md:mx-4 flex-shrink-0">
-      <img
+      <Image
         src={src || "/placeholder.svg"}
         alt={label}
         loading="lazy"
+        width={600}
+        height={400}
+        sizes="(max-width: 640px) 150px, (max-width: 768px) 250px, (max-width: 1024px) 350px, 450px"
         className="h-24 sm:h-32 md:h-40 lg:h-48 xl:h-56 w-auto rounded-lg sm:rounded-xl transition-transform duration-300 group-hover:scale-95"
       />
 
