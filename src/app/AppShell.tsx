@@ -7,7 +7,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [step, setStep] = useState<'loading' | 'main'>('loading');
 
   useEffect(() => {
-    const loadingTimeout = setTimeout(() => setStep('main'), 300);
+    const loadingTimeout = setTimeout(() => setStep('main'), 1200);
     return () => clearTimeout(loadingTimeout);
   }, []);
 

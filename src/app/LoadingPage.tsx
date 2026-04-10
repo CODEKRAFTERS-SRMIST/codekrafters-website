@@ -54,6 +54,25 @@ export default function LoadingPage() {
             />
           </motion.div>
         </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
+          className="absolute top-full mt-8 text-lg md:text-2xl font-extrabold tracking-[0.2em] uppercase text-[#F2B200]"
+        >
+          CodeKrafters
+        </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
+          className="absolute top-full mt-16 text-[10px] md:text-xs font-semibold tracking-[0.16em] uppercase text-[#F2F2F2]/85"
+        >
+          It&apos;s more than a club
+        </motion.p>
+
       </div>
     </div>
   );
