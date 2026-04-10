@@ -9,7 +9,7 @@ const montserrat = Montserrat({ subsets: ["latin"], weight: ["800", "900"] });
 
 function Card({ src, label }: { src: string; label: string }) {
   return (
-    <div className="relative group mx-2 sm:mx-3 md:mx-4 flex-shrink-0 transition-all duration-300 hover:z-20">
+    <div className="relative group mx-2 sm:mx-3 md:mx-4 flex-shrink-0 transition-all duration-300 hover:z-20 hover:shadow-2xl rounded-lg sm:rounded-xl">
       <Image
         src={src || "/placeholder.svg"}
         alt={label}
