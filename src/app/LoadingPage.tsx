@@ -1,44 +1,59 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 export default function LoadingPage() {
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0D0D0D]">
-      <div className="flex flex-col items-center gap-6">
-        {/* Club Name */}
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: "easeOut" }}
-          className="text-[#F9B000] text-3xl md:text-5xl font-extrabold tracking-widest"
-        >
-          CODEKRAFTERS
-        </motion.h1>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden bg-[#0D0D0D]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,184,43,0.16),transparent_34%),radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.04),transparent_24%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.025),transparent_24%)]" />
 
-        {/* Tagline */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.7 }}
-          transition={{ delay: 0.15, duration: 0.25 }}
-          className="text-[#FFEFB4] text-sm tracking-wide"
-        >
-          IT'S MORE THAN A CLUB
-        </motion.p>
+      <div className="relative flex items-center justify-center">
+        <motion.div
+          aria-hidden="true"
+          className="absolute h-52 w-52 rounded-full border border-[#F2B200]/12"
+          animate={{ scale: [0.95, 1.06, 0.95], opacity: [0.28, 0.08, 0.28] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
 
-        {/* Loading Bar */}
-        <div className="w-40 h-[2px] bg-[#2a2a2a] overflow-hidden rounded">
+        <motion.div
+          aria-hidden="true"
+          className="absolute h-40 w-40 rounded-full border border-[#F2B200]/18"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 5.5, repeat: Infinity, ease: "linear" }}
+        />
+
+        <motion.div
+          aria-hidden="true"
+          className="absolute h-3 w-3 rounded-full bg-[#F2B200] shadow-[0_0_18px_rgba(242,178,0,0.9)]"
+          animate={{
+            rotate: 360,
+            scale: [1, 1.35, 1],
+          }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: "linear" }}
+          style={{ transformOrigin: "0 110px" }}
+        />
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+          className="relative h-36 w-36 md:h-48 md:w-48"
+        >
           <motion.div
-            initial={{ x: "-100%" }}
-            animate={{ x: "100%" }}
-            transition={{
-              duration: 0.8,
-              ease: "easeInOut",
-              repeat: Infinity,
-            }}
-            className="h-full w-1/2 bg-[#F2B200]"
-          />
-        </div>
+            animate={{ y: [0, -4, 0], rotate: [-1, 1, -1] }}
+            transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+            className="relative h-full w-full"
+          >
+            <Image
+              src="/logo.png"
+              alt="CodeKrafters logo"
+              fill
+              priority
+              className="object-contain"
+            />
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );
