@@ -9,7 +9,7 @@ const montserrat = Montserrat({ subsets: ["latin"], weight: ["800", "900"] });
 
 function Card({ src, label }: { src: string; label: string }) {
   return (
-    <div className="relative group mx-2 sm:mx-3 md:mx-4 flex-shrink-0 transition-all duration-300 hover:z-20 hover:shadow-2xl rounded-lg sm:rounded-xl">
+    <div className="relative group mx-2 sm:mx-3 md:mx-4 flex-shrink-0 transition-transform duration-300 hover:scale-110 hover:z-20 hover:shadow-2xl rounded-lg sm:rounded-xl">
       <Image
         src={src || "/placeholder.svg"}
         alt={label}
@@ -17,7 +17,7 @@ function Card({ src, label }: { src: string; label: string }) {
         width={600}
         height={400}
         sizes="(max-width: 640px) 150px, (max-width: 768px) 250px, (max-width: 1024px) 350px, 450px"
-        className="h-24 sm:h-32 md:h-40 lg:h-48 xl:h-56 w-auto rounded-lg sm:rounded-xl transition-transform duration-300 group-hover:scale-110"
+        className="h-24 sm:h-32 md:h-40 lg:h-48 xl:h-56 w-auto rounded-lg sm:rounded-xl"
       />
 
       <div className="absolute inset-0 bg-black/40 rounded-lg sm:rounded-xl opacity-0 
