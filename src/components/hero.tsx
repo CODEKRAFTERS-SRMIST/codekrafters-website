@@ -245,11 +245,7 @@ const Hero: React.FC = () => {
         flexDirection: "column",
       }}
     >
-      {/* BACKGROUND */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="bg-layer-yellow absolute top-[-18%] left-[-10%] w-[140%] h-[58%] bg-[#F9B000] rotate-[5deg] opacity-[0.15]" />
-        <div className="bg-layer-black absolute top-[32%] left-[-10%] w-[150%] h-[50%] bg-[#111111] rotate-[-6deg] opacity-[0.45]" />
-      </div>      {/* MAIN */}
+      {/* BACKGROUND REMOVED */}      {/* MAIN */}
       <div className="relative flex flex-col lg:flex-row flex-1 px-6 pt-35 lg:pt-20 gap-8">
         {/* LEFT */}
         <div

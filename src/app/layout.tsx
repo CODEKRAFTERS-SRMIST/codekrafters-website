@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
+import { Orbitron } from "next/font/google";
 import "./globals.css";
-
 import AppShell from "./AppShell";
+
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "900"],
+  variable: "--font-orbitron",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "CodeKrafters SRM RMP",
@@ -14,7 +21,7 @@ export const metadata: Metadata = {
     title: "CodeKrafters SRM RMP",
     description:
       "IT’S MORE THAN A CLUB — A student community with 7 technical and non-technical domains driving innovation, creativity, and leadership.",
-    url: "https://codekrafters-website.vercel.app/", // replace with real domain
+    url: "https://codekrafters-website.vercel.app/",
     siteName: "CodeKrafters SRM RMP",
     images: [
       {
@@ -26,7 +33,6 @@ export const metadata: Metadata = {
     ],
     type: "website",
   },
-
   twitter: {
     card: "summary_large_image",
     title: "CodeKrafters SRM RMP",
@@ -40,8 +46,8 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body className="antialiased bg-black text-white dark">
+    <html lang="en" className={orbitron.variable}>
+      <body className={`antialiased bg-black text-white dark ${orbitron.className}`}>
         <AppShell>{children}</AppShell>
       </body>
     </html>
