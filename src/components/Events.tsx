@@ -9,7 +9,7 @@ const montserrat = Montserrat({ subsets: ["latin"], weight: ["800", "900"] });
 
 function Card({ src, label }: { src: string; label: string }) {
   return (
-    <div className="relative group mx-2 sm:mx-3 md:mx-4 flex-shrink-0">
+    <div className="relative group mx-2 sm:mx-3 md:mx-4 flex-shrink-0 transition-all duration-300 hover:z-20">
       <Image
         src={src || "/placeholder.svg"}
         alt={label}
@@ -17,13 +17,13 @@ function Card({ src, label }: { src: string; label: string }) {
         width={600}
         height={400}
         sizes="(max-width: 640px) 150px, (max-width: 768px) 250px, (max-width: 1024px) 350px, 450px"
-        className="h-24 sm:h-32 md:h-40 lg:h-48 xl:h-56 w-auto rounded-lg sm:rounded-xl transition-transform duration-300 group-hover:scale-95"
+        className="h-24 sm:h-32 md:h-40 lg:h-48 xl:h-56 w-auto rounded-lg sm:rounded-xl transition-transform duration-300 group-hover:scale-110"
       />
 
-      <div className="absolute inset-0 bg-black/60 rounded-lg sm:rounded-xl opacity-0 
+      <div className="absolute inset-0 bg-black/40 rounded-lg sm:rounded-xl opacity-0 
         group-hover:opacity-100 transition-opacity duration-300 
         flex items-center justify-center pointer-events-none">
-        <span className="text-white text-xs sm:text-sm md:text-lg lg:text-xl font-semibold text-center px-2">
+        <span className={`${russoOne.className} text-white text-xs sm:text-sm md:text-base lg:text-lg font-bold text-center px-2 drop-shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300`}>
           {label}
         </span>
       </div>
