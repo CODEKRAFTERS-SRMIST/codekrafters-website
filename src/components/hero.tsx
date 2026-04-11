@@ -311,11 +311,16 @@ const Hero: React.FC = () => {
             {IMAGES.map((src, i) => (
               <div
                 key={src}
-                className="absolute inset-0 bg-cover bg-center transition-opacity duration-700"
+                src={src}
+                alt={`Hero image ${i + 1}`}
+                fill
+                priority={i === 0}
+                className="object-cover transition-opacity duration-700"
                 style={{
-                  backgroundImage: `url('${src}')`,
                   opacity: index === i ? 1 : 0,
+                  objectPosition: "center",
                 }}
+                sizes="(max-width: 1024px) 90vw, 560px"
               />
             ))}
 
