@@ -12,6 +12,16 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 
+const navLinks = [
+  { label: "HOME", href: "/", id: "home", icon: Home },
+  { label: "EVENTS", href: "/events", id: "events", icon: Calendar },
+  { label: "OUR TEAM", href: "/team", id: "team", icon: Users },
+  { label: "PROJECTS", href: "/projects", id: "projects", icon: FolderKanban },
+  { label: "BLOG", href: "/blog", id: "blog", icon: BookOpen },
+  { label: "KRAFTERSLINK", href: "/krafterslink", id: "krafterslink", icon: LinkIcon },
+  { label: "JOIN US", href: "/join", id: "join", icon: Users },
+];
+
 export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
@@ -19,16 +29,6 @@ export function Navbar() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeLink, setActiveLink] = useState("home");
   const [hoveredLink, setHoveredLink] = useState<string | null>(null);
-
-  const navLinks = [
-    { label: "HOME", href: "/", id: "home", icon: Home },
-    { label: "EVENTS", href: "/events", id: "events", icon: Calendar },
-    { label: "OUR TEAM", href: "/team", id: "team", icon: Users },
-    { label: "PROJECTS", href: "/projects", id: "projects", icon: FolderKanban },
-    { label: "BLOG", href: "/blog", id: "blog", icon: BookOpen },
-    { label: "KRAFTERSLINK", href: "/krafterslink", id: "krafterslink", icon: LinkIcon },
-    { label: "JOIN US", href: "/join", id: "join", icon: Users },
-  ];
 
   useEffect(() => {
     const current = navLinks.find((l) => l.href === pathname);
@@ -114,9 +114,10 @@ export function Navbar() {
                     onMouseEnter={() => setHoveredLink(link.id)}
                     onMouseLeave={() => setHoveredLink(null)}
                     title={link.label}
+                    aria-label={link.label}
                     className="relative flex items-center justify-center px-3 py-2"
                   >
-                    <Icon className="w-5 h-5 text-[#F2F2F2] md:hidden" />
+                    <Icon className="w-5 h-5 text-[#F2F2F2] md:hidden" aria-hidden="true" />
 
                     <span
                       className="hidden md:inline text-xs sm:text-sm font-medium tracking-wider transition-colors"

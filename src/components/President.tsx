@@ -72,6 +72,7 @@ export default function PresidentIntroRetro() {
           <motion.a
             href=" https://www.linkedin.com/in/jaskrrish/"
             target="_blank"
+            rel="noopener noreferrer"
             whileHover={{ scale: 1.05, rotate: -2 }}
             whileTap={{ scale: 0.95 }}
             className="inline-block mt-4 sm:mt-5 md:mt-6 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg bg-[#0D0D0D] text-[#FFEFB4] font-bold tracking-wide text-xs sm:text-sm md:text-base shadow-[2px_2px_0_#F2A516] sm:shadow-[4px_4px_0_#F2A516] md:shadow-[6px_6px_0_#F2A516] hover:shadow-[3px_3px_0_#F2A516] sm:hover:shadow-[5px_5px_0_#F2A516] md:hover:shadow-[8px_8px_0_#F2A516] transition-all duration-300"

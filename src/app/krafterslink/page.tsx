@@ -19,19 +19,6 @@ export default function KraftersLinkPage() {
     >
       <Navbar />
 
-      {/* Background grid */}
-      <div
-        className="absolute inset-0 -z-10"
-        style={{
-          backgroundColor: "#F2F0D8",
-          backgroundImage: `
-            linear-gradient(to right, rgba(11,18,32,0.08) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(11,18,32,0.08) 1px, transparent 1px)
-          `,
-          backgroundSize: "24px 24px",
-        }}
-      />
-
       {/* Center content */}
       <div className="flex items-center justify-center min-h-screen px-4 sm:px-6">
         <div className="w-full max-w-xl p-6 sm:p-10">

@@ -231,9 +231,11 @@ export default function TeamComponent() {
                           <a
                             href={member.social.linkedin}
                             target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`${member.name} on LinkedIn`}
                             className="social-btn"
                           >
-                            <Linkedin className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <Linkedin className="w-3 h-3 sm:w-4 sm:h-4" aria-hidden="true" />
                           </a>
                         )}
                       </div>

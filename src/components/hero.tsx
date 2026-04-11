@@ -309,7 +309,7 @@ const Hero: React.FC = () => {
             style={{ height: "clamp(260px, 38vh, 440px)" }}
           >
             {IMAGES.map((src, i) => (
-              <div
+              <Image
                 key={src}
                 src={src}
                 alt={`Hero image ${i + 1}`}
@@ -326,12 +326,14 @@ const Hero: React.FC = () => {
 
             <button
               onClick={prev}
+              aria-label="Previous image"
               className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 rounded-full w-9 h-9 flex items-center justify-center text-white"
             >
               ‹
             </button>
             <button
               onClick={next}
+              aria-label="Next image"
               className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 rounded-full w-9 h-9 flex items-center justify-center text-white"
             >
               ›

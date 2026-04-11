@@ -66,6 +66,7 @@ export default function Footer() {
               <a
                 href="https://www.instagram.com/codekrafterssrm.rmp/"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 text-white hover:text-[#F2A516]"
               >
                 <Instagram className="w-4 h-4" />
@@ -76,6 +77,7 @@ export default function Footer() {
               <a
                 href="https://www.linkedin.com/company/codechef-srmrmp/"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 text-white hover:text-[#F2A516]"
               >
                 <Linkedin className="w-4 h-4" />
