@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     "CodeKrafters SRM RMP is a student-led community with 7 technical and non-technical domains, focused on skills, innovation, and impact.",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/ck logo.png",
   },
   openGraph: {
     title: "CodeKrafters SRM RMP",
