@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import ReactLenis, { useLenis } from "lenis/react";
 import gsap from "gsap";
 import { useEffect, useLayoutEffect, useRef } from "react";
@@ -72,8 +73,8 @@ function StoryComponent() {
                   endTrigger: anotherDivRef.current,
                 },
               })
-              .to(smthDivRef.current.querySelector('img[src="/story/srm-bg-png-mob.png"]'), { transform: "translateZ(2200px)" })
-              .to(smthDivRef.current.querySelector('img[src="/story/man-entering-png-mob.png"]'), { opacity: 1 })
+              .to(smthDivRef.current.querySelector('#srm-bg-mob'), { transform: "translateZ(2200px)" })
+              .to(smthDivRef.current.querySelector('#man-entering-mob'), { opacity: 1 })
               .pause();
           }
         },
@@ -257,31 +258,44 @@ function StoryComponent() {
         }}
       >
         {/* Desktop first section images */}
-        <img
+        <Image
           src="/story/srm-bg-cropped-png.png"
           alt="Your clg bruv"
-          className="z-10 w-full h-full absolute hidden md:block"
+          className="z-10 w-full h-full absolute hidden md:block object-cover"
           id="zoom-in"
           ref={bgLg}
+          width={1625}
+          height={1080}
+          priority
         />
-        <img
+        <Image
           src="/story/man-entering-png.png"
           alt="Goi Entering SRM"
-          className="z-0 w-full h-full absolute opacity-0 hidden md:block"
+          className="z-0 w-full h-full absolute opacity-0 hidden md:block object-cover"
           ref={manEnteringRef}
+          width={1920}
+          height={1080}
+          priority
         />
 
         {/* Mobile first section images */}
-        <img
+        <Image
           src="/story/srm-bg-png-mob.png"
           alt="Your clg bruv (mobile)"
-          className="z-10 w-full h-full absolute md:hidden"
+          className="z-10 w-full h-full absolute md:hidden object-cover"
+          id="srm-bg-mob"
+          width={1080}
+          height={1920}
+          priority
         />
-        <img
+        <Image
           src="/story/man-entering-png-mob.png"
           alt="Goi Entering SRM (mobile)"
-          className="z-0 w-full h-full absolute opacity-0 md:hidden"
+          className="z-0 w-full h-full absolute opacity-0 md:hidden object-cover"
           id="man-entering-mob"
+          width={1080}
+          height={1920}
+          priority
         />
       </div>
 
@@ -301,32 +315,40 @@ function StoryComponent() {
           id="panick"
         >
           <div className="z-20 flex items-center justify-center">
-            <img
+            <Image
               src="/story/comment-1-png.png"
-              alt=""
-              className="absolute w-1/4 h-1/4 opacity-0 left-60 bottom-40"
+              alt="Comment 1"
+              className="absolute w-1/4 h-1/4 opacity-0 left-60 bottom-40 object-contain"
               id="comment-1"
               ref={commentOneRef}
+              width={675}
+              height={675}
             />{" "}
-            <img
+            <Image
               src="/story/comment-2-png.png"
-              alt=""
-              className="absolute w-1/4 h-1/4 opacity-0 left-80 bottom-50"
+              alt="Comment 2"
+              className="absolute w-1/4 h-1/4 opacity-0 left-80 bottom-50 object-contain"
               id="comment-2"
               ref={commentTwoRef}
+              width={1080}
+              height={1080}
             />
-            <img
+            <Image
               src="/story/comment-3-png.png"
-              alt=""
-              className="absolute w-1/4 h-1/4 opacity-0 left-10 bottom-10"
+              alt="Comment 3"
+              className="absolute w-1/4 h-1/4 opacity-0 left-10 bottom-10 object-contain"
               id="comment-3"
               ref={commentThreeRef}
+              width={1080}
+              height={1080}
             />
           </div>
-          <img
+          <Image
             src="/story/oat-with-man-png.png"
             alt="Panicked Goi"
-            className="z-10 w-full h-full"
+            className="z-10 w-full h-full object-cover"
+            width={1920}
+            height={1080}
           />
         </div>
 
@@ -336,43 +358,57 @@ function StoryComponent() {
           id="panick-mob"
         >
           <div className="z-20 flex items-center justify-center">
-            <img
+            <Image
               src="/story/comment-1-png.png"
-              alt=""
-              className="absolute w-1/4 h-1/4 opacity-0 left-5 bottom-10"
+              alt="Comment 1"
+              className="absolute w-1/4 h-1/4 opacity-0 left-5 bottom-10 object-contain"
               id="comment-1-mob"
+              width={675}
+              height={675}
             />
-            <img
+            <Image
               src="/story/comment-2-png.png"
-              alt=""
-              className="absolute w-1/4 h-1/4 opacity-0 left-15 -bottom-10"
+              alt="Comment 2"
+              className="absolute w-1/4 h-1/4 opacity-0 left-15 -bottom-10 object-contain"
               id="comment-2-mob"
+              width={1080}
+              height={1080}
             />
-            <img
+            <Image
               src="/story/comment-3-png.png"
-              alt=""
-              className="absolute w-1/4 h-1/4 opacity-0 left-8 -bottom-25"
+              alt="Comment 3"
+              className="absolute w-1/4 h-1/4 opacity-0 left-8 -bottom-25 object-contain"
               id="comment-3-mob"
+              width={1080}
+              height={1080}
             />
           </div>
-          <img
+          <Image
             src="/story/oat-man-with-bg-png-mob.png"
             alt="Panicked Goi (mobile)"
-            className="z-10 w-full h-full"
+            className="z-10 w-full h-full object-cover"
+            width={1080}
+            height={1920}
           />
         </div>
 
         {/* Desktop shocked man background */}
-        <img
+        <Image
           src="/story/shocked-man-bg-png.png"
-          className="h-full w-full absolute z-0 overflow-y-hidden hidden md:block"
+          alt="Shocked man"
+          className="h-full w-full absolute z-0 overflow-y-hidden hidden md:block object-cover"
           ref={sideLookingRef}
+          width={1920}
+          height={1080}
         />
 
         {/* Mobile shocked man background */}
-        <img
+        <Image
           src="/story/shocked-man-png-mob.png"
-          className="h-full w-full absolute z-0 overflow-y-hidden md:hidden"
+          alt="Shocked man mobile"
+          className="h-full w-full absolute z-0 overflow-y-hidden md:hidden object-cover"
+          width={1080}
+          height={1920}
         />
       </div>
 
@@ -381,45 +417,57 @@ function StoryComponent() {
         ref={walkingRef}
       >
         {/* Desktop walking images */}
-        <img
+        <Image
           src="/story/oat-walking-bg-png.png"
           alt="Goi walking"
-          className="w-full h-full absolute z-10 hidden md:block"
+          className="w-full h-full absolute z-10 hidden md:block object-cover"
           ref={walkingManRef}
+          width={1920}
+          height={1080}
         />
-        <img
+        <Image
           src="/story/ck-png.png"
           alt="Goi walking"
-          className="w-full h-full absolute z-0 hidden md:block"
+          className="w-full h-full absolute z-0 hidden md:block object-cover"
           id="ck"
           ref={ckRef}
+          width={1920}
+          height={1080}
         />
-        <img
+        <Image
           src="/story/moi-png.png"
           alt="Ck moi"
-          className="w-full h-full absolute -z-10 hidden md:block"
+          className="w-full h-full absolute -z-10 hidden md:block object-cover"
           ref={moiRef}
+          width={1536}
+          height={1024}
         />
 
         {/* Mobile walking images */}
-        <img
+        <Image
           src="/story/oat-walking-bg-png-mob.png"
           alt="Goi walking (mob)"
-          className="w-full h-full absolute z-10 md:hidden"
+          className="w-full h-full absolute z-10 md:hidden object-cover"
           ref={walkingManMobRef}
+          width={1080}
+          height={1920}
         />
-        <img
+        <Image
           src="/story/ck-png-mob.png"
           alt="Goi walking (mob)"
-          className="w-full h-full absolute z-0 md:hidden"
+          className="w-full h-full absolute z-0 md:hidden object-cover"
           id="ck-mob"
           ref={ckMobRef}
+          width={1080}
+          height={1920}
         />
-        <img
+        <Image
           src="/story/moi-png-mob.png"
           alt="Ck moi (mob)"
-          className="w-full h-full absolute -z-10 md:hidden"
+          className="w-full h-full absolute -z-10 md:hidden object-cover"
           ref={moiMobRef}
+          width={1080}
+          height={1920}
         />
       </div>
       <div
@@ -427,31 +475,39 @@ function StoryComponent() {
         id="ck-badge"
       >
         {/* Desktop badge section */}
-        <img
+        <Image
           src="/story/man-ck-badge-png.png"
           alt="Man kuthifying ck badge"
-          className="z-0 w-full h-full hidden md:block"
+          className="z-0 w-full h-full hidden md:block object-cover"
           id="man-with-badge"
+          width={1920}
+          height={1080}
         />
-        <img
+        <Image
           src="/story/placement-png.png"
           alt="My goi got placedd!!"
-          className="absolute -z-10 w-full h-full hidden md:block"
+          className="absolute -z-10 w-full h-full hidden md:block object-cover"
           id="placement"
+          width={1920}
+          height={1080}
         />
 
         {/* Mobile badge section */}
-        <img
+        <Image
           src="/story/man-ck-badge-png-mob.png"
           alt="Man kuthifying ck badge (mobile)"
-          className="z-0 w-full h-full md:hidden"
+          className="z-0 w-full h-full md:hidden object-cover"
           id="man-with-badge-mob"
+          width={1080}
+          height={1920}
         />
-        <img
+        <Image
           src="/story/placement-png-mob.png"
           alt="My goi got placedd!! (mobile)"
-          className="absolute -z-10 w-full h-full md:hidden"
+          className="absolute -z-10 w-full h-full md:hidden object-cover"
           id="placement-mob"
+          width={1080}
+          height={1920}
         />
       </div>
     </div>
