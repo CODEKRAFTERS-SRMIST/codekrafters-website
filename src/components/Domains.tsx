@@ -27,8 +27,10 @@ const DOMAINS = [
   { id: "operations", name: "Operations", icon: Wrench, desc: "Handling logistics, event flow, and everything behind the scenes." },
 ];
 
+type Domain = (typeof DOMAINS)[number];
+
 export default function DomainsSection() {
-  const [selectedDomain, setSelectedDomain] = useState<any | null>(null);
+  const [selectedDomain, setSelectedDomain] = useState<Domain | null>(null);
 
   const getCoreMembers = (domainId: string) =>
     TEAM_MEMBERS.filter((m) => m.domain === domainId);
@@ -89,6 +91,8 @@ export default function DomainsSection() {
             exit={{ opacity: 0 }}
           >
             <motion.div
+              role="dialog"
+              aria-modal={true}
               initial={{ scale: 0.92, opacity: 0, y: 30 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.92, opacity: 0, y: 30 }}

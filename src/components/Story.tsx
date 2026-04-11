@@ -26,9 +26,8 @@ function StoryComponent() {
   const moiRef = useRef<HTMLImageElement>(null);
   const moiMobRef = useRef<HTMLImageElement>(null);
 
-  const lenis = useLenis((lenis) => {
+  const lenis = useLenis(() => {
     // called every scroll
-    console.log(lenis);
   });
 
   useEffect(() => {

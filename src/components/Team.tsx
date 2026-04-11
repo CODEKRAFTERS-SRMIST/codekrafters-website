@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { Instagram, Github, Linkedin } from 'lucide-react';
+import { Linkedin } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import { TEAM_MEMBERS, DOMAINS } from "@/data/team-data";
 
@@ -37,7 +37,7 @@ export default function TeamComponent() {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    let scrollTimeout: NodeJS.Timeout;
+    let scrollTimeout: ReturnType<typeof setTimeout> | undefined;
 
     const handleScroll = () => {
       const index = Math.round(container.scrollLeft / container.clientWidth);

@@ -1,12 +1,27 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 
 gsap.registerPlugin(ScrollTrigger)
+
+const TAGLINE_LINES = ["IT'S", "MORE THAN", "A CLUB"]
+
+const MILESTONES = [
+  { value: 7, suffix: "", label: "DOMAINS" },
+  { value: 150, suffix: "+", label: "MEMBERS" },
+  { value: 10, suffix: "+", label: "EVENTS" },
+]
+
+const IMAGES = [
+  "/group/group4.jpg",
+  "/group/group3.jpg",
+  "/group/group2.jpg",
+  "/group/group1.jpg",
+]
 
 const Hero: React.FC = () => {
   const imageRef = useRef<HTMLDivElement | null>(null)
@@ -15,15 +30,7 @@ const Hero: React.FC = () => {
   const codekraftersRef = useRef<HTMLHeadingElement | null>(null)
   const milestonesRef = useRef<HTMLDivElement | null>(null)
 
-  const taglineLines = useMemo(() => ["IT'S", "MORE THAN", "A CLUB"], [])
-
-  const milestones = [
-    { value: 7, suffix: "", label: "DOMAINS" },
-    { value: 150, suffix: "+", label: "MEMBERS" },
-    { value: 10, suffix: "+", label: "EVENTS" },
-  ]
-
-  const [counters, setCounters] = useState(milestones.map(() => 0))
+  const [counters, setCounters] = useState(MILESTONES.map(() => 0))
 
   const splitToSpans = (text: string) =>
     text.split("").map((ch, idx) => (
@@ -36,36 +43,32 @@ const Hero: React.FC = () => {
       </span>
     ))
 
-  const images = [
-    "/group/group4.jpg",
-    "/group/group3.jpg",
-    "/group/group2.jpg",
-    "/group/group1.jpg",
-  ]
-
   const [index, setIndex] = useState(0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const startInterval = () => {
+  const startInterval = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current)
     intervalRef.current = setInterval(() => {
-      setIndex((i) => (i + 1) % images.length)
+      setIndex((i) => (i + 1) % IMAGES.length)
     }, 4000)
-  }
+  }, [])
 
   useEffect(() => {
     startInterval()
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [])
+  }, [startInterval])
 
-  const goto = (n: number) => {
-    setIndex(((n % images.length) + images.length) % images.length)
+  const next = useCallback(() => {
+    setIndex((i) => (i + 1) % IMAGES.length)
     startInterval()
-  }
-  const next = () => goto(index + 1)
-  const prev = () => goto(index - 1)
+  }, [startInterval])
+
+  const prev = useCallback(() => {
+    setIndex((i) => (i - 1 + IMAGES.length) % IMAGES.length)
+    startInterval()
+  }, [startInterval])
 
   /* IMAGE breathing + hover tilt */
   useEffect(() => {
@@ -148,7 +151,7 @@ const Hero: React.FC = () => {
     if (!milestonesRef.current) return
 
     const ctx = gsap.context(() => {
-      milestones.forEach((milestone, idx) => {
+      MILESTONES.forEach((milestone, idx) => {
         const obj = { val: 0 }
         gsap.to(obj, {
           val: milestone.value,
@@ -249,7 +252,8 @@ const Hero: React.FC = () => {
       <div className="absolute inset-0 pointer-events-none">
         <div className="bg-layer-yellow absolute top-[-18%] left-[-10%] w-[140%] h-[58%] bg-[#F9B000] rotate-[5deg] opacity-[0.15]" />
         <div className="bg-layer-black absolute top-[32%] left-[-10%] w-[150%] h-[50%] bg-[#111111] rotate-[-6deg] opacity-[0.45]" />
-      </div>      {/* MAIN */}
+      </div>
+      {/* MAIN */}
       <div className="relative flex flex-col lg:flex-row flex-1 px-6 pt-35 lg:pt-20 gap-8">
         {/* LEFT */}
         <div
@@ -257,7 +261,7 @@ const Hero: React.FC = () => {
           className="flex flex-col justify-start md:justify-center items-center lg:items-start w-full lg:w-[45%] text-center lg:text-left"
         >
           <div className="max-w-[600px]">
-            {taglineLines.map((line, i) => (
+            {TAGLINE_LINES.map((line, i) => (
               <div
                 key={line}
                 className="slot-line font-extrabold leading-[0.86]"
@@ -276,7 +280,7 @@ const Hero: React.FC = () => {
             ref={milestonesRef}
             className="hidden lg:grid grid-cols-3 gap-6 mt-10 max-w-[600px]"
           >
-            {milestones.map((m, i) => (
+            {MILESTONES.map((m, i) => (
               <div key={i} className="text-center">
                 <div className="text-[#F9B000] font-black text-6xl">
                   {counters[i]}
@@ -304,8 +308,8 @@ const Hero: React.FC = () => {
             className="relative rounded-3xl overflow-hidden shadow-[0_0_40px_#000a] w-[90%] sm:w-[85%] lg:w-[72%] max-w-[560px]"
             style={{ height: "clamp(260px, 38vh, 440px)" }}
           >
-            {images.map((src, i) => (
-              <Image
+            {IMAGES.map((src, i) => (
+              <div
                 key={src}
                 src={src}
                 alt={`Hero image ${i + 1}`}
@@ -336,7 +340,7 @@ const Hero: React.FC = () => {
 
           {/* MILESTONES - Mobile/Tablet only (below image) */}
           <div className="grid grid-cols-3 gap-6 mt-8 lg:hidden w-full max-w-[560px]">
-            {milestones.map((m, i) => (
+            {MILESTONES.map((m, i) => (
               <div key={i} className="text-center">
                 <div className="text-[#F9B000] font-black text-4xl sm:text-5xl">
                   {counters[i]}
