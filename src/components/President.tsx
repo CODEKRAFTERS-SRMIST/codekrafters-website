@@ -25,6 +25,7 @@ export default function PresidentIntroRetro() {
                 src="/images/PRESIDENT.png" 
                 alt="Club President"
                 fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
                 className="object-cover rounded-xl sm:rounded-2xl saturate-90 contrast-110 brightness-95"
               />
             </div>
