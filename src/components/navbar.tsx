@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Home,
   Calendar,
@@ -14,7 +15,6 @@ import {
 } from "lucide-react";
 
 export function Navbar() {
-  const router = useRouter();
   const pathname = usePathname();
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -26,49 +26,37 @@ export function Navbar() {
     { label: "EVENTS", href: "/events", id: "events", icon: Calendar },
     { label: "OUR TEAM", href: "/team", id: "team", icon: Users },
     { label: "PROJECTS", href: "/projects", id: "projects", icon: FolderKanban },
-    { label: "BLOG", href: "/blog", id: "blog", icon: BookOpen },
+    { label: "BLOG", href: "https://ck-blog-platform.vercel.app/", id: "blog", icon: BookOpen },
     { label: "KRAFTERSLINK", href: "/krafterslink", id: "krafterslink", icon: LinkIcon },
     { label: "JOIN US", href: "/join", id: "join", icon: UserPlus },
   ];
 
   useEffect(() => {
-    const current = navLinks.find((l) => l.href === pathname);
+    const current = navLinks.find(
+      (l) => l.href === pathname || (l.id === "blog" && pathname.startsWith("/blog"))
+    );
     if (current) setActiveLink(current.id);
   }, [pathname]);
-
-  const handleNavigate = (link: { id: string; href: string }) => {
-    setActiveLink(link.id);
-    setIsExpanded(false);
-    router.push(link.href);
-  };
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 pt-safe">
       <div className="flex justify-center w-full pt-4">
         <div
-          className="flex flex-col items-center"
+          className="flex flex-col items-center pb-4"
           onMouseEnter={() => {
-  if (window.innerWidth >= 768) {
-    setIsExpanded(true);
-  }
-}}
-
+            if (window.innerWidth >= 768) setIsExpanded(true);
+          }}
           onMouseLeave={() => {
-  if (window.innerWidth >= 768) {
-    setIsExpanded(false);
-  }
-  setHoveredLink(null);
-}}
-
+            if (window.innerWidth >= 768) setIsExpanded(false);
+            setHoveredLink(null);
+          }}
         >
+          {/* Main Logo Button */}
           <button
             onClick={() => {
-  if (window.innerWidth < 768) {
-    setIsExpanded((p) => !p);
-  }
-}}
-
-            className="flex items-center justify-center"
+              if (window.innerWidth < 768) setIsExpanded((p) => !p);
+            }}
+            className="flex items-center justify-center cursor-pointer"
             style={{
               backgroundColor: "#0D0D0D",
               width: isExpanded ? "56px" : "180px",
@@ -83,12 +71,13 @@ export function Navbar() {
               alt="CK Logo"
               width={36}
               height={28}
-              className="object-contain"
+              className="object-contain pointer-events-none"
             />
           </button>
 
+          {/* Links Container */}
           <div
-            className="mt-2"
+            className="pt-2"
             style={{
               opacity: isExpanded ? 1 : 0,
               pointerEvents: isExpanded ? "auto" : "none",
@@ -96,31 +85,37 @@ export function Navbar() {
                 ? "translateY(0) scale(1)"
                 : "translateY(-14px) scale(0.95)",
               transition:
-                "opacity 500ms cubic-bezier(0.16,1,0.3,1), transform 500ms cubic-bezier(0.16,1,0.3,1)",
+                "opacity 300ms cubic-bezier(0.16,1,0.3,1), transform 300ms cubic-bezier(0.16,1,0.3,1)",
             }}
           >
-            <div className="flex gap-2 bg-[#0D0D0D] p-3 rounded-2xl border border-[#2a2a2a]">
+            <div className="flex gap-2 bg-[#0D0D0D] p-3 rounded-2xl border border-[#2a2a2a] shadow-xl">
               {navLinks.map((link) => {
                 const Icon = link.icon;
                 const isActive = activeLink === link.id;
                 const isHovered = hoveredLink === link.id;
+                const isExternal = link.href.startsWith("http");
 
                 return (
-                  <button
+                  <Link
                     key={link.id}
-                    onClick={() => handleNavigate(link)}
+                    href={link.href}
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    onClick={() => {
+                      setActiveLink(link.id);
+                      setIsExpanded(false);
+                    }}
                     onMouseEnter={() => setHoveredLink(link.id)}
                     onMouseLeave={() => setHoveredLink(null)}
                     title={link.label}
-                    className="relative flex items-center justify-center px-3 py-2"
+                    className="relative flex items-center justify-center px-3 py-2 cursor-pointer"
                   >
                     <Icon className="w-5 h-5 text-[#F2F2F2] md:hidden" />
 
                     <span
                       className="hidden md:inline text-xs sm:text-sm font-medium tracking-wider transition-colors"
                       style={{
-                        color:
-                          isActive || isHovered ? "#F2A516" : "#F2F2F2",
+                        color: isActive || isHovered ? "#F2A516" : "#F2F2F2",
                       }}
                     >
                       {link.label}
@@ -134,7 +129,7 @@ export function Navbar() {
                         backgroundColor: "#F2A516",
                       }}
                     />
-                  </button>
+                  </Link>
                 );
               })}
             </div>

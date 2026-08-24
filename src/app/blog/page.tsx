@@ -1,8 +1,13 @@
 "use client"
+import { useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import Footer from "@/components/Footer"
 
 export default function BlogPage() {
+  useEffect(() => {
+    window.location.href = "https://ck-blog-platform.vercel.app/"
+  }, [])
+
   return (
     <div
       className="absolute inset-0 -z-10"
