@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
 import { Instagram, Linkedin } from "lucide-react";
@@ -91,7 +89,7 @@ export default function Footer() {
             Resources
           </h3>
           <ul className="space-y-2 text-sm text-white">
-            <li><Link href="/blog" className="hover:text-[#F2A516]">Blog</Link></li>
+            <li><a href="https://ck-blog-platform.vercel.app/" className="hover:text-[#F2A516]">Blog</a></li>
             <li><Link href="/krafterslink" className="hover:text-[#F2A516]">KraftersLink</Link></li>
           </ul>
         </div>

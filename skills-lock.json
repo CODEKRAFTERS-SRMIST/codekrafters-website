@@ -1,0 +1,275 @@
+{
+  "version": 1,
+  "skills": {
+    "access-review": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/identity/access-review/SKILL.md",
+      "computedHash": "ff623c5351fa158301d18d20f4b198817c7f8974971d12371243e52ba9fc925b"
+    },
+    "agent-security": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/ai-security/agent-security/SKILL.md",
+      "computedHash": "0214fa2ebd428ebb7e5b3182cb3052a997a2897d08cfd7ef65b4b772e096d19d"
+    },
+    "agentic-top-10": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/ai-security/agentic-top-10/SKILL.md",
+      "computedHash": "3747238882285d44dcec46190593859d6d99f82fc40471d93825cbe75d7d0ced"
+    },
+    "ai-data-privacy": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/ai-security/ai-data-privacy/SKILL.md",
+      "computedHash": "389da3c8bbced130e4bed0a6506138b19b0fcdbb919acbb666c85c01c4e5f791"
+    },
+    "alert-triage": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/secops/alert-triage/SKILL.md",
+      "computedHash": "33e0c78a7c576bc4d82f32703186e3d63333a803318641500f35ddaed03397fa"
+    },
+    "api-security": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/appsec/api-security/SKILL.md",
+      "computedHash": "c42875f190cd0c700bca33db7d78b56fee6fa348dd8b9db88f4659fbd445ef02"
+    },
+    "aws-review": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/aws-review/SKILL.md",
+      "computedHash": "1472ac277ea4e53830318201e61b77df52cb322f0f38a26e10708115172417b4"
+    },
+    "azure-review": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/azure-review/SKILL.md",
+      "computedHash": "272678889fbdfe2b14657161ad847ed8f228b00ce33529a248f3459aa4d37403"
+    },
+    "container-security": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/container-security/SKILL.md",
+      "computedHash": "95b8d8655dbd179ca52d1cb72ee98c4566af15e6d925be4579d66eb2d7957236"
+    },
+    "containment": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/incident-response/containment/SKILL.md",
+      "computedHash": "9585216ca2d452381cf24129fb3ac975f96542e2cc3c1a93b5ef9fe035becdbc"
+    },
+    "cve-triage": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/vuln-management/cve-triage/SKILL.md",
+      "computedHash": "ac3742f98254ae8741332691ab571e27e95f199935c1d0cb71b09a10f4d4c446"
+    },
+    "dast-config": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/devsecops/dast-config/SKILL.md",
+      "computedHash": "743d73584940747807e591062b69bc672c15417783809e399002157274e3dfaf"
+    },
+    "dependency-scanning": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/appsec/dependency-scanning/SKILL.md",
+      "computedHash": "ff7e8b5697409ffa26e32b501447ffb6f2b0142b2563e9c12d9ce5ee539c57fe"
+    },
+    "detection-engineering": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/secops/detection-engineering/SKILL.md",
+      "computedHash": "90ce817c76225761d0c65f7d3fc475f6bb49aa2325ed114853f428e302909f3a"
+    },
+    "dns-security": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/network/dns-security/SKILL.md",
+      "computedHash": "ce4ae58b55c033827362e06e2a8473c41fd9214db1aff2a344e132ec6db33659"
+    },
+    "firewall-review": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/network/firewall-review/SKILL.md",
+      "computedHash": "979e47c6a365709cc5796bcc0a14179fed5949fc00be0ca0179876f4df76bdb7"
+    },
+    "forensics-checklist": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/incident-response/forensics-checklist/SKILL.md",
+      "computedHash": "66fa9aacbe13eb8417a60c49efcb64bfbe5aee4802bd1cfe5582af1ceed439e5"
+    },
+    "gcp-review": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/gcp-review/SKILL.md",
+      "computedHash": "8c6e0b616c316998defef7893f65741e717e7062841ac274241695e4985245c3"
+    },
+    "hipaa-review": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/compliance/hipaa-review/SKILL.md",
+      "computedHash": "d6bf083211a9342af2d4e175dac741585dc097229e4b58a8db78cdb271e54103"
+    },
+    "iac-security": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/iac-security/SKILL.md",
+      "computedHash": "9415cc3c6d4cc2ed3be05e9dce9c87ac65b7b1606793ad40c92381f4042addd2"
+    },
+    "iam-review": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/identity/iam-review/SKILL.md",
+      "computedHash": "69ef8f459291c79b229e7b1b049edb82a020efcd625200c0b5d7e9a9f26c6c8b"
+    },
+    "ir-playbook": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/incident-response/ir-playbook/SKILL.md",
+      "computedHash": "5857d74f907c5e048c228e8d39b13426624f8dfda48f27ae94c368b0ea613afd"
+    },
+    "iso27001-gap": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/compliance/iso27001-gap/SKILL.md",
+      "computedHash": "deef89cc01909e1d0028eb413742a7756a68369386c720eb68cd8a3c979e561c"
+    },
+    "llm-top-10": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/ai-security/llm-top-10/SKILL.md",
+      "computedHash": "6310752ab2a4cc619e05af71fb9794d104ddcf16d166a1f83060c6e3eb2d48da"
+    },
+    "log-analysis": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/secops/log-analysis/SKILL.md",
+      "computedHash": "8b51e6998b770f04edef99d1772fb18ed383cf3b3ec3c09a2f8d2728249053a2"
+    },
+    "model-supply-chain": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/ai-security/model-supply-chain/SKILL.md",
+      "computedHash": "f5816ee2348a54654ac0f14478d19ee99a94fe7361df5b6352004e648e7af119"
+    },
+    "nist-csf-assessment": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/compliance/nist-csf-assessment/SKILL.md",
+      "computedHash": "76e3217d57ecce639687d190dc54852ac8be2c1602747750ee5cde0c854c934f"
+    },
+    "owasp-top-10-web": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/appsec/owasp-top-10-web/SKILL.md",
+      "computedHash": "dd4daffd73131d76699541fe3239c10b254722688b06cdbdcba6220fd1cde7b1"
+    },
+    "patch-prioritization": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/vuln-management/patch-prioritization/SKILL.md",
+      "computedHash": "ddf9789707cc5bfe1afc3d52df47b70f9650452015c4d8644e4661dbeaf033e9"
+    },
+    "pci-dss-review": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/compliance/pci-dss-review/SKILL.md",
+      "computedHash": "eb6b8925b8808c4c13ea67e95b89b90966197680173998f0a0f9ec73a05d9969"
+    },
+    "pipeline-security": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/devsecops/pipeline-security/SKILL.md",
+      "computedHash": "bd738557b90003862bc64d39d4954ad725c52d3a1eaf9f8e7a86fe9c59f6bd53"
+    },
+    "post-incident-review": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/incident-response/post-incident-review/SKILL.md",
+      "computedHash": "6b9ead930e642ec4b892d46c8c4c2c9c0f7d2f8ed0d4a1e9197a54301ba61e61"
+    },
+    "privileged-access": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/identity/privileged-access/SKILL.md",
+      "computedHash": "5975850cf21a50cae35843b5e4fe2c3ef64086ece9cd5fff6b03e8bfa719a58b"
+    },
+    "prompt-injection": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/ai-security/prompt-injection/SKILL.md",
+      "computedHash": "631751e6c02a7fceace570af27b0fac7ea8a21828aa3c794674109f1f6d7f7bc"
+    },
+    "rbac-design": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/identity/rbac-design/SKILL.md",
+      "computedHash": "a2ca0f94b2ebdcff64fc5d161f81db58711fcd06cc248df9ea51cea3acc72a6d"
+    },
+    "sast-config": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/devsecops/sast-config/SKILL.md",
+      "computedHash": "aa81404c1ff53576f17fda192ff368fadec098402a2338af5bd24ab667310d97"
+    },
+    "sbom-analysis": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/vuln-management/sbom-analysis/SKILL.md",
+      "computedHash": "fad4556b486c8cb1dc21cb56e149b6190745fc4f45cf8acb4ca5a86b4d34cf7d"
+    },
+    "scanner-tuning": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/vuln-management/scanner-tuning/SKILL.md",
+      "computedHash": "8663c20575c999a4157c26442e0aceda99ebecf0858d9b47192ede95a75f487a"
+    },
+    "secrets-management": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/devsecops/secrets-management/SKILL.md",
+      "computedHash": "b3063fccd6198c506113fcdf2149992f1a045405b2c9c1d76759d2a7eca5a3d0"
+    },
+    "secure-code-review": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/appsec/secure-code-review/SKILL.md",
+      "computedHash": "919f1941e9edcd0ce0f5fd5dfe39dce16290d399618defa19f3301665df12b61"
+    },
+    "segmentation": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/network/segmentation/SKILL.md",
+      "computedHash": "6e7f29194d0583bfd42b58a601dc07dbb8a7eb1907618b502f05550c4a0c05f5"
+    },
+    "siem-rules": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/secops/siem-rules/SKILL.md",
+      "computedHash": "10eed8104276d942080d9467cd0c7b403a8b51f01da22ab9ca1238e4e66c592c"
+    },
+    "soc2-gap": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/compliance/soc2-gap/SKILL.md",
+      "computedHash": "d4e52f0c3472c58851eaa27b56fc3a5913cd1cc3008dd1cdb30930ae032c7e31"
+    },
+    "threat-modeling": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/appsec/threat-modeling/SKILL.md",
+      "computedHash": "de023ae37c6f953c1313bb50cf72399184aa0d7d298a2d485a62e1c79a8a02eb"
+    },
+    "zero-trust-assessment": {
+      "source": "unitoneai/securityskills",
+      "sourceType": "github",
+      "skillPath": "skills/identity/zero-trust-assessment/SKILL.md",
+      "computedHash": "847afdc7a1fa58ab6c2bda183e6d71f222872995a60fc2b2dcfebe5b048664f2"
+    }
+  }
+}
