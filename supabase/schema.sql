@@ -39,3 +39,17 @@ CREATE TABLE admins (
 
 -- Disable Row Level Security for admins table so the backend API can query it
 ALTER TABLE admins DISABLE ROW LEVEL SECURITY;
+
+CREATE TABLE rate_limits (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    identifier TEXT NOT NULL,
+    action TEXT NOT NULL,
+    count INTEGER DEFAULT 1,
+    first_request_at TIMESTAMPTZ DEFAULT NOW(),
+    last_request_at TIMESTAMPTZ DEFAULT NOW(),
+    locked_until TIMESTAMPTZ,
+    UNIQUE (identifier, action)
+);
+
+-- Disable Row Level Security (RLS) for rate_limits so backend can query it without explicit auth
+ALTER TABLE rate_limits DISABLE ROW LEVEL SECURITY;

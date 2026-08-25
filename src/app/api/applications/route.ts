@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { Application } from "@/types/join";
+import { checkRateLimit, getIpFromRequest } from "@/lib/rate-limit";
+import { applicationPostSchema, applicationPatchSchema } from "@/lib/validations";
 
 // Helper to convert snake_case DB row to camelCase frontend type
 function mapAppFromDB(row: any): Application {
@@ -29,6 +31,12 @@ function mapAppFromDB(row: any): Application {
 }
 
 export async function GET(request: Request) {
+  const ip = getIpFromRequest(request);
+  const limit = await checkRateLimit(ip, 'authenticated');
+  if (!limit.success) {
+    return NextResponse.json({ error: "Too Many Requests" }, { status: 429, headers: { 'Retry-After': String(limit.retryAfter || 60) } });
+  }
+
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("userId");
   const email = searchParams.get("email");
@@ -51,19 +59,33 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, applications: (data || []).map(mapAppFromDB) });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("GET Applications Error:", err);
+    return NextResponse.json({ error: "An unexpected error occurred while fetching applications." }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
+  const ip = getIpFromRequest(request);
+  const limit = await checkRateLimit(ip, 'public');
+  if (!limit.success) {
+    return NextResponse.json({ error: "Too Many Requests" }, { status: 429, headers: { 'Retry-After': String(limit.retryAfter || 60) } });
+  }
+
   try {
     const body = await request.json();
+    
+    const parsed = applicationPostSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation Error", details: parsed.error.format() }, { status: 400 });
+    }
+    
+    const validatedData = parsed.data;
     
     // Check if exists
     const { data: existing } = await supabase
       .from("applications")
       .select("id")
-      .or(`user_id.eq.${body.userId},email.ilike.${body.email}`)
+      .or(`user_id.eq.${validatedData.userId},email.ilike.${validatedData.email}`)
       .single();
 
     if (existing) {
@@ -71,18 +93,18 @@ export async function POST(request: Request) {
       const { data, error } = await supabase
         .from("applications")
         .update({
-          full_name: body.fullName,
-          phone: body.phone,
-          department: body.department,
-          year: body.year,
-          primary_domain: body.primaryDomain,
-          domains: body.domains,
-          github_url: body.githubUrl,
-          linkedin_url: body.linkedinUrl,
-          portfolio_url: body.portfolioUrl,
-          resume_url: body.resumeUrl,
-          why_join: body.whyJoin,
-          past_experience: body.pastExperience,
+          full_name: validatedData.fullName,
+          phone: validatedData.phone,
+          department: validatedData.department,
+          year: validatedData.year,
+          primary_domain: validatedData.primaryDomain,
+          domains: validatedData.domains,
+          github_url: validatedData.githubUrl,
+          linkedin_url: validatedData.linkedinUrl,
+          portfolio_url: validatedData.portfolioUrl,
+          resume_url: validatedData.resumeUrl,
+          why_join: validatedData.whyJoin,
+          past_experience: validatedData.pastExperience,
           updated_at: new Date().toISOString(),
         })
         .eq("id", existing.id)
@@ -95,20 +117,20 @@ export async function POST(request: Request) {
     const { data, error } = await supabase
       .from("applications")
       .insert({
-        user_id: body.userId,
-        full_name: body.fullName,
-        email: body.email,
-        phone: body.phone,
-        department: body.department,
-        year: body.year,
-        primary_domain: body.primaryDomain,
-        domains: body.domains,
-        github_url: body.githubUrl,
-        linkedin_url: body.linkedinUrl,
-        portfolio_url: body.portfolioUrl,
-        resume_url: body.resumeUrl,
-        why_join: body.whyJoin,
-        past_experience: body.pastExperience,
+        user_id: validatedData.userId,
+        full_name: validatedData.fullName,
+        email: validatedData.email,
+        phone: validatedData.phone,
+        department: validatedData.department,
+        year: validatedData.year,
+        primary_domain: validatedData.primaryDomain,
+        domains: validatedData.domains,
+        github_url: validatedData.githubUrl,
+        linkedin_url: validatedData.linkedinUrl,
+        portfolio_url: validatedData.portfolioUrl,
+        resume_url: validatedData.resumeUrl,
+        why_join: validatedData.whyJoin,
+        past_experience: validatedData.pastExperience,
         status: "Under Review",
       })
       .select()
@@ -117,14 +139,27 @@ export async function POST(request: Request) {
     if (error) throw error;
     return NextResponse.json({ success: true, application: mapAppFromDB(data) }, { status: 201 });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to submit application" }, { status: 500 });
+    console.error("POST Application Error:", err);
+    return NextResponse.json({ error: "An unexpected error occurred while submitting the application." }, { status: 500 });
   }
 }
 
 export async function PATCH(request: Request) {
+  const ip = getIpFromRequest(request);
+  const limit = await checkRateLimit(ip, 'authenticated');
+  if (!limit.success) {
+    return NextResponse.json({ error: "Too Many Requests" }, { status: 429, headers: { 'Retry-After': String(limit.retryAfter || 60) } });
+  }
+
   try {
     const body = await request.json();
-    const { id, status, adminNotes, rating } = body;
+    
+    const parsed = applicationPatchSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation Error", details: parsed.error.format() }, { status: 400 });
+    }
+    
+    const { id, status, adminNotes, rating } = parsed.data;
 
     const updates: any = { updated_at: new Date().toISOString() };
     if (status !== undefined) updates.status = status;
@@ -141,6 +176,7 @@ export async function PATCH(request: Request) {
     if (error) throw error;
     return NextResponse.json({ success: true, application: mapAppFromDB(data) });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to update application" }, { status: 500 });
+    console.error("PATCH Application Error:", err);
+    return NextResponse.json({ error: "An unexpected error occurred while updating the application." }, { status: 500 });
   }
 }

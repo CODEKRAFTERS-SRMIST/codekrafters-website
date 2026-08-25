@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import AppShell from "./AppShell";
+import { DevToolsBlocker } from "@/components/DevToolsBlocker";
 
 export const metadata: Metadata = {
-  title: "CodeKrafters SRM RMP",
+  metadataBase: new URL("https://codekrafters-website.vercel.app"),
+  title: "CodeKrafters | Premier SRM Tech Community & Developer Club",
   description:
-    "CodeKrafters SRM RMP is a student-led community with 7 technical and non-technical domains, focused on skills, innovation, and impact.",
+    "Join CodeKrafters, the leading SRM tech community. Explore 7 dynamic domains, attend coding workshops, and build real-world student developer projects.",
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: "/favicon.ico",
   },
@@ -39,9 +44,25 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const orgSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "CodeKrafters SRM RMP",
+    url: "https://codekrafters-website.vercel.app/",
+    logo: "https://codekrafters-website.vercel.app/logo.png",
+    description: "A student community with 7 technical and non-technical domains driving innovation, creativity, and leadership.",
+  };
+
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+        />
+      </head>
       <body className="antialiased bg-black text-white dark">
+        <DevToolsBlocker />
         <AppShell>{children}</AppShell>
       </body>
     </html>
