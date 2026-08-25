@@ -34,6 +34,15 @@ export const KRAFTER_LINKS: KrafterLinkItem[] = [
     url: "https://launch-pad-task.vercel.app",
     category: "tasks",
   },
+  {
+    id: "web3-den",
+    title: "Web3-Den",
+    subtitle: "WEB3 DOMAIN",
+    description: "Showcase of our Web3 domain projects and innovations.",
+    imagePath: "/ck-core.jpg",
+    url: "https://web3den.vercel.app/",
+    category: "projects",
+  },
 ];
 
 /**
