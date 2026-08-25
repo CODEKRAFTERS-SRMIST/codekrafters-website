@@ -5,7 +5,7 @@ import AppShell from "./AppShell";
 import { DevToolsBlocker } from "@/components/DevToolsBlocker";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://codekrafters-website.vercel.app"),
+  metadataBase: new URL("https://codekrafters.tech"),
   title: "CodeKrafters | Premier SRM Tech Community & Developer Club",
   description:
     "Join CodeKrafters, the leading SRM tech community. Explore 7 dynamic domains, attend coding workshops, and build real-world student developer projects.",
@@ -19,11 +19,11 @@ export const metadata: Metadata = {
     title: "CodeKrafters SRM RMP",
     description:
       "IT’S MORE THAN A CLUB — A student community with 7 technical and non-technical domains driving innovation, creativity, and leadership.",
-    url: "https://codekrafters-website.vercel.app/", // replace with real domain
+    url: "https://codekrafters.tech/",
     siteName: "CodeKrafters SRM RMP",
     images: [
       {
-        url: "https://codekrafters-website.vercel.app/og.jpg",
+        url: "https://codekrafters.tech/og.jpg",
         width: 1200,
         height: 630,
         alt: "CodeKrafters SRM RMP",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     title: "CodeKrafters SRM RMP",
     description:
       "IT’S MORE THAN A CLUB — Learn, build, and grow across 7 diverse domains.",
-    images: ["https://codekrafters-website.vercel.app/og.jpg"],
+    images: ["https://codekrafters.tech/og.jpg"],
   },
 };
 
@@ -48,8 +48,8 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "CodeKrafters SRM RMP",
-    url: "https://codekrafters-website.vercel.app/",
-    logo: "https://codekrafters-website.vercel.app/logo.png",
+    url: "https://codekrafters.tech/",
+    logo: "https://codekrafters.tech/logo.png",
     description: "A student community with 7 technical and non-technical domains driving innovation, creativity, and leadership.",
   };
 

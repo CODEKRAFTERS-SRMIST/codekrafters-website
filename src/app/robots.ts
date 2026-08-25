@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: '/api/',
     },
-    sitemap: 'https://codekrafters-website.vercel.app/sitemap.xml',
+    sitemap: 'https://codekrafters.tech/sitemap.xml',
   };
 }
