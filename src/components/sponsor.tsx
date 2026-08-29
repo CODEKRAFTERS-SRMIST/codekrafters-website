@@ -65,7 +65,7 @@ function InfiniteScrollCol({ items, renderItem, reverse = false }: { items: Comp
     <div ref={scrollRef} className="flex-1 relative overflow-hidden" style={{ height: "700px" }}>
       <div className="flex flex-col">
         {[...items, ...items, ...items].map((item, i) => (
-          <div key={\`\${item.id}-\${i}\`} className="mb-6">
+          <div key={item.id + "-" + i} className="mb-6">
             {renderItem(item)}
           </div>
         ))}
@@ -133,7 +133,7 @@ function InfiniteScrollRow({ items, renderItem, reverse = false }: { items: Comp
   return (
     <div ref={scrollRef} className="w-full relative overflow-x-auto scrollbar-hide flex">
       {[...items, ...items, ...items].map((item, i) => (
-        <div key={\`\${item.id}-\${i}\`} className="mx-3 flex-shrink-0">
+        <div key={item.id + "-" + i} className="mx-3 flex-shrink-0">
           {renderItem(item)}
         </div>
       ))}
@@ -227,7 +227,7 @@ const SponsorsComponent: React.FC = () => {
         <InfiniteScrollRow items={column3} renderItem={renderLogoCard} />
       </div>
 
-      <style jsx>{\`
+      <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
@@ -241,7 +241,7 @@ const SponsorsComponent: React.FC = () => {
             height: 100px !important;
           }
         }
-      \`}</style>
+      `}</style>
     </div>
   );
 };
