@@ -10,85 +10,67 @@ interface CompanyLogo {
   alt: string;
 }
 
-// ---------------------------
-// GLOBAL WHEEL TRAP
-// ---------------------------
-function ScrollTrap({ children, className }: { children: React.ReactNode, className?: string }) {
-  const trapRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const el = trapRef.current;
-    if (!el) return;
-    
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-    };
-
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, []);
-
-  return (
-    <div ref={trapRef} className={className}>
-      {children}
-    </div>
-  );
-}
 
 // ---------------------------
 // DESKTOP INFINITE SCROLL COL
 // ---------------------------
 function InfiniteScrollCol({ items, renderItem, reverse = false }: { items: CompanyLogo[], renderItem: (c: CompanyLogo) => React.ReactNode, reverse?: boolean }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    
+    const wrap = wrapRef.current;
+    const track = trackRef.current;
+    if (!wrap || !track) return;
+
     let rafId: number;
-    let speed = reverse ? -1 : 1;
+    let isVisible = false;
+    let paused = false;
+    let pos = 0;
+    let loopHeight = 0;
+    const spd = 0.6; // px per frame
 
-    // Start reverse columns in the middle so they can scroll up
-    if (reverse) {
-      el.scrollTop = el.scrollHeight / 3;
-    }
+    const observer = new IntersectionObserver(
+      ([entry]) => { isVisible = entry.isIntersecting; },
+      { threshold: 0.01 }
+    );
+    observer.observe(wrap);
 
-    const animate = () => {
-      const contentHeight = el.scrollHeight / 3;
-      if (el.scrollTop >= contentHeight * 2) {
-        el.scrollTop -= contentHeight;
-      } else if (el.scrollTop <= 0) {
-        el.scrollTop += contentHeight;
-      }
-      el.scrollTop += speed;
+    const onMouseEnter = () => { paused = true; };
+    const onMouseLeave = () => { paused = false; };
+    wrap.addEventListener('mouseenter', onMouseEnter);
+    wrap.addEventListener('mouseleave', onMouseLeave);
+
+    // Wait one frame for layout to settle, then read height once
+    rafId = requestAnimationFrame(() => {
+      loopHeight = track.offsetHeight / 3;
+      // Reverse starts mid-way so it can animate upward
+      if (reverse) pos = loopHeight;
+
+      const animate = () => {
+        if (isVisible && !paused) {
+          pos += reverse ? -spd : spd;
+          if (!reverse && pos >= loopHeight) pos -= loopHeight;
+          if (reverse && pos <= 0) pos += loopHeight;
+          track.style.transform = `translateY(-${pos}px)`;
+        }
+        rafId = requestAnimationFrame(animate);
+      };
       rafId = requestAnimationFrame(animate);
-    };
-    rafId = requestAnimationFrame(animate);
-
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      el.scrollTop += e.deltaY;
-    };
-    
-    // allow pausing on hover
-    const onMouseEnter = () => speed = 0;
-    const onMouseLeave = () => speed = reverse ? -1 : 1;
-
-    el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("mouseenter", onMouseEnter);
-    el.addEventListener("mouseleave", onMouseLeave);
+    });
 
     return () => {
       cancelAnimationFrame(rafId);
-      el.removeEventListener("wheel", onWheel);
-      el.removeEventListener("mouseenter", onMouseEnter);
-      el.removeEventListener("mouseleave", onMouseLeave);
+      observer.disconnect();
+      wrap.removeEventListener('mouseenter', onMouseEnter);
+      wrap.removeEventListener('mouseleave', onMouseLeave);
     };
   }, [reverse]);
 
   return (
-    <div ref={scrollRef} className="flex-1 relative overflow-hidden" style={{ height: "700px" }}>
-      <div className="flex flex-col">
+    <div ref={wrapRef} className="flex-1 relative overflow-hidden" style={{ height: "700px" }}>
+      <div ref={trackRef} className="flex flex-col h-max" style={{ willChange: 'transform' }}>
         {[...items, ...items, ...items].map((item, i) => (
           <div key={item.id + "-" + i} className="mb-6">
             {renderItem(item)}
@@ -103,59 +85,65 @@ function InfiniteScrollCol({ items, renderItem, reverse = false }: { items: Comp
 // MOBILE INFINITE SCROLL ROW
 // ---------------------------
 function InfiniteScrollRow({ items, renderItem, reverse = false }: { items: CompanyLogo[], renderItem: (c: CompanyLogo) => React.ReactNode, reverse?: boolean }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    
+    const wrap = wrapRef.current;
+    const track = trackRef.current;
+    if (!wrap || !track) return;
+
     let rafId: number;
-    let speed = reverse ? -1 : 1;
+    let isVisible = false;
+    let paused = false;
+    let pos = 0;
+    let loopWidth = 0;
+    const spd = 0.6;
 
-    if (reverse) {
-      el.scrollLeft = el.scrollWidth / 3;
-    }
+    const observer = new IntersectionObserver(
+      ([entry]) => { isVisible = entry.isIntersecting; },
+      { threshold: 0.01 }
+    );
+    observer.observe(wrap);
 
-    const animate = () => {
-      const contentWidth = el.scrollWidth / 3;
-      if (el.scrollLeft >= contentWidth * 2) {
-        el.scrollLeft -= contentWidth;
-      } else if (el.scrollLeft <= 0) {
-        el.scrollLeft += contentWidth;
-      }
-      el.scrollLeft += speed;
+    const onTouchStart = () => { paused = true; };
+    const onTouchEnd = () => { paused = false; };
+    wrap.addEventListener('touchstart', onTouchStart, { passive: true });
+    wrap.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    rafId = requestAnimationFrame(() => {
+      loopWidth = track.offsetWidth / 3;
+      if (reverse) pos = loopWidth;
+
+      const animate = () => {
+        if (isVisible && !paused) {
+          pos += reverse ? -spd : spd;
+          if (!reverse && pos >= loopWidth) pos -= loopWidth;
+          if (reverse && pos <= 0) pos += loopWidth;
+          track.style.transform = `translateX(-${pos}px)`;
+        }
+        rafId = requestAnimationFrame(animate);
+      };
       rafId = requestAnimationFrame(animate);
-    };
-    rafId = requestAnimationFrame(animate);
-
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-      el.scrollLeft += delta;
-    };
-    
-    const onTouchStart = () => speed = 0;
-    const onTouchEnd = () => speed = reverse ? -1 : 1;
-
-    el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("touchstart", onTouchStart, { passive: true });
-    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    });
 
     return () => {
       cancelAnimationFrame(rafId);
-      el.removeEventListener("wheel", onWheel);
-      el.removeEventListener("touchstart", onTouchStart);
-      el.removeEventListener("touchend", onTouchEnd);
+      observer.disconnect();
+      wrap.removeEventListener('touchstart', onTouchStart);
+      wrap.removeEventListener('touchend', onTouchEnd);
     };
   }, [reverse]);
 
   return (
-    <div ref={scrollRef} className="w-full relative overflow-x-auto scrollbar-hide flex">
-      {[...items, ...items, ...items].map((item, i) => (
-        <div key={item.id + "-" + i} className="mx-3 flex-shrink-0">
-          {renderItem(item)}
-        </div>
-      ))}
+    <div ref={wrapRef} className="w-full relative overflow-hidden">
+      <div ref={trackRef} className="flex w-max" style={{ willChange: 'transform' }}>
+        {[...items, ...items, ...items].map((item, i) => (
+          <div key={item.id + "-" + i} className="mx-3 flex-shrink-0">
+            {renderItem(item)}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -226,7 +214,7 @@ const SponsorsComponent: React.FC = () => {
       </div>
 
       {/* DESKTOP */}
-      <ScrollTrap className="hidden md:block w-full overflow-hidden relative">
+      <div className="hidden md:block w-full overflow-hidden relative">
         <div className="flex gap-3 px-6 max-w-[1100px] mx-auto">
           <InfiniteScrollCol items={column1} renderItem={renderLogoCard} />
           <InfiniteScrollCol items={column2} renderItem={renderLogoCard} reverse />
@@ -234,26 +222,23 @@ const SponsorsComponent: React.FC = () => {
         </div>
         <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-[#FFEFB4] to-transparent pointer-events-none z-10"></div>
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#FFEFB4] to-transparent pointer-events-none z-10"></div>
-      </ScrollTrap>
+      </div>
 
       {/* MOBILE */}
-      <ScrollTrap className="block md:hidden w-full overflow-hidden relative mt-8 space-y-6">
+      <div className="block md:hidden w-full overflow-hidden relative mt-8 space-y-6">
         <div className="absolute top-0 bottom-0 left-0 w-16 bg-gradient-to-r from-[#FFEFB4] to-transparent pointer-events-none z-10" />
         <div className="absolute top-0 bottom-0 right-0 w-16 bg-gradient-to-l from-[#FFEFB4] to-transparent pointer-events-none z-10" />
 
         <InfiniteScrollRow items={column1} renderItem={renderLogoCard} />
         <InfiniteScrollRow items={column2} renderItem={renderLogoCard} reverse />
         <InfiniteScrollRow items={column3} renderItem={renderLogoCard} />
-      </ScrollTrap>
+      </div>
 
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
         .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
         @media (max-width: 768px) {
           .sponsor-card {
             width: 140px !important;

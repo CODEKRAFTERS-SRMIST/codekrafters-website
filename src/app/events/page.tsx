@@ -12,10 +12,10 @@ const montserrat = Montserrat({ subsets: ["latin"], weight: ["800", "900"] });
 function EventCard({ event, onClick }: { event: any, onClick: (event: any) => void }) {
   return (
     <div 
-      className="relative group mx-3 sm:mx-4 md:mx-6 flex-shrink-0 cursor-pointer"
+      className="relative group/card mx-3 sm:mx-4 md:mx-6 flex-shrink-0 cursor-pointer"
       onClick={() => onClick(event)}
     >
-      <div className="ck-card bg-[#f9f7e5] border-4 border-[#0D0D0D] rounded-3xl overflow-hidden shadow-[6px_6px_0_#0D0D0D] transition-transform duration-300 group-hover:-translate-y-2 group-hover:shadow-[10px_10px_0_#F2A516] h-48 sm:h-56 md:h-64 lg:h-72 aspect-[4/3] flex items-center justify-center relative">
+      <div className="ck-card bg-[#f9f7e5] border-4 border-[#0D0D0D] rounded-3xl overflow-hidden shadow-[6px_6px_0_#0D0D0D] transition-transform duration-300 group-hover/card:-translate-y-2 group-hover/card:shadow-[10px_10px_0_#F2A516] h-48 sm:h-56 md:h-64 lg:h-72 aspect-[4/3] flex items-center justify-center relative">
         
         {/* Placeholder Glow */}
         <div className="absolute top-0 w-3/4 h-1/2 bg-[#F2A516]/30 blur-2xl rounded-full mix-blend-multiply pointer-events-none" />
@@ -24,14 +24,17 @@ function EventCard({ event, onClick }: { event: any, onClick: (event: any) => vo
           src={event.image_url || "/placeholder.svg"}
           alt={event.title}
           loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
         />
 
         {/* Hover Overlay */}
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-4">
-          <span className={`${russoOne.className} text-white text-lg sm:text-xl md:text-2xl font-black text-center drop-shadow-md tracking-wider uppercase`}>
+        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-4 gap-3">
+          <span className={`${russoOne.className} text-white text-lg sm:text-xl md:text-2xl font-black text-center drop-shadow-md tracking-wider uppercase line-clamp-3`}>
             {event.title}
           </span>
+          <div className="bg-[#F2A516] text-[#0D0D0D] text-[10px] sm:text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-widest shadow-[2px_2px_0_#0D0D0D] transform translate-y-4 group-hover/card:translate-y-0 transition-all duration-300">
+            Click to explore
+          </div>
         </div>
       </div>
     </div>
@@ -160,8 +163,14 @@ export default function EventsPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center items-center py-20">
-             <div className="w-16 h-16 border-8 border-[#0D0D0D] border-t-[#F2A516] rounded-full animate-spin shadow-[4px_4px_0_#0D0D0D]"></div>
+          <div className="flex flex-col justify-center items-center py-32 min-h-[50vh] gap-6">
+             <div className="relative w-20 h-20">
+               {/* Background Track */}
+               <div className="absolute inset-0 border-8 border-[#0D0D0D]/10 rounded-full"></div>
+               {/* Spinning Ring */}
+               <div className="absolute inset-0 border-8 border-transparent border-t-[#0D0D0D] border-r-[#F2A516] rounded-full animate-spin"></div>
+             </div>
+             <p className={`${russoOne.className} text-lg font-black uppercase text-[#0D0D0D]/60 tracking-widest animate-pulse`}>Loading Events</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4 sm:gap-8">

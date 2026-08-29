@@ -320,54 +320,64 @@ const EventCard = ({ event }: { event: typeof row1Images[0] }) => (
 );
 
 const InfiniteScrollRow = ({ items, direction = 'left', speed = 30 }: { items: typeof row1Images, direction?: 'left' | 'right', speed?: number }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const pausedRef = useRef(false);
 
   useEffect(() => {
-    const scrollContainer = scrollRef.current;
-    if (!scrollContainer) return;
+    const wrap = wrapRef.current;
+    const track = trackRef.current;
+    if (!wrap || !track) return;
 
-    let animationFrameId: number;
-    let scrollPos = 0;
-    
-    // Create seamless loop by tripling the content
-    const scrollContent = () => {
-      if (isHovered) {
-        animationFrameId = requestAnimationFrame(scrollContent);
-        return;
-      }
+    let rafId: number;
+    let isVisible = false;
+    let pos = 0;
+    let loopWidth = 0;
+    const spd = 0.8; // px per frame
 
-      scrollPos += direction === 'left' ? 1 : -1;
-      
-      const maxScroll = scrollContainer.scrollWidth / 3;
-      
-      if (direction === 'left' && scrollPos >= maxScroll) {
-        scrollPos = 0;
-      } else if (direction === 'right' && scrollPos <= 0) {
-        scrollPos = maxScroll;
-      }
+    const observer = new IntersectionObserver(
+      ([entry]) => { isVisible = entry.isIntersecting; },
+      { threshold: 0.01 }
+    );
+    observer.observe(wrap);
 
-      scrollContainer.scrollLeft = scrollPos;
-      animationFrameId = requestAnimationFrame(scrollContent);
+    // Read layout once after first paint
+    rafId = requestAnimationFrame(() => {
+      loopWidth = track.offsetWidth / 3;
+      if (direction === 'right') pos = loopWidth;
+
+      const animate = () => {
+        if (isVisible && !pausedRef.current) {
+          pos += direction === 'left' ? spd : -spd;
+          if (direction === 'left' && pos >= loopWidth) pos -= loopWidth;
+          if (direction === 'right' && pos <= 0) pos += loopWidth;
+          track.style.transform = `translateX(-${pos}px)`;
+        }
+        rafId = requestAnimationFrame(animate);
+      };
+      rafId = requestAnimationFrame(animate);
+    });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      observer.disconnect();
     };
-
-    animationFrameId = requestAnimationFrame(scrollContent);
-
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [direction, isHovered, speed]);
+  }, [direction, speed]);
 
   return (
-    <div 
-      className="relative flex overflow-hidden py-3"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+    <div
+      ref={wrapRef}
+      className="relative overflow-hidden py-3"
+      onMouseEnter={() => { pausedRef.current = true; }}
+      onMouseLeave={() => { pausedRef.current = false; }}
+      onTouchStart={() => { pausedRef.current = true; }}
+      onTouchEnd={() => { pausedRef.current = false; }}
     >
-      <div 
-        ref={scrollRef}
-        className="flex gap-4 sm:gap-6 overflow-hidden whitespace-nowrap"
-        style={{ scrollBehavior: 'auto' }}
+      <div
+        ref={trackRef}
+        className="flex gap-4 sm:gap-6 w-max"
+        style={{ willChange: 'transform' }}
       >
-        {/* Render 3 sets of items for seamless infinite scroll */}
         {[...items, ...items, ...items].map((item, idx) => (
           <EventCard key={item.id + "-" + idx} event={item} />
         ))}
@@ -380,7 +390,7 @@ export default function Events() {
   return (
     <section className="relative py-20 overflow-hidden bg-[#0B1221]" id="events">
       {/* Background Effects */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-[#F2B200]/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-[#F2B200]/10 rounded-full pointer-events-none opacity-50 blur-[50px] sm:blur-[100px]" />
       
       <div className="container mx-auto px-4 mb-16 relative z-10">
         <div className="flex flex-col items-center justify-center text-center space-y-4">
