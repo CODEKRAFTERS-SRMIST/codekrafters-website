@@ -11,6 +11,31 @@ interface CompanyLogo {
 }
 
 // ---------------------------
+// GLOBAL WHEEL TRAP
+// ---------------------------
+function ScrollTrap({ children, className }: { children: React.ReactNode, className?: string }) {
+  const trapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = trapRef.current;
+    if (!el) return;
+    
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
+  return (
+    <div ref={trapRef} className={className}>
+      {children}
+    </div>
+  );
+}
+
+// ---------------------------
 // DESKTOP INFINITE SCROLL COL
 // ---------------------------
 function InfiniteScrollCol({ items, renderItem, reverse = false }: { items: CompanyLogo[], renderItem: (c: CompanyLogo) => React.ReactNode, reverse?: boolean }) {
@@ -104,15 +129,9 @@ function InfiniteScrollRow({ items, renderItem, reverse = false }: { items: Comp
     rafId = requestAnimationFrame(animate);
 
     const onWheel = (e: WheelEvent) => {
-      // Only capture wheel if scrolling predominantly horizontally or if user wants to scroll it
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-        e.preventDefault();
-        el.scrollLeft += e.deltaX;
-      } else {
-        // Also allow vertical scroll to push it horizontally for easier mobile access? 
-        // Actually, on mobile, touch will trigger scroll events, but native touch dragging is better.
-        // We can just let native touch events handle it by setting overflow-x-auto and hiding scrollbar.
-      }
+      e.preventDefault();
+      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      el.scrollLeft += delta;
     };
     
     const onTouchStart = () => speed = 0;
@@ -207,7 +226,7 @@ const SponsorsComponent: React.FC = () => {
       </div>
 
       {/* DESKTOP */}
-      <div className="hidden md:block w-full overflow-hidden relative">
+      <ScrollTrap className="hidden md:block w-full overflow-hidden relative">
         <div className="flex gap-3 px-6 max-w-[1100px] mx-auto">
           <InfiniteScrollCol items={column1} renderItem={renderLogoCard} />
           <InfiniteScrollCol items={column2} renderItem={renderLogoCard} reverse />
@@ -215,17 +234,17 @@ const SponsorsComponent: React.FC = () => {
         </div>
         <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-[#FFEFB4] to-transparent pointer-events-none z-10"></div>
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#FFEFB4] to-transparent pointer-events-none z-10"></div>
-      </div>
+      </ScrollTrap>
 
       {/* MOBILE */}
-      <div className="block md:hidden w-full overflow-hidden relative mt-8 space-y-6">
+      <ScrollTrap className="block md:hidden w-full overflow-hidden relative mt-8 space-y-6">
         <div className="absolute top-0 bottom-0 left-0 w-16 bg-gradient-to-r from-[#FFEFB4] to-transparent pointer-events-none z-10" />
         <div className="absolute top-0 bottom-0 right-0 w-16 bg-gradient-to-l from-[#FFEFB4] to-transparent pointer-events-none z-10" />
 
         <InfiniteScrollRow items={column1} renderItem={renderLogoCard} />
         <InfiniteScrollRow items={column2} renderItem={renderLogoCard} reverse />
         <InfiniteScrollRow items={column3} renderItem={renderLogoCard} />
-      </div>
+      </ScrollTrap>
 
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar {
