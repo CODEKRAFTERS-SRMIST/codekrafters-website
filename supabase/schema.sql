@@ -53,3 +53,15 @@ CREATE TABLE rate_limits (
 
 -- Disable Row Level Security (RLS) for rate_limits so backend can query it without explicit auth
 ALTER TABLE rate_limits DISABLE ROW LEVEL SECURITY;
+
+CREATE TABLE event_postings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    category TEXT NOT NULL,
+    title TEXT NOT NULL,
+    image_url TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Disable Row Level Security for event_postings so the frontend can read easily
+ALTER TABLE event_postings DISABLE ROW LEVEL SECURITY;
