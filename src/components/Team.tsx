@@ -62,7 +62,7 @@ export default function TeamComponent() {
     if (!container) return;
 
     let rafId: number;
-    const duration = 5000;
+    const duration = 2500;
 
     const animate = () => {
       const elapsed = Date.now() - startTimeRef.current;
@@ -189,29 +189,13 @@ export default function TeamComponent() {
 
                       {/* Image container with responsive sizing and flex-shrink-0 */}
                       <div className="w-24 sm:w-28 md:w-32 lg:w-36 h-24 sm:h-28 md:h-32 lg:h-36 overflow-hidden rounded-full border-2 border-[#0D0D0D] mb-2 sm:mb-3 bg-[#FFF2C6] shadow-inner flex-shrink-0">
-                        {member.name === "Yashvanth MR" ? (
-  <div
-    role="img"
-    aria-label={member.name}
-    style={{
-      backgroundImage: `url(${member.imagePath || "/placeholder.svg"})`,
-      backgroundPosition: "center -30%",
-      backgroundSize: "cover",
-      backgroundRepeat: "no-repeat",
-      width: "100%",
-      height: "100%",
-      transform: "translateX(6%)", // 👈 force move image to the RIGHT
-    }}
-  />
-) : (
-  <Image
-    src={member.imagePath || "/placeholder.svg"}
-    alt={member.name}
-    width={130}
-    height={130}
-    className="object-cover object-top w-full h-full"
-  />
-)}
+                        <Image
+                          src={member.imagePath || "/placeholder.svg"}
+                          alt={member.name}
+                          width={130}
+                          height={130}
+                          className="object-cover object-top w-full h-full"
+                        />
                       </div>
 
                       {/* Name with responsive text size and line clamping */}
