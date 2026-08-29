@@ -77,6 +77,15 @@ export const TEAM_MEMBERS = [
 
   // Creatives Domain
   {
+    id: 1000,
+    name: "Sashank",
+    role: "Creatives Head",
+    description: "Leads creative vision and design excellence.",
+    imagePath: "/domain_pics/creative/head/sashank.jpeg",
+    domain: "creatives",
+    social: { linkedin: "#" },
+  },
+  {
     id: 9,
     name: "TANISHA PAVITHRAKUMAR",
     role: "Creatives Head",
