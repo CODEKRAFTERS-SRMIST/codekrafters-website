@@ -96,14 +96,14 @@ export default function EventSection() {
     {
         "src": "events/FRONTIER BUILD STATIONS/70c25c52-775b-40b6-b16c-6d1feecc9e65.jpg",
         "label": "FRONTIER BUILD STATIONS"
+    },
+    {
+        "src": "events/Hack and Seek/30badb48-7d17-4b4f-b2a4-59a7487eb150.jpg",
+        "label": "Hack and Seek"
     }
 ];
 
   const row2Images = [
-    {
-        "src": "events/Hack and Seek/30badb48-7d17-4b4f-b2a4-59a7487eb150.jpg",
-        "label": "Hack and Seek"
-    },
     {
         "src": "events/Hack and Seek/fb43b909-1c2a-4b74-9d57-d249be8da97c.jpg",
         "label": "Hack and Seek"
@@ -123,10 +123,7 @@ export default function EventSection() {
     {
         "src": "events/IBW/1ef44ea2-0046-4fa7-a5f3-06863fc276ef.jpg",
         "label": "IBW"
-    }
-];
-
-  const row3Images = [
+    },
     {
         "src": "events/IBW/2ce537d7-c0c0-40a3-84fb-de58faea24a9.jpg",
         "label": "IBW"
@@ -134,7 +131,10 @@ export default function EventSection() {
     {
         "src": "events/IBW/a109d46c-7d6a-48c1-9b32-4226d402f17a.jpg",
         "label": "IBW"
-    },
+    }
+];
+
+  const row3Images = [
     {
         "src": "events/launchpad/launchpad-001.jpg",
         "label": "launchpad"
@@ -146,6 +146,18 @@ export default function EventSection() {
     {
         "src": "events/launchpad/launchpad-003.png",
         "label": "launchpad"
+    },
+    {
+        "src": "events/launchpad3.0/DSC_0712.JPG",
+        "label": "launchpad3.0"
+    },
+    {
+        "src": "events/launchpad3.0/DSC_0767.JPG",
+        "label": "launchpad3.0"
+    },
+    {
+        "src": "events/launchpad3.0/IMG_1501.DNG",
+        "label": "launchpad3.0"
     },
     {
         "src": "events/Metamask event/1999d234-f808-4c94-8544-668cb436ad25.jpg",
