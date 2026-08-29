@@ -42,15 +42,12 @@ export default function AdminEventsPage() {
   }, []);
 
   const handleLoginSuccess = (newSession: UserSession) => {
-    if (newSession.role !== 'ADMIN') {
-      alert("Access Denied: You are not an admin.");
-      return;
-    }
-    setSession(newSession);
     try {
       localStorage.setItem("codekrafters_user_session", JSON.stringify(newSession));
     } catch (e) {}
-    fetchEvents();
+
+    // Redirect all users (including admins) to homepage after login
+    window.location.href = "/";
   };
 
   const handleLogout = () => {

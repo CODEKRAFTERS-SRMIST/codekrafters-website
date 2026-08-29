@@ -12,7 +12,9 @@ import {
   BookOpen,
   Link as LinkIcon,
   UserPlus,
+  User,
 } from "lucide-react";
+import { UserSession } from "@/types/join";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -20,6 +22,14 @@ export function Navbar() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeLink, setActiveLink] = useState("home");
   const [hoveredLink, setHoveredLink] = useState<string | null>(null);
+  const [session, setSession] = useState<UserSession | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("codekrafters_user_session");
+      if (raw) setSession(JSON.parse(raw));
+    } catch (e) {}
+  }, []);
 
   const navLinks = [
     { label: "HOME", href: "/", id: "home", icon: Home },
@@ -29,6 +39,7 @@ export function Navbar() {
     { label: "BLOG", href: "https://ck-blog-platform.vercel.app/", id: "blog", icon: BookOpen },
     { label: "KRAFTERSLINK", href: "/krafterslink", id: "krafterslink", icon: LinkIcon },
     { label: "JOIN US", href: "/join", id: "join", icon: UserPlus },
+    { label: "PROFILE", href: "/admin/events", id: "profile", icon: User },
   ];
 
   useEffect(() => {
@@ -95,10 +106,22 @@ export function Navbar() {
                 const isHovered = hoveredLink === link.id;
                 const isExternal = link.href.startsWith("http");
 
+                let finalHref = link.href;
+                if (session?.role === 'ADMIN') {
+                  if (finalHref.startsWith('/') && finalHref !== '/' && link.id !== 'krafterslink' && link.id !== 'profile') {
+                    finalHref = `/admin${finalHref}`;
+                  }
+                  if (link.id === 'profile' && session.admin_level === 'PRESIDENT') {
+                    finalHref = '/admin/president';
+                  }
+                } else if (session?.role === 'APPLICANT' && link.id === 'profile') {
+                  finalHref = '/profile';
+                }
+
                 return (
                   <Link
                     key={link.id}
-                    href={link.href}
+                    href={finalHref}
                     target={isExternal ? "_blank" : undefined}
                     rel={isExternal ? "noopener noreferrer" : undefined}
                     onClick={() => {
