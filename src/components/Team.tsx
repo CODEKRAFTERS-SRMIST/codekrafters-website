@@ -9,88 +9,45 @@ import { TEAM_MEMBERS, DOMAINS } from "@/data/team-data";
 export default function TeamComponent() {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const startTimeRef = useRef<number>(Date.now());
+
+
 
   // ----------------------------------------
-  // Horizontal Scroll Wheel Support
-  // ----------------------------------------
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        e.preventDefault();
-        container.scrollLeft += e.deltaY * 0.9;
-      }
-    };
-
-    container.addEventListener("wheel", handleWheel, { passive: false });
-    return () => container.removeEventListener("wheel", handleWheel);
-  }, []);
-
-  // ----------------------------------------
-  // Detect active domain + reset timer on scroll
+  // Detect active domain
   // ----------------------------------------
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
-
-    let scrollTimeout: NodeJS.Timeout;
 
     const handleScroll = () => {
       const index = Math.round(container.scrollLeft / container.clientWidth);
       setActiveIndex(index);
-
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        startTimeRef.current = Date.now();
-        setProgress(0);
-      }, 200);
     };
 
-    container.addEventListener("scroll", handleScroll);
+    container.addEventListener("scroll", handleScroll, { passive: true });
     return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
   // ----------------------------------------
-  // Auto-slider progress bar + auto-scroll
+  // Auto-scroll
   // ----------------------------------------
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    let rafId: number;
-    const duration = 2500;
+    const timer = setTimeout(() => {
+      const nextIndex = (activeIndex + 1) % DOMAINS.length;
+      container.scrollTo({
+        left: container.clientWidth * nextIndex,
+        behavior: "smooth",
+      });
+    }, 4000);
 
-    const animate = () => {
-      const elapsed = Date.now() - startTimeRef.current;
-      const ratio = Math.min(elapsed / duration, 1);
-
-      setProgress(ratio * 100);
-
-      if (ratio >= 1) {
-        const nextIndex = (activeIndex + 1) % DOMAINS.length;
-        container.scrollTo({
-          left: container.clientWidth * nextIndex,
-          behavior: "smooth",
-        });
-
-        setActiveIndex(nextIndex);
-        startTimeRef.current = Date.now();
-        setProgress(0);
-      }
-
-      rafId = requestAnimationFrame(animate);
-    };
-
-    rafId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(rafId);
+    return () => clearTimeout(timer);
   }, [activeIndex]);
 
   // ----------------------------------------
-  // Manual click → scroll & reset timer
+  // Manual click → scroll
   // ----------------------------------------
   const scrollToDomain = (index: number) => {
     const container = scrollContainerRef.current;
@@ -102,8 +59,6 @@ export default function TeamComponent() {
     });
 
     setActiveIndex(index);
-    startTimeRef.current = Date.now();
-    setProgress(0);
   };
 
   return (
@@ -112,11 +67,12 @@ export default function TeamComponent() {
       className="relative w-full bg-[#FFEFB4] overflow-hidden flex flex-col justify-between"
     >
       {/* Progress timer bar with responsive positioning and sizing */}
-      <div className="absolute top-3 sm:top-6 left-3 sm:left-6 w-24 sm:w-32 md:w-40 h-1.5 sm:h-2 bg-[#0D0D0D]/20 rounded-full overflow-hidden">
+      <div className="absolute top-3 sm:top-6 left-3 sm:left-6 w-24 sm:w-32 md:w-40 h-1.5 sm:h-2 bg-[#0D0D0D]/20 rounded-full overflow-hidden z-20">
         <motion.div
           key={activeIndex}
-          animate={{ width: `${progress}%` }}
-          transition={{ ease: "linear", duration: 0.1 }}
+          initial={{ width: "0%" }}
+          animate={{ width: "100%" }}
+          transition={{ ease: "linear", duration: 4 }}
           className="h-full bg-[#F2A516]"
         />
       </div>
@@ -157,7 +113,7 @@ export default function TeamComponent() {
               </div>
 
               {/* CHANGED: Members grid - 2 rows on mobile/tablet, flex-wrap on desktop */}
-              <div className="grid grid-cols-2 justify-items-center lg:flex lg:flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-10 max-w-6xl mx-auto px-2 sm:px-4">
+              <div className="grid grid-cols-2 justify-items-center lg:flex lg:flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-10 max-w-[1400px] mx-auto px-2 sm:px-4">
                 {members.map((member, index) => (
                   <motion.div
                     key={member.id}

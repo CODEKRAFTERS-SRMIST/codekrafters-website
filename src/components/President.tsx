@@ -5,56 +5,19 @@ import Image from "next/image";
 import { useRef, useEffect, useState } from "react";
 
 export default function PresidentIntroRetro() {
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  // Horizontal Scroll Wheel Support
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      // Only capture if they are scrolling predominantly vertically, translating it to horizontal
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        // Prevent default vertical scrolling to allow horizontal snap
-        // Note: Doing e.preventDefault() here can sometimes trap the user,
-        // so we'll just let native snap scrolling handle it unless they are exactly inside it.
-        // Actually, native touch/trackpad will scroll it fine horizontally. Let's just let CSS snap handle it.
-      }
-    };
-    
-    // Using standard CSS scroll snap is often better for a11y, but we can track active index
-    const handleScroll = () => {
-      const index = Math.round(container.scrollLeft / container.clientWidth);
-      setActiveIndex(index);
-    };
-
-    container.addEventListener("scroll", handleScroll);
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const scrollToSlide = (index: number) => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    container.scrollTo({
-      left: container.clientWidth * index,
-      behavior: "smooth",
-    });
-  };
 
   return (
     <section
       id="president"
       className="w-full min-h-screen bg-[#FFEFB4] overflow-hidden relative flex flex-col justify-center"
     >
-      {/* Scroll container */}
+      {/* Stack container */}
       <div 
-        ref={scrollContainerRef}
-        className="flex flex-row w-full overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide relative z-10"
+        className="flex flex-col w-full relative z-10 gap-16 sm:gap-24 py-16 sm:py-24"
       >
         
         {/* President Slide */}
-        <div className="w-screen flex-shrink-0 snap-center flex items-center justify-center px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-10 md:py-12 min-h-screen">
+        <div className="w-full flex items-center justify-center px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="max-w-7xl w-full flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8 md:gap-12 lg:gap-16">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 40 }}
@@ -75,7 +38,7 @@ export default function PresidentIntroRetro() {
               </div>
 
               <div className="absolute -top-3 sm:-top-4 -right-3 sm:-right-6 bg-[#0D0D0D] text-[#FFEFB4] text-[9px] sm:text-xs px-2 sm:px-3 py-1 rounded-full uppercase tracking-wider font-semibold rotate-6">
-                Est. 2025
+                Est. 2026
               </div>
             </motion.div>
 
@@ -111,7 +74,7 @@ export default function PresidentIntroRetro() {
         </div>
 
         {/* Vice President Slide */}
-        <div className="w-screen flex-shrink-0 snap-center flex items-center justify-center px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-10 md:py-12 min-h-screen">
+        <div className="w-full flex items-center justify-center px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="max-w-7xl w-full flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8 md:gap-12 lg:gap-16">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 40 }}
@@ -132,7 +95,7 @@ export default function PresidentIntroRetro() {
               </div>
 
               <div className="absolute -top-3 sm:-top-4 -right-3 sm:-right-6 bg-[#0D0D0D] text-[#FFEFB4] text-[9px] sm:text-xs px-2 sm:px-3 py-1 rounded-full uppercase tracking-wider font-semibold -rotate-6">
-                Est. 2025
+                Est. 2026
               </div>
             </motion.div>
 
@@ -168,19 +131,7 @@ export default function PresidentIntroRetro() {
 
       </div>
 
-      {/* Navigation Indicators */}
-      <div className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-        {[0, 1].map((index) => (
-          <button
-            key={index}
-            onClick={() => scrollToSlide(index)}
-            className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-[#0D0D0D] transition-all duration-300 ${
-              activeIndex === index ? "bg-[#F2A516] scale-125" : "bg-[#FFF6D0] hover:bg-[#F2A516]/50"
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
-      </div>
+
 
       <style jsx>{`
         section {

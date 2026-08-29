@@ -67,7 +67,7 @@ export default function JoinPage() {
   };
 
   return (
-    <div className="min-h-screen relative bg-[#FFEFB4] overflow-x-hidden flex flex-col justify-between pt-24 pb-8 font-sans">
+    <div className="min-h-screen relative bg-[#FFEFB4] overflow-x-hidden flex flex-col justify-between pt-24 font-sans">
       {/* Paper Fiber Texture Overlay */}
       <div
         className="absolute inset-0 pointer-events-none opacity-15 -z-10"
