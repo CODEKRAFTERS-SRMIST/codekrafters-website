@@ -28,23 +28,19 @@ function Card({ src, label }: { src: string; label: string }) {
 }
 
 function EventRow({
-  images,
-  folder,
-  label,
+  items,
   reverse = false,
 }: {
-  images: string[];
-  folder: string;
-  label: string;
+  items: { src: string; label: string }[];
   reverse?: boolean;
 }) {
-  const doubled = [...images, ...images];
+  const doubled = [...items, ...items];
 
   return (
     <section className="w-full overflow-hidden py-4 sm:py-6 md:py-8">
       <div className={`scroll-row ${reverse ? "reverse" : ""}`}>
-        {doubled.map((img, i) => (
-          <Card key={`${folder}-${i}`} src={`/${folder}/${img}`} label={label} />
+        {doubled.map((item, i) => (
+          <Card key={`event-${i}`} src={`/${item.src}`} label={item.label} />
         ))}
       </div>
 
@@ -76,66 +72,124 @@ function EventRow({
 }
 
 export default function EventSection() {
-  const launchpadImages = [
-    "launchpad-001.jpg",
-    "launchpad-002.jpg",
-    "launchpad-003.png",
-    "launchpad-004.jpg",
-    "launchpad-005.jpg",
-    "launchpad-006.jpg",
-    "launchpad-007.jpg",
-    "launchpad-008.jpg",
-    "launchpad-009.jpg",
-    "launchpad-010.jpg",
-  ];
+  const row1Images = [
+    {
+        "src": "events/ARBITRUM EVENT/29fb1fc3-061e-4eaa-b4d6-cb321d31d414.jpg",
+        "label": "ARBITRUM EVENT"
+    },
+    {
+        "src": "events/ARBITRUM EVENT/8f20c129-f8c1-4cdf-b164-5e9957972865.jpg",
+        "label": "ARBITRUM EVENT"
+    },
+    {
+        "src": "events/ARBITRUM EVENT/be6f7602-d760-4c3f-a8b9-ef5be22d12e3.jpg",
+        "label": "ARBITRUM EVENT"
+    },
+    {
+        "src": "events/DEVCON INDIA/515cc581-d9a2-40e1-85b2-d7059d132de3.jpg",
+        "label": "DEVCON INDIA"
+    },
+    {
+        "src": "events/DEVCON INDIA/fc000b35-4318-44c8-a26e-587c85bb074d.jpg",
+        "label": "DEVCON INDIA"
+    },
+    {
+        "src": "events/FRONTIER BUILD STATIONS/70c25c52-775b-40b6-b16c-6d1feecc9e65.jpg",
+        "label": "FRONTIER BUILD STATIONS"
+    }
+];
 
-  const hackverseImages = [
-    "hackverse-001.jpg",
-    "hackverse-002.jpg",
-    "hackverse-003.jpg",
-    "hackverse-004.jpg",
-    "hackverse-005.jpg",
-    "hackverse-006.jpg",
-    "hackverse-007.jpg",
-    "hackverse-008.jpg",
-    "hackverse-009.jpg",
-    "hackverse-010.jpg",
-  ];
+  const row2Images = [
+    {
+        "src": "events/Hack and Seek/30badb48-7d17-4b4f-b2a4-59a7487eb150.jpg",
+        "label": "Hack and Seek"
+    },
+    {
+        "src": "events/Hack and Seek/fb43b909-1c2a-4b74-9d57-d249be8da97c.jpg",
+        "label": "Hack and Seek"
+    },
+    {
+        "src": "events/hackverse/hackverse-001.jpg",
+        "label": "hackverse"
+    },
+    {
+        "src": "events/hackverse/hackverse-002.jpg",
+        "label": "hackverse"
+    },
+    {
+        "src": "events/hackverse/hackverse-003.jpg",
+        "label": "hackverse"
+    },
+    {
+        "src": "events/IBW/1ef44ea2-0046-4fa7-a5f3-06863fc276ef.jpg",
+        "label": "IBW"
+    }
+];
 
-  const qonneqtImages = [
-    "qonneqt-001.jpg",
-    "qonneqt-002.jpg",
-    "qonneqt-003.jpg",
-    "qonneqt-004.jpg",
-    "qonneqt-005.jpg",
-    "qonneqt-006.png",
-    "qonneqt-007.jpg",
-    "qonneqt-008.jpg",
-  ];
+  const row3Images = [
+    {
+        "src": "events/IBW/2ce537d7-c0c0-40a3-84fb-de58faea24a9.jpg",
+        "label": "IBW"
+    },
+    {
+        "src": "events/IBW/a109d46c-7d6a-48c1-9b32-4226d402f17a.jpg",
+        "label": "IBW"
+    },
+    {
+        "src": "events/launchpad/launchpad-001.jpg",
+        "label": "launchpad"
+    },
+    {
+        "src": "events/launchpad/launchpad-002.jpg",
+        "label": "launchpad"
+    },
+    {
+        "src": "events/launchpad/launchpad-003.png",
+        "label": "launchpad"
+    },
+    {
+        "src": "events/Metamask event/1999d234-f808-4c94-8544-668cb436ad25.jpg",
+        "label": "Metamask event"
+    }
+];
 
-  const otherEventsImages = [
-    "otherevents-001.png",
-    "otherevents-002.png",
-    "otherevents-003.png",
-    "otherevents-004.png",
-    "otherevents-005.png",
-    "otherevents-006.png",
-  ];
+  const row4Images = [
+    {
+        "src": "events/Metamask event/7a3eac7f-5c30-4bdc-b32f-87fe8e227553.jpg",
+        "label": "Metamask event"
+    },
+    {
+        "src": "events/Metamask event/b174fb46-baa0-4be9-9cd2-fa67f8ff091e.jpg",
+        "label": "Metamask event"
+    },
+    {
+        "src": "events/Qonneqt/qonneqt-001.jpg",
+        "label": "Qonneqt"
+    },
+    {
+        "src": "events/Qonneqt/qonneqt-002.jpg",
+        "label": "Qonneqt"
+    },
+    {
+        "src": "events/Qonneqt/qonneqt-003.jpg",
+        "label": "Qonneqt"
+    },
+    {
+        "src": "events/X402 EVENT/071627b2-c452-42ef-83cd-93047cae7a7b.jpg",
+        "label": "X402 EVENT"
+    }
+];
 
   return (
     <div className="w-full bg-[#FFEFB4] overflow-x-hidden">
       {/* Row 1 - Left Scroll */}
       <EventRow
-        images={launchpadImages}
-        folder="launchpad"
-        label="Launchpad 2.0"
+        items={row1Images}
       />
 
       {/* Row 2 - Right Scroll */}
       <EventRow
-        images={hackverseImages}
-        folder="hackverse"
-        label="Hackverse 2025"
+        items={row2Images}
         reverse
       />
 
@@ -152,16 +206,12 @@ export default function EventSection() {
 
       {/* Row 3 - Left Scroll */}
       <EventRow
-        images={qonneqtImages}
-        folder="Qonneqt"
-        label="Builder's Qonneqt"
+        items={row3Images}
       />
 
       {/* Row 4 - Right Scroll */}
       <EventRow
-        images={otherEventsImages}
-        folder="otherevents"
-        label="Other Events"
+        items={row4Images}
         reverse
       />
     </div>
