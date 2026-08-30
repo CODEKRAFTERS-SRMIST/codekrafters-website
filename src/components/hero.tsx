@@ -37,10 +37,8 @@ const Hero: React.FC = () => {
     ))
 
   const images = [
-    "/group/group4.jpg",
-    "/group/group3.jpg",
-    "/group/group2.jpg",
-    "/group/group1.jpg",
+    "/hero-img/IMG_1498.DNG",
+    "/hero-img/IMG_1501.DNG",
   ]
 
   const [index, setIndex] = useState(0)

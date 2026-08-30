@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { Navbar } from "@/components/navbar";
-import Footer from "@/components/Footer";
 import { LoginCard } from "@/components/join/LoginCard";
 import { ApplicationForm } from "@/components/join/ApplicationForm";
 import { ApplicationStatusCard } from "@/components/join/ApplicationStatusCard";
@@ -14,7 +13,7 @@ export default function JoinPage() {
   const [session, setSession] = useState<UserSession | null>(null);
   const [userApp, setUserApp] = useState<Application | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Check saved session on mount
   useEffect(() => {
@@ -24,6 +23,9 @@ export default function JoinPage() {
         const parsed: UserSession = JSON.parse(rawSession);
         setSession(parsed);
         findUserApplication(parsed.id, parsed.email);
+      } else {
+        // Stop loading state if no session
+        setIsLoading(false);
       }
     } catch (e) {
       console.error(e);
@@ -44,13 +46,7 @@ export default function JoinPage() {
     setIsLoading(false);
   };
 
-  const handleLoginSuccess = (newSession: UserSession) => {
-    setSession(newSession);
-    try {
-      localStorage.setItem("codekrafters_user_session", JSON.stringify(newSession));
-    } catch (e) {}
-    findUserApplication(newSession.id, newSession.email);
-  };
+
 
   const handleLogout = () => {
     setSession(null);
@@ -58,6 +54,7 @@ export default function JoinPage() {
     setIsEditing(false);
     try {
       localStorage.removeItem("codekrafters_user_session");
+      window.dispatchEvent(new Event("auth_change"));
     } catch (e) {}
   };
 
@@ -67,7 +64,7 @@ export default function JoinPage() {
   };
 
   return (
-    <div className="min-h-screen relative bg-[#FFEFB4] overflow-x-hidden flex flex-col justify-between pt-24 pb-8 font-sans">
+    <div className="min-h-screen relative bg-[#FFEFB4] overflow-x-hidden flex flex-col justify-between pt-24 font-sans">
       {/* Paper Fiber Texture Overlay */}
       <div
         className="absolute inset-0 pointer-events-none opacity-15 -z-10"
@@ -90,16 +87,34 @@ export default function JoinPage() {
 
       <Navbar />
 
-      <main className="flex-1 px-4 sm:px-6 md:px-8 max-w-7xl mx-auto w-full my-6">
-        {!session ? (
-          /* State 1: Unauthenticated -> Login Card */
-          <div className="py-6 sm:py-12">
-            <LoginCard onLoginSuccess={handleLoginSuccess} />
-          </div>
-        ) : isLoading ? (
-          /* State 2: Loading applicant data */
+      <main className="flex-1 px-4 sm:px-6 md:px-8 max-w-[1400px] mx-auto w-full my-6">
+        {isLoading ? (
+          /* State 1: Loading session data */
           <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D0D0D]"></div>
+          </div>
+        ) : !session ? (
+          /* State 2: Unauthenticated -> Login Required prompt */
+          <div className="py-20 flex flex-col items-center justify-center text-center">
+            <div className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-8 sm:p-12 shadow-[8px_8px_0_#0D0D0D] max-w-lg w-full">
+              <div className="w-16 h-16 bg-[#F2A516] rounded-full border-2 border-[#0D0D0D] flex items-center justify-center mx-auto mb-6 shadow-[3px_3px_0_#0D0D0D]">
+                <svg className="w-8 h-8 text-[#0D0D0D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold uppercase text-[#0D0D0D] tracking-tight mb-2">
+                Authentication Required
+              </h2>
+              <p className="text-sm text-[#333333] font-bold mb-8">
+                You need to log in to access the recruitment portal.
+              </p>
+              <button
+                onClick={() => window.location.href = "/login?redirect=/join"}
+                className="w-full bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] border-2 border-[#0D0D0D] py-3.5 px-6 rounded-full font-black text-sm uppercase tracking-wider shadow-[4px_4px_0_#F2A516] hover:translate-y-[-2px] transition-all"
+              >
+                Go to Login Page
+              </button>
+            </div>
           </div>
         ) : session.role === "ADMIN" ? (
           /* State 3: Admin Session -> Admin Panel */
@@ -127,8 +142,6 @@ export default function JoinPage() {
           </div>
         )}
       </main>
-
-      <Footer />
     </div>
   );
 }

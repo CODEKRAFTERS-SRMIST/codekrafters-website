@@ -10,7 +10,7 @@ interface LoginCardProps {
 }
 
 export function LoginCard({ onLoginSuccess }: LoginCardProps) {
-  const [activeRole, setActiveRole] = useState<UserRole>("APPLICANT");
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -26,8 +26,13 @@ export function LoginCard({ onLoginSuccess }: LoginCardProps) {
       return;
     }
 
-    if (activeRole === "ADMIN" && !password) {
-      setError("Admin password / passkey is required.");
+    if (isSignUp && !fullName) {
+      setError("Full Name is required for sign up.");
+      return;
+    }
+
+    if (!password) {
+      setError("Password is required.");
       return;
     }
 
@@ -37,7 +42,7 @@ export function LoginCard({ onLoginSuccess }: LoginCardProps) {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, role: activeRole }),
+        body: JSON.stringify({ email, password, fullName: isSignUp ? fullName : undefined, action: isSignUp ? "SIGN_UP" : "SIGN_IN" }),
       });
 
       const data = await res.json();
@@ -50,7 +55,8 @@ export function LoginCard({ onLoginSuccess }: LoginCardProps) {
         id: data.user.id,
         email: data.user.email,
         role: data.user.role,
-        fullName: fullName || data.user.fullName || email.split("@")[0],
+        admin_level: data.user.admin_level,
+        fullName: data.user.fullName,
       });
     } catch (err: any) {
       setError(err.message || "Failed to authenticate.");
@@ -64,68 +70,55 @@ export function LoginCard({ onLoginSuccess }: LoginCardProps) {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-md mx-auto"
+      className="w-full max-w-xl mx-auto"
     >
       {/* Outer Card Container */}
-      <div className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 sm:p-8 shadow-[8px_8px_0_#0D0D0D] relative overflow-hidden">
+      <div className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-5 sm:p-8 shadow-[8px_8px_0_#0D0D0D] relative overflow-hidden">
         {/* Subtle Ambient Glow */}
         <div className="absolute -top-12 -right-12 w-32 h-32 bg-[#F2A516]/30 rounded-full blur-2xl pointer-events-none" />
 
-        {/* Role Selector Tabs */}
-        <div className="grid grid-cols-2 p-1.5 bg-[#0D0D0D] rounded-2xl mb-6 shadow-[3px_3px_0_#F2A516]">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveRole("APPLICANT");
-              setError("");
-            }}
-            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 ${activeRole === "APPLICANT"
-                ? "bg-[#F2A516] text-[#0D0D0D] shadow-[2px_2px_0_#FFEFB4]"
-                : "text-[#FFEFB4] hover:text-[#F2A516]"
-              }`}
-          >
-            <User className="w-4 h-4" />
-            <span>Applicant Login</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setActiveRole("ADMIN");
-              setError("");
-            }}
-            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 ${activeRole === "ADMIN"
-                ? "bg-[#F2A516] text-[#0D0D0D] shadow-[2px_2px_0_#FFEFB4]"
-                : "text-[#FFEFB4] hover:text-[#F2A516]"
-              }`}
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>Admin Portal</span>
-          </button>
-        </div>
-
-        {/* Header Title */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FFF2C6] border-2 border-[#0D0D0D] rounded-full text-xs font-bold text-[#0D0D0D] mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-[#F2A516]" />
-            {activeRole === "APPLICANT" ? "RECRUITMENT 2026" : "RECRUITMENT ADMIN PANEL"}
+        {/* Header Title & Toggle */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#FFF2C6] border-2 border-[#0D0D0D] rounded-full text-[13px] font-bold text-[#0D0D0D] mb-5 shadow-[2px_2px_0_#F2A516]">
+            <Sparkles className="w-4 h-4 text-[#F2A516]" />
+            CODEKRAFTERS PORTAL
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-extrabold uppercase text-[#0D0D0D] tracking-tight">
-            {activeRole === "APPLICANT" ? "Join CodeKrafters" : "Admin Sign In"}
-          </h2>
-          <p className="text-xs sm:text-sm text-[#333333] font-medium mt-1">
-            {activeRole === "APPLICANT"
-              ? "Sign in to submit your domain application & track your status."
-              : "Access candidate submissions, filter domains, and update application status."}
+          {/* Toggle Switch */}
+          <div className="relative flex items-center bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-full p-1.5 w-full max-w-[320px] mx-auto mb-4 shadow-[3px_3px_0_#0D0D0D]">
+            <motion.div
+              className="absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-[#0D0D0D] rounded-full shadow-sm pointer-events-none"
+              initial={false}
+              animate={{ left: isSignUp ? "calc(50% + 3px)" : "6px" }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            />
+            <button
+              type="button"
+              onClick={() => { setIsSignUp(false); setError(""); }}
+              className={`relative flex-1 py-2.5 text-sm font-black uppercase tracking-wider z-10 transition-colors ${!isSignUp ? "text-[#FFEFB4]" : "text-[#0D0D0D]"}`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => { setIsSignUp(true); setError(""); }}
+              className={`relative flex-1 py-2.5 text-sm font-black uppercase tracking-wider z-10 transition-colors ${isSignUp ? "text-[#FFEFB4]" : "text-[#0D0D0D]"}`}
+            >
+              Sign Up
+            </button>
+          </div>
+
+          <p className="text-sm text-[#333333] font-bold mt-3">
+            {isSignUp ? "Create a new CodeKrafters account to get started." : "Access your existing CodeKrafters account."}
           </p>
         </div>
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {activeRole === "APPLICANT" && (
+          
+          {isSignUp && (
             <div>
-              <label className="block text-xs font-bold text-[#0D0D0D] uppercase mb-1">
+              <label className="block text-sm font-extrabold text-[#0D0D0D] uppercase mb-1.5">
                 Full Name
               </label>
               <div className="relative">
@@ -135,51 +128,45 @@ export function LoginCard({ onLoginSuccess }: LoginCardProps) {
                   placeholder="e.g. Alex Morgan"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-4 py-2.5 text-sm font-semibold text-[#0D0D0D] placeholder-[#0D0D0D]/40 focus:outline-none focus:ring-2 focus:ring-[#F2A516] shadow-[3px_3px_0_#0D0D0D]"
+                  className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-4 py-3.5 text-base font-bold text-[#0D0D0D] placeholder-[#0D0D0D]/40 focus:outline-none focus:ring-2 focus:ring-[#F2A516] shadow-[3px_3px_0_#0D0D0D]"
                 />
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-[#0D0D0D] uppercase mb-1">
-              {activeRole === "APPLICANT" ? "Email Address" : "Admin Email"}
+            <label className="block text-sm font-extrabold text-[#0D0D0D] uppercase mb-1.5">
+              Email Address
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-3.5 text-[#0D0D0D]/60" />
+              <Mail className="w-5 h-5 absolute left-4 top-3.5 text-[#0D0D0D]/60 pointer-events-none" />
               <input
                 type="email"
                 required
-                placeholder={
-                  activeRole === "APPLICANT"
-                    ? "john@gmail.com"
-                    : "admin@codekrafters.org"
-                }
+                placeholder="john@gmail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl pl-10 pr-4 py-2.5 text-sm font-semibold text-[#0D0D0D] placeholder-[#0D0D0D]/40 focus:outline-none focus:ring-2 focus:ring-[#F2A516] shadow-[3px_3px_0_#0D0D0D]"
+                className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl pl-12 pr-4 py-3.5 text-base font-bold text-[#0D0D0D] placeholder-[#0D0D0D]/40 focus:outline-none focus:ring-2 focus:ring-[#F2A516] shadow-[3px_3px_0_#0D0D0D]"
               />
             </div>
           </div>
 
-          {activeRole === "ADMIN" && (
-            <div>
-              <label className="block text-xs font-bold text-[#0D0D0D] uppercase mb-1">
-                Admin Password / Key
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3.5 top-3.5 text-[#0D0D0D]/60" />
-                <input
-                  type="password"
-                  required
-                  placeholder="Enter admin password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl pl-10 pr-4 py-2.5 text-sm font-semibold text-[#0D0D0D] placeholder-[#0D0D0D]/40 focus:outline-none focus:ring-2 focus:ring-[#F2A516] shadow-[3px_3px_0_#0D0D0D]"
-                />
-              </div>
+          <div>
+            <label className="block text-sm font-extrabold text-[#0D0D0D] uppercase mb-1.5">
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="w-5 h-5 absolute left-4 top-3.5 text-[#0D0D0D]/60 pointer-events-none" />
+              <input
+                type="password"
+                required
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl pl-12 pr-4 py-3.5 text-base font-bold text-[#0D0D0D] placeholder-[#0D0D0D]/40 focus:outline-none focus:ring-2 focus:ring-[#F2A516] shadow-[3px_3px_0_#0D0D0D]"
+              />
             </div>
-          )}
+          </div>
 
           {error && (
             <div className="bg-red-100 border-2 border-red-500 text-red-800 text-xs font-bold p-3 rounded-xl shadow-[2px_2px_0_#0D0D0D]">
@@ -191,29 +178,31 @@ export function LoginCard({ onLoginSuccess }: LoginCardProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] border-2 border-[#0D0D0D] py-3 px-6 rounded-full font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-[4px_4px_0_#F2A516] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_#F2A516] transition-all duration-200 disabled:opacity-50 cursor-pointer"
+            className="w-full mt-4 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] border-2 border-[#0D0D0D] py-4 px-6 rounded-full font-black text-base uppercase tracking-wider flex items-center justify-center gap-2 shadow-[4px_4px_0_#F2A516] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_#F2A516] transition-all duration-200 disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
               <span>Authenticating...</span>
             ) : (
               <>
-                <span>{activeRole === "APPLICANT" ? "Continue to Application" : "Access Dashboard"}</span>
+                <span>{isSignUp ? "Create Account" : "Sign In"}</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
         </form>
 
+
+
         {/* Feature Highlights */}
         <div className="mt-6 pt-4 border-t-2 border-[#0D0D0D]/10 text-center">
-          <div className="flex items-center justify-center gap-4 text-[11px] font-bold text-[#333333]">
-            <span className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] font-bold text-[#333333]">
+            <span className="flex items-center gap-1 whitespace-nowrap">
               <CheckCircle2 className="w-3.5 h-3.5 text-[#F2A516]" /> Instant Sync
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 whitespace-nowrap">
               <CheckCircle2 className="w-3.5 h-3.5 text-[#F2A516]" /> Multi-Domain
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 whitespace-nowrap">
               <CheckCircle2 className="w-3.5 h-3.5 text-[#F2A516]" /> Real-time Admin
             </span>
           </div>

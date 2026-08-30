@@ -61,6 +61,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
   const [editingRating, setEditingRating] = useState<number>(0);
   const [editingStatus, setEditingStatus] = useState<ApplicationStatus>("Under Review");
   const [savingStatus, setSavingStatus] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Filter Computation
   const filteredApplications = useMemo(() => {
@@ -120,6 +121,11 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
     setEditingRating(app.rating || 0);
   };
 
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   const handleSaveInspector = async () => {
     if (!selectedApp) return;
     setSavingStatus(true);
@@ -135,9 +141,11 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
       if (updated) {
         setApplications((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
         setSelectedApp(updated);
+        showToast("Application successfully updated!");
       }
     } catch (err) {
       console.error("Failed to save:", err);
+      showToast("Failed to save changes.");
     } finally {
       setSavingStatus(false);
     }
@@ -148,7 +156,22 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6">
+    <div className="w-full mx-auto space-y-6 relative">
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9, y: 50 }}
+            className="fixed bottom-6 right-6 z-[60] bg-emerald-500 text-white px-6 py-3 rounded-xl shadow-[4px_4px_0_#0D0D0D] border-2 border-[#0D0D0D] font-extrabold flex items-center gap-2"
+          >
+            <CheckCircle className="w-5 h-5" />
+            {toastMessage}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Top Header Bar */}
       <div className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 shadow-[8px_8px_0_#0D0D0D] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -343,9 +366,9 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[900px] text-left border-collapse">
               <thead>
-                <tr className="border-b-2 border-[#0D0D0D] text-[11px] font-extrabold uppercase text-[#0D0D0D] bg-[#FFF2C6]">
+                <tr className="border-b-2 border-[#0D0D0D] text-[11px] font-extrabold uppercase text-[#0D0D0D] bg-[#FFF2C6] whitespace-nowrap">
                   <th className="p-3 rounded-l-xl">Applicant</th>
                   <th className="p-3">Year / Dept</th>
                   <th className="p-3">Primary Domain</th>
@@ -377,7 +400,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                     </td>
 
                     <td className="p-3">
-                      <span className="bg-[#F2A516] text-[#0D0D0D] px-2.5 py-1 rounded-full font-extrabold text-[11px] border border-[#0D0D0D] shadow-[1px_1px_0_#0D0D0D] inline-block">
+                      <span className="bg-[#F2A516] text-[#0D0D0D] px-2.5 py-1 rounded-full font-extrabold text-[11px] border border-[#0D0D0D] shadow-[1px_1px_0_#0D0D0D] inline-block whitespace-nowrap">
                         {app.primaryDomain}
                       </span>
                     </td>
@@ -387,7 +410,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                         {app.domains.map((d) => (
                           <span
                             key={d}
-                            className="bg-[#FFEFB4] border border-[#0D0D0D] text-[#0D0D0D] px-1.5 py-0.5 rounded text-[10px] font-semibold"
+                            className="bg-[#FFEFB4] border border-[#0D0D0D] text-[#0D0D0D] px-1.5 py-0.5 rounded text-[10px] font-semibold whitespace-nowrap"
                           >
                             {d}
                           </span>
@@ -408,7 +431,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
 
                     <td className="p-3">
                       <span
-                        className={`px-2.5 py-1 rounded-full font-bold text-[11px] border border-[#0D0D0D] ${app.status === "Accepted"
+                        className={`px-2.5 py-1 rounded-full font-bold text-[11px] border border-[#0D0D0D] whitespace-nowrap ${app.status === "Accepted"
                             ? "bg-[#F2A516] text-[#0D0D0D]"
                             : app.status === "Shortlisted"
                               ? "bg-purple-200 text-purple-900"
@@ -447,207 +470,227 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
       {/* Candidate Inspector Modal Drawer */}
       <AnimatePresence>
         {selectedApp && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:p-10 bg-black/60 backdrop-blur-sm">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-[12px_12px_0_#0D0D0D] relative space-y-6"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 sm:p-10 max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-[12px_12px_0_#0D0D0D] relative"
             >
               {/* Close Button */}
               <button
                 onClick={() => setSelectedApp(null)}
-                className="absolute top-6 right-6 p-2 rounded-full bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] cursor-pointer"
+                className="absolute top-6 right-6 p-2 rounded-full bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] cursor-pointer shadow-[2px_2px_0_#F2A516] z-10"
               >
                 <X className="w-5 h-5" />
               </button>
-
-              {/* Modal Header */}
-              <div className="border-b-2 border-[#0D0D0D]/10 pb-4">
-                <span className="text-xs font-bold text-[#F2A516] bg-[#0D0D0D] px-3 py-1 rounded-full uppercase">
-                  Candidate ID: {selectedApp.id}
-                </span>
-                <h2 className="text-2xl font-extrabold uppercase text-[#0D0D0D] mt-2">
-                  {selectedApp.fullName}
-                </h2>
-                <p className="text-xs text-[#333333] font-semibold mt-0.5">
-                  {selectedApp.email} • {selectedApp.phone}
-                </p>
-              </div>
-
-              {/* Academic & Domain info */}
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="p-3 bg-[#FFEFB4] border border-[#0D0D0D] rounded-xl">
-                  <span className="font-extrabold uppercase text-[10px] text-[#333333] block">
-                    Academic Year & Dept
-                  </span>
-                  <div className="font-bold text-[#0D0D0D] mt-0.5">
-                    {selectedApp.year} — {selectedApp.department}
-                  </div>
-                </div>
-
-                <div className="p-3 bg-[#FFEFB4] border border-[#0D0D0D] rounded-xl">
-                  <span className="font-extrabold uppercase text-[10px] text-[#333333] block">
-                    Applied Domains
-                  </span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {selectedApp.domains.map((d) => (
-                      <span
-                        key={d}
-                        className="bg-[#F2A516] text-[#0D0D0D] px-2 py-0.5 rounded text-[10px] font-extrabold border border-[#0D0D0D]"
-                      >
-                        {d}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Work Links & Portfolios */}
-              <div>
-                <h4 className="text-xs font-extrabold uppercase text-[#0D0D0D] mb-2">
-                  Portfolios & External Links
-                </h4>
-                <div className="flex flex-wrap gap-2 text-xs font-bold">
-                  {safeUrl(selectedApp.githubUrl) && (
-                    <a
-                      href={safeUrl(selectedApp.githubUrl)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0D0D0D] text-[#FFEFB4] rounded-xl border border-[#0D0D0D]"
-                    >
-                      <Github className="w-3.5 h-3.5 text-[#F2A516]" /> GitHub
-                      <ExternalLink className="w-3 h-3 opacity-60" />
-                    </a>
-                  )}
-
-                  {safeUrl(selectedApp.linkedinUrl) && (
-                    <a
-                      href={safeUrl(selectedApp.linkedinUrl)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0D0D0D] text-[#FFEFB4] rounded-xl border border-[#0D0D0D]"
-                    >
-                      <Linkedin className="w-3.5 h-3.5 text-[#F2A516]" /> LinkedIn
-                      <ExternalLink className="w-3 h-3 opacity-60" />
-                    </a>
-                  )}
-
-                  {safeUrl(selectedApp.portfolioUrl) && (
-                    <a
-                      href={safeUrl(selectedApp.portfolioUrl)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F2A516] text-[#0D0D0D] rounded-xl border border-[#0D0D0D]"
-                    >
-                      Portfolio / Figma <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-
-                  {safeUrl(selectedApp.resumeUrl) && (
-                    <a
-                      href={safeUrl(selectedApp.resumeUrl)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF2C6] text-[#0D0D0D] rounded-xl border border-[#0D0D0D]"
-                    >
-                      <FileText className="w-3.5 h-3.5 text-[#F2A516]" /> Resume Document
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              {/* Why Join Statement */}
-              <div>
-                <h4 className="text-xs font-extrabold uppercase text-[#0D0D0D] mb-1">
-                  Why Join CodeKrafters?
-                </h4>
-                <p className="text-xs bg-[#FFEFB4] border border-[#0D0D0D] p-3 rounded-xl font-medium text-[#333333] whitespace-pre-wrap">
-                  {selectedApp.whyJoin}
-                </p>
-              </div>
-
-              {/* Past Experience */}
-              {selectedApp.pastExperience && (
-                <div>
-                  <h4 className="text-xs font-extrabold uppercase text-[#0D0D0D] mb-1">
-                    Past Projects & Experience
-                  </h4>
-                  <p className="text-xs bg-[#FFEFB4] border border-[#0D0D0D] p-3 rounded-xl font-medium text-[#333333] whitespace-pre-wrap">
-                    {selectedApp.pastExperience}
-                  </p>
-                </div>
-              )}
-
-              {/* Admin Evaluation & Status Updater Box */}
-              <div className="bg-[#FFF2C6] border-2 border-[#0D0D0D] p-4 rounded-2xl space-y-4 shadow-[4px_4px_0_#0D0D0D]">
-                <h4 className="text-xs font-extrabold uppercase text-[#0D0D0D] flex items-center gap-1.5">
-                  <Edit3 className="w-4 h-4 text-[#F2A516]" /> Admin Evaluation Panel
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-extrabold text-[#0D0D0D] uppercase mb-1">
-                      Change Application Status
-                    </label>
-                    <select
-                      value={editingStatus}
-                      onChange={(e) => setEditingStatus(e.target.value as ApplicationStatus)}
-                      className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl p-2 text-xs font-bold text-[#0D0D0D]"
-                    >
-                      <option value="Under Review">Under Review</option>
-                      <option value="Shortlisted">Shortlisted</option>
-                      <option value="Interview Scheduled">Interview Scheduled</option>
-                      <option value="Accepted">Accepted</option>
-                      <option value="Rejected">Rejected</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-extrabold text-[#0D0D0D] uppercase mb-1">
-                      Candidate Rating Stars
-                    </label>
-                    <div className="flex items-center gap-1 pt-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setEditingRating(star)}
-                          className="cursor-pointer"
-                        >
-                          <Star
-                            className={`w-6 h-6 ${star <= editingRating
-                                ? "fill-[#F2A516] text-[#F2A516]"
-                                : "text-gray-400"
-                              }`}
-                          />
-                        </button>
-                      ))}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Left Column: Candidate Info */}
+                <div className="space-y-8">
+                  {/* Modal Header */}
+                  <div className="border-b-2 border-[#0D0D0D]/10 pb-6 pr-12">
+                    <h2 className="text-3xl sm:text-4xl font-black uppercase text-[#0D0D0D] tracking-tight">
+                      {selectedApp.fullName}
+                    </h2>
+                    <div className="flex flex-wrap items-center gap-3 mt-2">
+                      <p className="text-sm text-[#333333] font-bold bg-white px-3 py-1 rounded-lg border-2 border-[#0D0D0D]">
+                        {selectedApp.email}
+                      </p>
+                      <p className="text-sm text-[#333333] font-bold bg-white px-3 py-1 rounded-lg border-2 border-[#0D0D0D]">
+                        {selectedApp.phone}
+                      </p>
                     </div>
                   </div>
+
+                  {/* Academic & Domain info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 bg-white border-2 border-[#0D0D0D] rounded-2xl shadow-[3px_3px_0_#0D0D0D]">
+                      <span className="font-extrabold uppercase text-[10px] text-[#F2A516] tracking-wider block mb-1">
+                        Academic Details
+                      </span>
+                      <div className="font-black text-[#0D0D0D] text-lg leading-tight">
+                        {selectedApp.year} <br />
+                        <span className="text-sm font-bold text-[#333333]">{selectedApp.department}</span>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-white border-2 border-[#0D0D0D] rounded-2xl shadow-[3px_3px_0_#0D0D0D]">
+                      <span className="font-extrabold uppercase text-[10px] text-[#F2A516] tracking-wider block mb-2">
+                        Applied Domains
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedApp.domains.map((d) => (
+                          <span
+                            key={d}
+                            className="bg-[#0D0D0D] text-[#FFEFB4] px-3 py-1 rounded-lg text-[11px] font-extrabold border border-[#0D0D0D]"
+                          >
+                            {d}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Work Links & Portfolios */}
+                  <div>
+                    <h4 className="text-sm font-black uppercase text-[#0D0D0D] mb-3 flex items-center gap-2">
+                      <ExternalLink className="w-5 h-5 text-[#F2A516]" /> Portfolios & External Links
+                    </h4>
+                    
+                    {!(safeUrl(selectedApp.githubUrl) || safeUrl(selectedApp.linkedinUrl) || safeUrl(selectedApp.portfolioUrl) || safeUrl(selectedApp.resumeUrl)) ? (
+                      <p className="text-sm text-gray-500 font-bold italic bg-white p-4 rounded-xl border border-dashed border-gray-300">
+                        No external links or portfolios provided.
+                      </p>
+                    ) : (
+                      <div className="flex flex-wrap gap-3">
+                        {safeUrl(selectedApp.githubUrl) && (
+                          <a
+                            href={safeUrl(selectedApp.githubUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2.5 bg-white text-[#0D0D0D] hover:bg-[#F2A516] rounded-xl border-2 border-[#0D0D0D] font-bold shadow-[3px_3px_0_#0D0D0D] transition-colors"
+                          >
+                            <Github className="w-4 h-4" /> GitHub
+                          </a>
+                        )}
+
+                        {safeUrl(selectedApp.linkedinUrl) && (
+                          <a
+                            href={safeUrl(selectedApp.linkedinUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2.5 bg-white text-[#0D0D0D] hover:bg-[#F2A516] rounded-xl border-2 border-[#0D0D0D] font-bold shadow-[3px_3px_0_#0D0D0D] transition-colors"
+                          >
+                            <Linkedin className="w-4 h-4" /> LinkedIn
+                          </a>
+                        )}
+
+                        {safeUrl(selectedApp.portfolioUrl) && (
+                          <a
+                            href={safeUrl(selectedApp.portfolioUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2.5 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] rounded-xl border-2 border-[#0D0D0D] font-bold shadow-[3px_3px_0_#F2A516] transition-colors"
+                          >
+                            Portfolio / Web <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+
+                        {safeUrl(selectedApp.resumeUrl) && (
+                          <a
+                            href={safeUrl(selectedApp.resumeUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2.5 bg-white text-[#0D0D0D] hover:bg-[#F2A516] rounded-xl border-2 border-[#0D0D0D] font-bold shadow-[3px_3px_0_#0D0D0D] transition-colors"
+                          >
+                            <FileText className="w-4 h-4" /> Resume Document
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-extrabold text-[#0D0D0D] uppercase mb-1">
-                    Internal Interview / Panel Notes
-                  </label>
-                  <textarea
-                    rows={2}
-                    placeholder="Add reviewer comments, interview performance notes..."
-                    value={editingNotes}
-                    onChange={(e) => setEditingNotes(e.target.value)}
-                    className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl p-3 text-xs font-semibold text-[#0D0D0D]"
-                  />
-                </div>
+                {/* Right Column: Text Answers & Admin Panel */}
+                <div className="space-y-8 flex flex-col h-full">
+                  {/* Why Join Statement */}
+                  <div>
+                    <h4 className="text-sm font-black uppercase text-[#0D0D0D] mb-2">
+                      Why Join CodeKrafters?
+                    </h4>
+                    <div className="bg-white border-2 border-[#0D0D0D] p-5 rounded-2xl shadow-[4px_4px_0_#0D0D0D]">
+                      <p className="text-sm font-medium text-[#111] leading-relaxed whitespace-pre-wrap">
+                        {selectedApp.whyJoin}
+                      </p>
+                    </div>
+                  </div>
 
-                <button
-                  onClick={handleSaveInspector}
-                  disabled={savingStatus}
-                  className="w-full bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] py-3 rounded-full font-bold text-xs uppercase tracking-wider border-2 border-[#0D0D0D] shadow-[3px_3px_0_#F2A516] cursor-pointer"
-                >
-                  {savingStatus ? "Saving Changes..." : "Save Status & Evaluation"}
-                </button>
+                  {/* Past Experience */}
+                  {selectedApp.pastExperience && (
+                    <div>
+                      <h4 className="text-sm font-black uppercase text-[#0D0D0D] mb-2">
+                        Past Projects & Experience
+                      </h4>
+                      <div className="bg-white border-2 border-[#0D0D0D] p-5 rounded-2xl shadow-[4px_4px_0_#0D0D0D]">
+                        <p className="text-sm font-medium text-[#111] leading-relaxed whitespace-pre-wrap">
+                          {selectedApp.pastExperience}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex-grow"></div>
+
+                  {/* Admin Evaluation & Status Updater Box */}
+                  <div className="bg-[#FFF2C6] border-3 border-[#0D0D0D] p-6 sm:p-8 rounded-3xl space-y-6 shadow-[6px_6px_0_#0D0D0D]">
+                    <h4 className="text-base font-black uppercase flex items-center gap-2 border-b-2 border-[#0D0D0D]/10 pb-4 text-[#0D0D0D]">
+                      <Edit3 className="w-5 h-5 text-[#F2A516]" /> Admin Evaluation Panel
+                    </h4>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-xs font-extrabold uppercase mb-2 text-[#0D0D0D]">
+                          Update Application Status
+                        </label>
+                        <select
+                          value={editingStatus}
+                          onChange={(e) => setEditingStatus(e.target.value as ApplicationStatus)}
+                          className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl p-3 text-sm font-black text-[#0D0D0D] cursor-pointer"
+                        >
+                          <option value="Under Review">Under Review</option>
+                          <option value="Shortlisted">Shortlisted</option>
+                          <option value="Interview Scheduled">Interview Scheduled</option>
+                          <option value="Accepted">Accepted</option>
+                          <option value="Rejected">Rejected</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-extrabold uppercase mb-2 text-[#0D0D0D]">
+                          Candidate Rating (Out of 5)
+                        </label>
+                        <div className="flex items-center gap-1.5 pt-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() => setEditingRating(star)}
+                              className="cursor-pointer hover:scale-110 transition-transform"
+                            >
+                              <Star
+                                className={`w-8 h-8 ${star <= editingRating
+                                    ? "fill-[#F2A516] text-[#F2A516]"
+                                    : "text-gray-400"
+                                  }`}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-extrabold uppercase mb-2 text-[#0D0D0D]">
+                        Internal Notes / Comments
+                      </label>
+                      <textarea
+                        rows={3}
+                        placeholder="Add reviewer comments, interview performance notes..."
+                        value={editingNotes}
+                        onChange={(e) => setEditingNotes(e.target.value)}
+                        className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl p-4 text-sm font-medium text-[#0D0D0D] placeholder-[#0D0D0D]/40 focus:outline-none focus:border-[#F2A516] transition-colors"
+                      />
+                    </div>
+
+                    <button
+                      onClick={handleSaveInspector}
+                      disabled={savingStatus}
+                      className="w-full bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] py-4 rounded-xl font-black text-sm uppercase tracking-wider shadow-[4px_4px_0_#F2A516] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_#F2A516] transition-all cursor-pointer"
+                    >
+                      {savingStatus ? "Saving Changes..." : "Save Evaluation"}
+                    </button>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </div>

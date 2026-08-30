@@ -12,7 +12,9 @@ import {
   BookOpen,
   Link as LinkIcon,
   UserPlus,
+  User,
 } from "lucide-react";
+import { UserSession } from "@/types/join";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -20,6 +22,25 @@ export function Navbar() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeLink, setActiveLink] = useState("home");
   const [hoveredLink, setHoveredLink] = useState<string | null>(null);
+  const [session, setSession] = useState<UserSession | null>(null);
+
+  const updateSession = () => {
+    try {
+      const raw = localStorage.getItem("codekrafters_user_session");
+      if (raw) setSession(JSON.parse(raw));
+      else setSession(null);
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    updateSession();
+    window.addEventListener("storage", updateSession);
+    window.addEventListener("auth_change", updateSession);
+    return () => {
+      window.removeEventListener("storage", updateSession);
+      window.removeEventListener("auth_change", updateSession);
+    };
+  }, []);
 
   const navLinks = [
     { label: "HOME", href: "/", id: "home", icon: Home },
@@ -29,6 +50,7 @@ export function Navbar() {
     { label: "BLOG", href: "https://ck-blog-platform.vercel.app/", id: "blog", icon: BookOpen },
     { label: "KRAFTERSLINK", href: "/krafterslink", id: "krafterslink", icon: LinkIcon },
     { label: "JOIN US", href: "/join", id: "join", icon: UserPlus },
+    { label: "PROFILE", href: "/profile", id: "profile", icon: User },
   ];
 
   useEffect(() => {
@@ -39,10 +61,18 @@ export function Navbar() {
   }, [pathname]);
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 pt-safe">
-      <div className="flex justify-center w-full pt-4">
+    <>
+      {/* Invisible Mobile Overlay for Click-Away */}
+      {isExpanded && (
+        <div 
+          className="fixed inset-0 z-40 md:hidden pointer-events-auto" 
+          onClick={() => setIsExpanded(false)} 
+        />
+      )}
+      <nav className="fixed top-0 left-0 w-full z-50 pt-safe pointer-events-none">
+      <div className="flex justify-center w-full pt-4 relative">
         <div
-          className="flex flex-col items-center pb-4"
+          className="flex flex-col items-center pb-4 relative"
           onMouseEnter={() => {
             if (window.innerWidth >= 768) setIsExpanded(true);
           }}
@@ -51,12 +81,21 @@ export function Navbar() {
             setHoveredLink(null);
           }}
         >
-          {/* Main Logo Button */}
-          <button
+          {/* Stable Hover Hitbox to prevent flickering when logo shrinks */}
+          <div 
+            className="absolute top-0 left-1/2 -translate-x-1/2 h-[56px] pointer-events-auto z-20 cursor-pointer"
+            style={{ width: "180px" }}
             onClick={() => {
               if (window.innerWidth < 768) setIsExpanded((p) => !p);
             }}
-            className="flex items-center justify-center cursor-pointer"
+          />
+
+          {/* Main Logo Button */}
+          <div
+            onClick={() => {
+              if (window.innerWidth < 768) setIsExpanded((p) => !p);
+            }}
+            className="flex items-center justify-center cursor-pointer pointer-events-auto"
             style={{
               backgroundColor: "#0D0D0D",
               width: isExpanded ? "56px" : "180px",
@@ -73,7 +112,7 @@ export function Navbar() {
               height={28}
               className="object-contain pointer-events-none"
             />
-          </button>
+          </div>
 
           {/* Links Container */}
           <div
@@ -88,32 +127,34 @@ export function Navbar() {
                 "opacity 300ms cubic-bezier(0.16,1,0.3,1), transform 300ms cubic-bezier(0.16,1,0.3,1)",
             }}
           >
-            <div className="flex gap-2 bg-[#0D0D0D] p-3 rounded-2xl border border-[#2a2a2a] shadow-xl">
+            <div className="flex flex-col md:flex-row gap-1 md:gap-2 bg-[#0D0D0D] p-3 rounded-2xl border border-[#2a2a2a] shadow-xl min-w-[200px] md:min-w-0">
               {navLinks.map((link) => {
                 const Icon = link.icon;
                 const isActive = activeLink === link.id;
                 const isHovered = hoveredLink === link.id;
                 const isExternal = link.href.startsWith("http");
 
+
+
                 return (
-                  <Link
+                  <a
                     key={link.id}
                     href={link.href}
                     target={isExternal ? "_blank" : undefined}
                     rel={isExternal ? "noopener noreferrer" : undefined}
                     onClick={() => {
                       setActiveLink(link.id);
-                      setIsExpanded(false);
+                      // Don't set isExpanded to false immediately to prevent pointerEvents none from cancelling click
                     }}
                     onMouseEnter={() => setHoveredLink(link.id)}
                     onMouseLeave={() => setHoveredLink(null)}
                     title={link.label}
-                    className="relative flex items-center justify-center px-3 py-2 cursor-pointer"
+                    className={`relative flex items-center gap-3 md:gap-0 justify-start md:justify-center px-4 md:px-3 py-3 md:py-2 cursor-pointer rounded-xl md:rounded-none transition-colors ${isActive || isHovered ? 'bg-[#1a1a1a] md:bg-transparent' : 'hover:bg-[#1a1a1a] md:hover:bg-transparent'}`}
                   >
-                    <Icon className="w-5 h-5 text-[#F2F2F2] md:hidden" />
+                    <Icon className="w-5 h-5 shrink-0 md:hidden transition-colors" style={{ color: isActive || isHovered ? "#F2A516" : "#F2F2F2" }} />
 
                     <span
-                      className="hidden md:inline text-xs sm:text-sm font-medium tracking-wider transition-colors"
+                      className="text-xs sm:text-sm font-medium tracking-wider transition-colors"
                       style={{
                         color: isActive || isHovered ? "#F2A516" : "#F2F2F2",
                       }}
@@ -129,13 +170,14 @@ export function Navbar() {
                         backgroundColor: "#F2A516",
                       }}
                     />
-                  </Link>
+                  </a>
                 );
               })}
             </div>
           </div>
         </div>
       </div>
-    </nav>
+      </nav>
+    </>
   );
 }

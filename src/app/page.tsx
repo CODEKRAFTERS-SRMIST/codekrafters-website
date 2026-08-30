@@ -10,7 +10,7 @@ import DomainsSection from "@/components/Domains"
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background overflow-x-hidden" style={{ scrollSnapType: "y mandatory" }}>
+    <main className="min-h-screen bg-background overflow-x-hidden">
       <Navbar />
 
       <Hero />
