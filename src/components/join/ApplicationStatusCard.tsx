@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Application, UserSession } from "@/types/join";
-import { CheckCircle2, Clock, Calendar, Sparkles, ExternalLink, RefreshCw, LogOut } from "lucide-react";
+import { CheckCircle2, Clock, Calendar, Sparkles, ExternalLink, RefreshCw, LogOut, Lock } from "lucide-react";
 
 interface ApplicationStatusCardProps {
   application: Application;
@@ -75,7 +75,7 @@ export function ApplicationStatusCard({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-2xl mx-auto"
+      className="w-full max-w-3xl mx-auto"
     >
       <div className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 sm:p-10 shadow-[10px_10px_0_#0D0D0D] relative overflow-hidden">
         {/* Header Action Row */}
@@ -100,15 +100,59 @@ export function ApplicationStatusCard({
 
         {/* Status Highlight Banner */}
         <div
-          className={`p-6 rounded-2xl border-3 border-[#0D0D0D] ${currentStatus.bg} shadow-[4px_4px_0_#0D0D0D] mb-8 text-center`}
+          className={`p-6 sm:p-10 rounded-2xl border-3 border-[#0D0D0D] ${currentStatus.bg} shadow-[4px_4px_0_#0D0D0D] mb-8 text-center relative overflow-hidden`}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1 bg-[#0D0D0D] text-[#FFEFB4] rounded-full text-xs font-extrabold uppercase mb-2 shadow-[2px_2px_0_#F2A516]">
+          {/* Animated Background Elements for Accepted */}
+          {application.status === "Accepted" && (
+            <>
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: [0, 1.2, 1] }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="absolute -top-4 -left-4 text-6xl opacity-20 rotate-12"
+              >
+                🎉
+              </motion.div>
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: [0, 1.2, 1] }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="absolute -bottom-4 -right-4 text-6xl opacity-20 -rotate-12"
+              >
+                🎁
+              </motion.div>
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+                className="text-5xl mb-4 animate-bounce"
+              >
+                🎊
+              </motion.div>
+            </>
+          )}
+
+          {/* Animated Elements for Rejected */}
+          {application.status === "Rejected" && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6 }}
+              className="mb-4 flex items-center justify-center"
+            >
+              <div className="p-4 bg-rose-200/50 rounded-full border-2 border-rose-900/20">
+                <Lock className="w-10 h-10 text-rose-900" />
+              </div>
+            </motion.div>
+          )}
+
+          <div className="inline-flex items-center gap-2 px-4 py-1 bg-[#0D0D0D] text-[#FFEFB4] rounded-full text-xs font-extrabold uppercase mb-2 shadow-[2px_2px_0_#F2A516] relative z-10">
             <Sparkles className="w-3.5 h-3.5 text-[#F2A516]" /> Status: {application.status}
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold uppercase text-[#0D0D0D] tracking-tight">
+          <h2 className="text-2xl sm:text-4xl font-extrabold uppercase text-[#0D0D0D] tracking-tight relative z-10 mt-2">
             {currentStatus.label}
           </h2>
-          <p className="text-xs sm:text-sm font-bold text-[#0D0D0D]/80 mt-1 max-w-md mx-auto">
+          <p className="text-sm sm:text-base font-bold text-[#0D0D0D]/80 mt-2 max-w-lg mx-auto relative z-10">
             {currentStatus.desc}
           </p>
         </div>
@@ -176,15 +220,6 @@ export function ApplicationStatusCard({
           </div>
         </div>
 
-        {/* Action Button */}
-        <div className="flex items-center justify-center gap-4">
-          <button
-            onClick={onEditRequested}
-            className="w-full bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] border-2 border-[#0D0D0D] py-3 px-6 rounded-full font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-[4px_4px_0_#F2A516] hover:translate-y-[-2px] transition-all cursor-pointer"
-          >
-            <RefreshCw className="w-4 h-4" /> Update Application Details
-          </button>
-        </div>
       </div>
     </motion.div>
   );

@@ -37,7 +37,10 @@ export async function submitApplication(userId: string, formData: ApplicantFormD
   });
 
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Failed to submit application");
+  if (!res.ok) {
+    const detailsStr = data.details ? (typeof data.details === 'object' ? JSON.stringify(data.details) : data.details) : "";
+    throw new Error(detailsStr ? `${data.error}: ${detailsStr}` : (data.error || "Failed to submit application"));
+  }
   return data.application;
 }
 

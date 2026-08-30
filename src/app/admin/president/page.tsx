@@ -144,31 +144,43 @@ export default function PresidentPanel() {
                         "-"
                       )}
                     </td>
-                    <td className="p-4 flex gap-2">
+                    <td className="p-4 flex gap-2 whitespace-nowrap">
                       {/* Don't allow modifying oneself */}
-                      {u.id !== session.id && u.role !== "ADMIN" && (
+                      {u.id !== session.id && (
                         <>
-                          <button
-                            onClick={() => updateRole(u.id, "ADMIN", "LEAD")}
-                            className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-lg font-bold border border-blue-300"
-                          >
-                            Make LEAD
-                          </button>
-                          <button
-                            onClick={() => updateRole(u.id, "ADMIN", "HEAD")}
-                            className="text-xs bg-purple-100 hover:bg-purple-200 text-purple-800 px-3 py-1.5 rounded-lg font-bold border border-purple-300"
-                          >
-                            Make HEAD
-                          </button>
+                          {u.admin_level !== "LEAD" && (
+                            <button
+                              onClick={() => updateRole(u.id, "ADMIN", "LEAD")}
+                              className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-lg font-bold border border-blue-300"
+                            >
+                              Make LEAD
+                            </button>
+                          )}
+                          {u.admin_level !== "HEAD" && (
+                            <button
+                              onClick={() => updateRole(u.id, "ADMIN", "HEAD")}
+                              className="text-xs bg-purple-100 hover:bg-purple-200 text-purple-800 px-3 py-1.5 rounded-lg font-bold border border-purple-300"
+                            >
+                              Make HEAD
+                            </button>
+                          )}
+                          {u.admin_level !== "PRESIDENT" && (
+                            <button
+                              onClick={() => updateRole(u.id, "ADMIN", "PRESIDENT")}
+                              className="text-xs bg-orange-100 hover:bg-orange-200 text-orange-800 px-3 py-1.5 rounded-lg font-bold border border-orange-300"
+                            >
+                              Make PRESIDENT
+                            </button>
+                          )}
+                          {u.role === "ADMIN" && (
+                            <button
+                              onClick={() => updateRole(u.id, "APPLICANT", undefined)}
+                              className="text-xs bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1.5 rounded-lg font-bold border border-red-300"
+                            >
+                              Remove Admin
+                            </button>
+                          )}
                         </>
-                      )}
-                      {u.id !== session.id && u.role === "ADMIN" && (
-                        <button
-                          onClick={() => updateRole(u.id, "APPLICANT", undefined)}
-                          className="text-xs bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1.5 rounded-lg font-bold border border-red-300"
-                        >
-                          Remove Admin
-                        </button>
                       )}
                     </td>
                   </tr>

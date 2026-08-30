@@ -4,11 +4,6 @@ import { useEffect } from "react";
 
 export function DevToolsBlocker() {
   useEffect(() => {
-    // Disable right click
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-    };
-
     // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -20,11 +15,9 @@ export function DevToolsBlocker() {
       }
     };
 
-    document.addEventListener("contextmenu", handleContextMenu);
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener("contextmenu", handleContextMenu);
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
