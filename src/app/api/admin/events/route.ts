@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function GET() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("event_postings")
       .select("*")
       .order("created_at", { ascending: false });
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("event_postings")
       .insert([
         { category, title, description, image_url }
@@ -62,7 +62,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("event_postings")
       .update({ category, title, description, image_url })
       .eq("id", id)
@@ -90,7 +90,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Missing event ID" }, { status: 400 });
     }
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from("event_postings")
       .delete()
       .eq("id", id);

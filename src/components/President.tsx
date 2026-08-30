@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useRef, useEffect, useState } from "react";
+import { Linkedin } from "lucide-react";
 
 export default function PresidentIntroRetro() {
 
@@ -56,10 +57,21 @@ export default function PresidentIntroRetro() {
                 </span>
               </h2>
 
-              <div className="bg-[#0D0D0D] text-[#FFEFB4] inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-md shadow-[2px_2px_0_#F2A516] sm:shadow-[4px_4px_0_#F2A516] mx-auto md:mx-0">
-                <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold tracking-wider">
-                  SANJAY
-                </h3>
+              <div className="flex items-center justify-center md:justify-start gap-3 mx-auto md:mx-0">
+                <div className="bg-[#0D0D0D] text-[#FFEFB4] inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-md shadow-[2px_2px_0_#F2A516] sm:shadow-[4px_4px_0_#F2A516]">
+                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold tracking-wider">
+                    SANJAY
+                  </h3>
+                </div>
+                <a 
+                  href="https://www.linkedin.com/in/sanjay-ganesh-k-barade-675b38324/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-[#0D0D0D] p-2 rounded-md shadow-[2px_2px_0_#F2A516] sm:shadow-[4px_4px_0_#F2A516] hover:translate-y-[-2px] hover:shadow-[4px_4px_0_#F2A516] transition-all cursor-pointer"
+                  title="Sanjay's LinkedIn"
+                >
+                  <Linkedin className="w-5 h-5 sm:w-6 sm:h-6 text-[#F2A516]" />
+                </a>
               </div>
 
               <p className="text-sm sm:text-base md:text-lg leading-relaxed font-medium max-w-lg mx-auto md:mx-0">
@@ -113,10 +125,21 @@ export default function PresidentIntroRetro() {
                 </span>
               </h2>
 
-              <div className="bg-[#0D0D0D] text-[#FFEFB4] inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-md shadow-[2px_2px_0_#F2A516] sm:shadow-[4px_4px_0_#F2A516] mx-auto md:mx-0">
-                <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold tracking-wider">
-                  SATYA
-                </h3>
+              <div className="flex items-center justify-center md:justify-start gap-3 mx-auto md:mx-0">
+                <div className="bg-[#0D0D0D] text-[#FFEFB4] inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-md shadow-[2px_2px_0_#F2A516] sm:shadow-[4px_4px_0_#F2A516]">
+                  <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold tracking-wider">
+                    SATYA
+                  </h3>
+                </div>
+                <a 
+                  href="https://www.linkedin.com/in/satyalohith455" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-[#0D0D0D] p-2 rounded-md shadow-[2px_2px_0_#F2A516] sm:shadow-[4px_4px_0_#F2A516] hover:translate-y-[-2px] hover:shadow-[4px_4px_0_#F2A516] transition-all cursor-pointer"
+                  title="Satya's LinkedIn"
+                >
+                  <Linkedin className="w-5 h-5 sm:w-6 sm:h-6 text-[#F2A516]" />
+                </a>
               </div>
 
               <p className="text-sm sm:text-base md:text-lg leading-relaxed font-medium max-w-lg mx-auto md:mx-0">

@@ -366,9 +366,9 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[900px] text-left border-collapse">
               <thead>
-                <tr className="border-b-2 border-[#0D0D0D] text-[11px] font-extrabold uppercase text-[#0D0D0D] bg-[#FFF2C6]">
+                <tr className="border-b-2 border-[#0D0D0D] text-[11px] font-extrabold uppercase text-[#0D0D0D] bg-[#FFF2C6] whitespace-nowrap">
                   <th className="p-3 rounded-l-xl">Applicant</th>
                   <th className="p-3">Year / Dept</th>
                   <th className="p-3">Primary Domain</th>
@@ -400,7 +400,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                     </td>
 
                     <td className="p-3">
-                      <span className="bg-[#F2A516] text-[#0D0D0D] px-2.5 py-1 rounded-full font-extrabold text-[11px] border border-[#0D0D0D] shadow-[1px_1px_0_#0D0D0D] inline-block">
+                      <span className="bg-[#F2A516] text-[#0D0D0D] px-2.5 py-1 rounded-full font-extrabold text-[11px] border border-[#0D0D0D] shadow-[1px_1px_0_#0D0D0D] inline-block whitespace-nowrap">
                         {app.primaryDomain}
                       </span>
                     </td>
@@ -410,7 +410,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                         {app.domains.map((d) => (
                           <span
                             key={d}
-                            className="bg-[#FFEFB4] border border-[#0D0D0D] text-[#0D0D0D] px-1.5 py-0.5 rounded text-[10px] font-semibold"
+                            className="bg-[#FFEFB4] border border-[#0D0D0D] text-[#0D0D0D] px-1.5 py-0.5 rounded text-[10px] font-semibold whitespace-nowrap"
                           >
                             {d}
                           </span>
@@ -431,7 +431,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
 
                     <td className="p-3">
                       <span
-                        className={`px-2.5 py-1 rounded-full font-bold text-[11px] border border-[#0D0D0D] ${app.status === "Accepted"
+                        className={`px-2.5 py-1 rounded-full font-bold text-[11px] border border-[#0D0D0D] whitespace-nowrap ${app.status === "Accepted"
                             ? "bg-[#F2A516] text-[#0D0D0D]"
                             : app.status === "Shortlisted"
                               ? "bg-purple-200 text-purple-900"
@@ -484,16 +484,12 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
               >
                 <X className="w-5 h-5" />
               </button>
-
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Column: Candidate Info */}
                 <div className="space-y-8">
                   {/* Modal Header */}
                   <div className="border-b-2 border-[#0D0D0D]/10 pb-6 pr-12">
-                    <span className="text-[10px] font-extrabold text-[#F2A516] bg-[#0D0D0D] px-3 py-1.5 rounded-full uppercase shadow-[2px_2px_0_#F2A516]">
-                      Candidate ID: {selectedApp.id}
-                    </span>
-                    <h2 className="text-3xl sm:text-4xl font-black uppercase text-[#0D0D0D] mt-4 tracking-tight">
+                    <h2 className="text-3xl sm:text-4xl font-black uppercase text-[#0D0D0D] tracking-tight">
                       {selectedApp.fullName}
                     </h2>
                     <div className="flex flex-wrap items-center gap-3 mt-2">

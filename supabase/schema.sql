@@ -21,8 +21,8 @@ CREATE TABLE applications (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Disable Row Level Security (RLS) for now so the frontend can read/write without authentication
-ALTER TABLE applications DISABLE ROW LEVEL SECURITY;
+-- Enable Row Level Security (RLS) for maximum security (Service Role Key bypasses this)
+ALTER TABLE applications ENABLE ROW LEVEL SECURITY;
 
 -- Or if you want to keep RLS enabled but allow public access, run these instead:
 -- ALTER TABLE applications ENABLE ROW LEVEL SECURITY;
@@ -37,8 +37,8 @@ CREATE TABLE admins (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Disable Row Level Security for admins table so the backend API can query it
-ALTER TABLE admins DISABLE ROW LEVEL SECURITY;
+-- Enable Row Level Security for admins table
+ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
 
 CREATE TABLE rate_limits (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -51,8 +51,8 @@ CREATE TABLE rate_limits (
     UNIQUE (identifier, action)
 );
 
--- Disable Row Level Security (RLS) for rate_limits so backend can query it without explicit auth
-ALTER TABLE rate_limits DISABLE ROW LEVEL SECURITY;
+-- Enable Row Level Security (RLS) for rate_limits
+ALTER TABLE rate_limits ENABLE ROW LEVEL SECURITY;
 
 CREATE TABLE event_postings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -63,5 +63,5 @@ CREATE TABLE event_postings (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Disable Row Level Security for event_postings so the frontend can read easily
-ALTER TABLE event_postings DISABLE ROW LEVEL SECURITY;
+-- Enable Row Level Security for event_postings
+ALTER TABLE event_postings ENABLE ROW LEVEL SECURITY;

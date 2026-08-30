@@ -67,7 +67,7 @@ export default function TeamComponent() {
       className="relative w-full bg-[#FFEFB4] overflow-hidden flex flex-col justify-between"
     >
       {/* Progress timer bar with responsive positioning and sizing */}
-      <div className="absolute top-3 sm:top-6 left-3 sm:left-6 w-24 sm:w-32 md:w-40 h-1.5 sm:h-2 bg-[#0D0D0D]/20 rounded-full overflow-hidden z-20">
+      <div className="absolute top-24 sm:top-28 left-3 sm:left-6 w-24 sm:w-32 md:w-40 h-1.5 sm:h-2 bg-[#0D0D0D]/20 rounded-full overflow-hidden z-20">
         <motion.div
           key={activeIndex}
           initial={{ width: "0%" }}
@@ -78,7 +78,7 @@ export default function TeamComponent() {
       </div>
 
       {/* Title section with responsive text sizes and positioning */}
-      <div className="absolute top-3 sm:top-6 right-3 sm:right-10 text-right z-20">
+      <div className="absolute top-24 sm:top-28 right-3 sm:right-10 text-right z-20">
         <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#0D0D0D] uppercase tracking-tight">
           Our{" "}
           <span className="text-[#F2A516] underline decoration-[#0D0D0D] decoration-2 sm:decoration-3 md:decoration-4 underline-offset-2 sm:underline-offset-4">
@@ -93,7 +93,7 @@ export default function TeamComponent() {
       {/* Horizontal scroll panels with responsive padding and height */}
       <div
         ref={scrollContainerRef}
-        className="flex flex-row w-full flex-1 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide px-2 sm:px-4 md:px-10 pt-16 sm:pt-20 md:pt-24 pb-4 sm:pb-6 md:pb-8"
+        className="flex flex-row w-full flex-1 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide px-2 sm:px-4 md:px-10 pt-48 sm:pt-48 md:pt-40 pb-4 sm:pb-6 md:pb-8"
       >
         {DOMAINS.map((domain) => {
           const members = TEAM_MEMBERS.filter((m) => m.domain === domain.id);
@@ -112,8 +112,8 @@ export default function TeamComponent() {
                 <div className="h-1 sm:h-[2px] md:h-[3px] w-8 sm:w-12 md:w-16 bg-[#0D0D0D] mx-auto rounded-full mt-1.5 sm:mt-2"></div>
               </div>
 
-              {/* CHANGED: Members grid - 2 rows on mobile/tablet, flex-wrap on desktop */}
-              <div className="grid grid-cols-2 justify-items-center lg:flex lg:flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-10 max-w-[1400px] mx-auto px-2 sm:px-4">
+              {/* CHANGED: Members grid - 2 columns on mobile, flex-wrap on desktop */}
+              <div className="grid grid-cols-2 justify-items-stretch lg:flex lg:flex-wrap justify-center gap-3 sm:gap-6 md:gap-8 lg:gap-10 max-w-[1400px] mx-auto px-2 sm:px-4 w-full">
                 {members.map((member, index) => (
                   <motion.div
                     key={member.id}
@@ -125,26 +125,26 @@ export default function TeamComponent() {
                       ease: [0.16, 1, 0.3, 1],
                     }}
                     viewport={{ once: true }}
-                    className={`group ${members.length % 2 !== 0 && index === members.length - 1 ? 'col-span-2 lg:col-span-1' : ''}`}
+                    className="group"
                   >
                     {/* Card with fixed height and text truncation to prevent box expansion */}
                     <div
                       className={`
                         ck-card relative bg-gradient-to-br bg-[#f9f7e5]
-                        border-2 sm:border-3 border-[#0D0D0D] rounded-2xl sm:rounded-3xl
+                        border-2 sm:border-3 border-[#0D0D0D] rounded-xl sm:rounded-3xl
                         shadow-[3px_3px_0_#0D0D0D] sm:shadow-[6px_6px_0_#0D0D0D]
                         group-hover:shadow-[5px_5px_0_#0D0D0D] sm:group-hover:shadow-[10px_10px_0_#0D0D0D]
-                        transition-all duration-300 p-3 sm:p-4 md:p-6
-                        flex flex-col items-center text-center w-full lg:w-52 xl:w-56
-                        h-60 sm:h-70 md:h-85 flex-shrink-0
+                        transition-all duration-300 p-2 sm:p-4 md:p-6
+                        flex flex-col items-center justify-center text-center w-full max-w-[170px] sm:max-w-[220px] lg:max-w-none lg:w-52 xl:w-56
+                        h-[230px] sm:h-[300px] md:h-85 flex-shrink-0
                       `}
                       style={{ transformStyle: "preserve-3d" }}
                     >
                       {/* Floating circle with responsive sizing */}
-                      <div className="absolute -top-3 sm:-top-5 w-12 sm:w-16 md:w-20 h-12 sm:h-16 md:h-20 bg-[#F2A516]/30 rounded-full blur-lg sm:blur-xl opacity-70 group-hover:scale-110 transition-transform" />
+                      <div className="absolute -top-3 sm:-top-5 w-12 sm:w-16 md:w-20 h-12 sm:h-16 md:h-20 bg-[#F2A516]/30 rounded-full blur-md sm:blur-xl opacity-70 group-hover:scale-110 transition-transform" />
 
                       {/* Image container with responsive sizing and flex-shrink-0 */}
-                      <div className="w-24 sm:w-28 md:w-32 lg:w-36 h-24 sm:h-28 md:h-32 lg:h-36 overflow-hidden rounded-full border-2 border-[#0D0D0D] mb-2 sm:mb-3 bg-[#FFF2C6] shadow-inner flex-shrink-0">
+                      <div className="w-24 sm:w-32 md:w-32 lg:w-36 h-24 sm:h-32 md:h-32 lg:h-36 overflow-hidden rounded-full border-2 border-[#0D0D0D] mb-1.5 sm:mb-3 bg-[#FFF2C6] shadow-inner flex-shrink-0">
                         <Image
                           src={member.imagePath || "/placeholder.svg"}
                           alt={member.name}
@@ -155,12 +155,12 @@ export default function TeamComponent() {
                       </div>
 
                       {/* Name with responsive text size and line clamping */}
-                      <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-extrabold text-[#0D0D0D] group-hover:scale-105 transition-transform line-clamp-2">
+                      <h3 className="text-[11px] sm:text-base md:text-lg lg:text-xl font-extrabold text-[#0D0D0D] group-hover:scale-105 transition-transform line-clamp-2 leading-tight">
                         {member.name}
                       </h3>
 
                       {/* Role with responsive text size and line clamping */}
-                      <p className="text-[#F2A516] font-bold text-[10px] sm:text-xs md:text-sm uppercase mb-1.5 sm:mb-2 tracking-wide line-clamp-2">
+                      <p className="text-[#F2A516] font-bold text-[9px] sm:text-xs md:text-sm uppercase mb-1.5 sm:mb-2 tracking-wide line-clamp-2 leading-tight">
                         {member.role}
                       </p>
 

@@ -61,7 +61,15 @@ export function Navbar() {
   }, [pathname]);
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 pt-safe pointer-events-none">
+    <>
+      {/* Invisible Mobile Overlay for Click-Away */}
+      {isExpanded && (
+        <div 
+          className="fixed inset-0 z-40 md:hidden pointer-events-auto" 
+          onClick={() => setIsExpanded(false)} 
+        />
+      )}
+      <nav className="fixed top-0 left-0 w-full z-50 pt-safe pointer-events-none">
       <div className="flex justify-center w-full pt-4 relative">
         <div
           className="flex flex-col items-center pb-4 relative"
@@ -169,6 +177,7 @@ export function Navbar() {
           </div>
         </div>
       </div>
-    </nav>
+      </nav>
+    </>
   );
 }

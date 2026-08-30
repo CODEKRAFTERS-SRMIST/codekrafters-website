@@ -77,6 +77,15 @@ export const TEAM_MEMBERS = [
 
   // Creatives Domain
   {
+    id: 10,
+    name: "Tito eshwar",
+    role: "Creatives Head",
+    description: "Leads creative vision and design excellence.",
+    imagePath: "/domain_pics/creative/head/Tito eshwar.JPG",
+    domain: "creatives",
+    social: { linkedin: "https://www.linkedin.com/in/tito-ishwar-648387328/" },
+  },
+  {
     id: 1000,
     name: "Sashank",
     role: "Creatives Head",
@@ -93,15 +102,6 @@ export const TEAM_MEMBERS = [
     imagePath: "/domain_pics/creative/head/TANISHA PAVITHRAKUMAR.png",
     domain: "creatives",
     social: { linkedin: "https://www.linkedin.com/in/tanisha-pavithrakumar-8a5939336" },
-  },
-  {
-    id: 10,
-    name: "Tito eshwar",
-    role: "Creatives Head",
-    description: "Leads creative vision and design excellence.",
-    imagePath: "/domain_pics/creative/head/Tito eshwar.JPG",
-    domain: "creatives",
-    social: { linkedin: "https://www.linkedin.com/in/tito-ishwar-648387328/" },
   },
   {
     id: 11,
@@ -308,11 +308,11 @@ export const TEAM_MEMBERS = [
 ]
 
 export const DOMAINS = [
-  { id: "content", label: "Content" },
   { id: "development", label: "Development" },
+  { id: "web3", label: "Web3" },
+  { id: "content", label: "Content" },
   { id: "cyber", label: "Cyber Security" },
   { id: "cp", label: "Competitive Programming" },
-  { id: "web3", label: "Web3" },
   { id: "creatives", label: "Creatives" },
   { id: "pr", label: "Public Relations" },
   { id: "operations", label: "Operations" },

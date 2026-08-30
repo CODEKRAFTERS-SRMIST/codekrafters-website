@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function GET() {
   try {
-    const { data: users, error: uErr } = await supabase.from('users').select('*');
-    const { data: admins, error: aErr } = await supabase.from('admins').select('*');
+    const { data: users, error: uErr } = await supabaseAdmin.from('users').select('*');
+    const { data: admins, error: aErr } = await supabaseAdmin.from('admins').select('*');
 
     if (uErr || aErr) throw new Error("Database error");
 
@@ -28,11 +28,11 @@ export async function POST(request: Request) {
     let isCurrentlyAdmin = false;
     let currentUser = null;
 
-    let { data: u } = await supabase.from('users').select('*').eq('id', id).maybeSingle();
+    let { data: u } = await supabaseAdmin.from('users').select('*').eq('id', id).maybeSingle();
     if (u) {
       currentUser = u;
     } else {
-      let { data: a } = await supabase.from('admins').select('*').eq('id', id).maybeSingle();
+      let { data: a } = await supabaseAdmin.from('admins').select('*').eq('id', id).maybeSingle();
       if (a) {
         currentUser = a;
         isCurrentlyAdmin = true;
@@ -47,8 +47,8 @@ export async function POST(request: Request) {
       // Promoting to Admin
       if (!isCurrentlyAdmin) {
         // Move from users to admins
-        await supabase.from('users').delete().eq('id', id);
-        await supabase.from('admins').insert([{ 
+        await supabaseAdmin.from('users').delete().eq('id', id);
+        await supabaseAdmin.from('admins').insert([{ 
           email: currentUser.email, 
           password: currentUser.password, 
           fullName: currentUser.fullName, 
@@ -56,14 +56,14 @@ export async function POST(request: Request) {
         }]);
       } else {
         // Just update admin_level
-        await supabase.from('admins').update({ admin_level }).eq('id', id);
+        await supabaseAdmin.from('admins').update({ admin_level }).eq('id', id);
       }
     } else {
       // Demoting to APPLICANT
       if (isCurrentlyAdmin) {
         // Move from admins to users
-        await supabase.from('admins').delete().eq('id', id);
-        await supabase.from('users').insert([{ 
+        await supabaseAdmin.from('admins').delete().eq('id', id);
+        await supabaseAdmin.from('users').insert([{ 
           email: currentUser.email, 
           password: currentUser.password, 
           fullName: currentUser.fullName, 

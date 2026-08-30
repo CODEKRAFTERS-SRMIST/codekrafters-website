@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getIpFromRequest, checkRateLimit } from "@/lib/rate-limit";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function POST(request: Request) {
   try {
@@ -27,15 +27,15 @@ export async function POST(request: Request) {
 
     if (action === "SIGN_UP") {
       // Check if user already exists in either table
-      const { data: existingUser } = await supabase.from('users').select('email').eq('email', email.toLowerCase()).maybeSingle();
-      const { data: existingAdmin } = await supabase.from('admins').select('email').eq('email', email.toLowerCase()).maybeSingle();
+      const { data: existingUser } = await supabaseAdmin.from('users').select('email').eq('email', email.toLowerCase()).maybeSingle();
+      const { data: existingAdmin } = await supabaseAdmin.from('admins').select('email').eq('email', email.toLowerCase()).maybeSingle();
 
       if (existingUser || existingAdmin) {
         return NextResponse.json({ error: "An account with this email already exists." }, { status: 400 });
       }
 
       // Insert new user
-      const { data: newUser, error: insertError } = await supabase
+      const { data: newUser, error: insertError } = await supabaseAdmin
         .from('users')
         .insert([{ email: email.toLowerCase(), password, fullName: fullName || email.split("@")[0], role: "APPLICANT" }])
         .select()
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     } else {
       // SIGN_IN
       // First check admins
-      const { data: admin } = await supabase.from('admins').select('*').eq('email', email.toLowerCase()).maybeSingle();
+      const { data: admin } = await supabaseAdmin.from('admins').select('*').eq('email', email.toLowerCase()).maybeSingle();
       if (admin) {
         if (admin.password !== password) {
            return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       }
 
       // Then check regular users
-      const { data: user } = await supabase.from('users').select('*').eq('email', email.toLowerCase()).maybeSingle();
+      const { data: user } = await supabaseAdmin.from('users').select('*').eq('email', email.toLowerCase()).maybeSingle();
       if (user) {
         if (user.password !== password) {
            return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
