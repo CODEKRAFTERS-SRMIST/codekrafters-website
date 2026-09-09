@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { Application } from "@/types/join";
 import { checkRateLimit, getIpFromRequest } from "@/lib/rate-limit";
 import { applicationPostSchema, applicationPatchSchema } from "@/lib/validations";
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
   const email = searchParams.get("email");
 
   try {
-    let query = supabase.from("applications").select("*").order("submitted_at", { ascending: false });
+    let query = supabaseAdmin.from("applications").select("*").order("submitted_at", { ascending: false });
 
     if (userId || email) {
       if (userId && email) {
@@ -82,15 +82,15 @@ export async function POST(request: Request) {
     const validatedData = parsed.data;
     
     // Check if exists
-    const { data: existing } = await supabase
+    const { data: existing } = await supabaseAdmin
       .from("applications")
       .select("id")
       .or(`user_id.eq.${validatedData.userId},email.ilike.${validatedData.email}`)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       // Update instead
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("applications")
         .update({
           full_name: validatedData.fullName,
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, application: mapAppFromDB(data) });
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("applications")
       .insert({
         user_id: validatedData.userId,
@@ -166,7 +166,7 @@ export async function PATCH(request: Request) {
     if (adminNotes !== undefined) updates.admin_notes = adminNotes;
     if (rating !== undefined) updates.rating = rating;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("applications")
       .update(updates)
       .eq("id", id)

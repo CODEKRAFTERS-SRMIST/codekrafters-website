@@ -22,6 +22,7 @@ import {
   Megaphone,
   Calendar,
   Star,
+  XCircle,
 } from "lucide-react";
 
 interface ApplicationFormProps {
@@ -48,6 +49,13 @@ export function ApplicationForm({
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+
+  React.useEffect(() => {
+    if (formError) {
+      const timer = setTimeout(() => setFormError(""), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [formError]);
 
   const [formData, setFormData] = useState<ApplicantFormData>({
     fullName: existingApplication?.fullName || session.fullName || "",
@@ -88,9 +96,34 @@ export function ApplicationForm({
         setFormError("Please fill out all personal and academic details.");
         return;
       }
+      if (formData.phone.replace(/\D/g, '').length < 10) {
+        setFormError("Please provide a valid phone number (at least 10 digits).");
+        return;
+      }
     } else if (step === 2) {
       if (formData.domains.length === 0) {
         setFormError("Please select at least one domain to apply for.");
+        return;
+      }
+
+      // Simple client-side URL validation
+      const isValidUrl = (url: string) => {
+        if (!url.trim()) return true;
+        try {
+          const parsed = new URL(url);
+          return parsed.protocol === "http:" || parsed.protocol === "https:";
+        } catch {
+          return false;
+        }
+      };
+
+      if (
+        !isValidUrl(formData.githubUrl) ||
+        !isValidUrl(formData.linkedinUrl) ||
+        !isValidUrl(formData.portfolioUrl) ||
+        !isValidUrl(formData.resumeUrl)
+      ) {
+        setFormError("Please ensure all provided portfolio links are valid URLs (must include http:// or https://).");
         return;
       }
     }
@@ -103,6 +136,12 @@ export function ApplicationForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (step < 3) {
+      handleNextStep();
+      return;
+    }
+
     setFormError("");
 
     if (!formData.whyJoin.trim() || formData.whyJoin.trim().length < 20) {
@@ -126,8 +165,22 @@ export function ApplicationForm({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-3xl mx-auto"
+      className="w-full max-w-4xl mx-auto relative"
     >
+      <AnimatePresence>
+        {formError && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9, y: 50 }}
+            className="fixed bottom-6 right-6 left-6 sm:left-auto z-[100] bg-rose-500 text-white px-6 py-3.5 rounded-xl shadow-[4px_4px_0_#0D0D0D] border-2 border-[#0D0D0D] font-extrabold flex items-center gap-3"
+          >
+            <XCircle className="w-5 h-5 shrink-0" />
+            <span className="text-xs sm:text-sm">{formError}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 sm:p-10 shadow-[10px_10px_0_#0D0D0D] relative overflow-hidden">
         {/* Step Progress Header */}
         <div className="mb-8">
@@ -217,7 +270,7 @@ export function ApplicationForm({
                       required
                       placeholder="+91 98765 43210"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                       className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-4 py-2.5 text-sm font-semibold text-[#0D0D0D] focus:outline-none focus:ring-2 focus:ring-[#F2A516] shadow-[3px_3px_0_#0D0D0D]"
                     />
                   </div>
@@ -231,7 +284,7 @@ export function ApplicationForm({
                     <select
                       value={formData.department}
                       onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                      className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-4 py-2.5 text-sm font-bold text-[#0D0D0D] focus:outline-none focus:ring-2 focus:ring-[#F2A516] shadow-[3px_3px_0_#0D0D0D]"
+                      className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-4 py-2.5 text-sm font-bold text-[#0D0D0D] focus:outline-none focus:ring-2 focus:ring-[#F2A516] shadow-[3px_3px_0_#0D0D0D] truncate max-w-full"
                     >
                       {DEPARTMENTS.map((dept) => (
                         <option key={dept} value={dept}>
@@ -248,7 +301,7 @@ export function ApplicationForm({
                     <select
                       value={formData.year}
                       onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                      className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-4 py-2.5 text-sm font-bold text-[#0D0D0D] focus:outline-none focus:ring-2 focus:ring-[#F2A516] shadow-[3px_3px_0_#0D0D0D]"
+                      className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-4 py-2.5 text-sm font-bold text-[#0D0D0D] focus:outline-none focus:ring-2 focus:ring-[#F2A516] shadow-[3px_3px_0_#0D0D0D] truncate max-w-full"
                     >
                       {YEARS.map((yr) => (
                         <option key={yr} value={yr}>
@@ -307,7 +360,14 @@ export function ApplicationForm({
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
                               <h4 className="font-extrabold text-sm uppercase">{domain.name}</h4>
-                              {selected && <CheckCircle className="w-4 h-4 text-[#0D0D0D]" />}
+                              {selected && (
+                                <div className="flex items-center gap-1.5 sm:gap-2">
+                                  <span className="text-[9px] sm:text-[10px] bg-[#0D0D0D] text-[#FFEFB4] px-1.5 sm:px-2 py-0.5 rounded-md font-bold whitespace-nowrap">
+                                    {formData.domains.indexOf(domain.name) === 0 ? "1st Choice" : "2nd Choice"}
+                                  </span>
+                                  <CheckCircle className="w-4 h-4 text-[#0D0D0D] shrink-0" />
+                                </div>
+                              )}
                             </div>
                             <p className="text-[11px] font-medium mt-0.5 opacity-90 leading-snug">
                               {domain.description}
@@ -328,7 +388,7 @@ export function ApplicationForm({
                     <select
                       value={formData.primaryDomain}
                       onChange={(e) => setFormData({ ...formData, primaryDomain: e.target.value })}
-                      className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-4 py-2.5 text-sm font-bold text-[#0D0D0D] focus:outline-none focus:ring-2 focus:ring-[#F2A516] shadow-[3px_3px_0_#0D0D0D]"
+                      className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-4 py-2.5 text-sm font-bold text-[#0D0D0D] focus:outline-none focus:ring-2 focus:ring-[#F2A516] shadow-[3px_3px_0_#0D0D0D] truncate max-w-full"
                     >
                       {formData.domains.map((dom) => (
                         <option key={dom} value={dom}>
@@ -463,24 +523,24 @@ export function ApplicationForm({
           </AnimatePresence>
 
           {/* Form Actions Footer */}
-          <div className="flex items-center justify-between pt-8 border-t-2 border-[#0D0D0D]/10 mt-6">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:justify-between pt-8 border-t-2 border-[#0D0D0D]/10 mt-6">
             {step > 1 ? (
               <button
                 type="button"
                 onClick={handlePrevStep}
-                className="bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] px-5 py-2.5 rounded-full font-bold text-xs sm:text-sm uppercase flex items-center gap-2 border-2 border-[#0D0D0D] shadow-[3px_3px_0_#F2A516] cursor-pointer"
+                className="bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] px-5 py-3 sm:py-2.5 rounded-full font-bold text-xs sm:text-sm uppercase flex items-center justify-center gap-2 border-2 border-[#0D0D0D] shadow-[3px_3px_0_#F2A516] cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" /> Previous
               </button>
             ) : (
-              <div />
+              <div className="hidden sm:block" />
             )}
 
             {step < 3 ? (
               <button
                 type="button"
                 onClick={handleNextStep}
-                className="bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] px-6 py-2.5 rounded-full font-bold text-xs sm:text-sm uppercase flex items-center gap-2 border-2 border-[#0D0D0D] shadow-[3px_3px_0_#F2A516] hover:translate-y-[-2px] transition-all cursor-pointer"
+                className="bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] px-6 py-3 sm:py-2.5 rounded-full font-bold text-xs sm:text-sm uppercase flex items-center justify-center gap-2 border-2 border-[#0D0D0D] shadow-[3px_3px_0_#F2A516] hover:translate-y-[-2px] transition-all cursor-pointer"
               >
                 Next Step <ArrowRight className="w-4 h-4" />
               </button>
@@ -488,10 +548,10 @@ export function ApplicationForm({
               <button
                 type="submit"
                 disabled={submitting}
-                className="bg-[#F2A516] text-[#0D0D0D] hover:bg-[#F2B200] px-8 py-3 rounded-full font-extrabold text-sm uppercase tracking-wide flex items-center gap-2 border-3 border-[#0D0D0D] shadow-[4px_4px_0_#0D0D0D] hover:translate-y-[-2px] transition-all cursor-pointer disabled:opacity-50"
+                className="bg-[#F2A516] text-[#0D0D0D] hover:bg-[#F2B200] px-6 sm:px-8 py-3.5 sm:py-3 rounded-full font-extrabold text-[11px] sm:text-sm uppercase tracking-wide flex items-center justify-center gap-2 border-3 border-[#0D0D0D] shadow-[4px_4px_0_#0D0D0D] hover:translate-y-[-2px] transition-all cursor-pointer disabled:opacity-50"
               >
-                {submitting ? "Submitting Application..." : "Submit Application"}
-                <CheckCircle className="w-5 h-5" />
+                <span className="truncate">{submitting ? "Submitting..." : "Submit Application"}</span>
+                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
               </button>
             )}
           </div>

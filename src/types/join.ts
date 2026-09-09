@@ -65,6 +65,7 @@ export interface FilterOptions {
 export interface UserSession {
   email: string;
   role: UserRole;
+  admin_level?: "PRESIDENT" | "HEAD" | "LEAD";
   fullName?: string;
   id: string;
 }

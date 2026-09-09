@@ -1,22 +1,19 @@
 import { NextResponse } from "next/server";
-import { UserRole } from "@/types/join";
-import { supabase } from "@/lib/supabase";
-import { checkRateLimit, getIpFromRequest } from "@/lib/rate-limit";
-import { loginSchema } from "@/lib/validations";
+import { getIpFromRequest, checkRateLimit } from "@/lib/rate-limit";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function POST(request: Request) {
   try {
     const ip = getIpFromRequest(request);
     const body = await request.json();
     
-    const parsed = loginSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json({ error: "Validation Error", details: parsed.error.format() }, { status: 400 });
-    }
-    
-    const { email, password, role } = parsed.data;
+    const { email, password, fullName, action } = body;
 
-    // Rate Limit IP + Account combination (stricter limit with exponential backoff)
+    if (!email || !password) {
+      return NextResponse.json({ error: "Email and Password are required" }, { status: 400 });
+    }
+
+    // Rate Limit IP + Account combination
     const ipLimit = await checkRateLimit(ip, 'auth_ip');
     const emailLimit = await checkRateLimit(email.toLowerCase(), 'auth_email');
     
@@ -28,42 +25,58 @@ export async function POST(request: Request) {
       );
     }
 
-    if (role === "ADMIN") {
-      // Validate Admin against Supabase
-      const { data: admin, error } = await supabase
-        .from("admins")
-        .select("*")
-        .eq("email", email)
-        .eq("password", password)
+    if (action === "SIGN_UP") {
+      // Check if user already exists in either table
+      const { data: existingUser } = await supabaseAdmin.from('users').select('email').eq('email', email.toLowerCase()).maybeSingle();
+      const { data: existingAdmin } = await supabaseAdmin.from('admins').select('email').eq('email', email.toLowerCase()).maybeSingle();
+
+      if (existingUser || existingAdmin) {
+        return NextResponse.json({ error: "An account with this email already exists." }, { status: 400 });
+      }
+
+      // Insert new user
+      const { data: newUser, error: insertError } = await supabaseAdmin
+        .from('users')
+        .insert([{ email: email.toLowerCase(), password, fullName: fullName || email.split("@")[0], role: "APPLICANT" }])
+        .select()
         .single();
 
-      if (error || !admin) {
-        return NextResponse.json(
-          { error: "Invalid admin email or password." },
-          { status: 401 }
-        );
+      if (insertError) {
+        return NextResponse.json({ error: "Failed to create account." }, { status: 500 });
       }
 
       return NextResponse.json({
         success: true,
-        user: {
-          id: admin.id,
-          email: admin.email,
-          role: "ADMIN",
-          fullName: "CodeKrafters Admin",
-        },
+        user: { id: newUser.id, email: newUser.email, role: newUser.role, fullName: newUser.fullName },
       });
-    }
+    } else {
+      // SIGN_IN
+      // First check admins
+      const { data: admin } = await supabaseAdmin.from('admins').select('*').eq('email', email.toLowerCase()).maybeSingle();
+      if (admin) {
+        if (admin.password !== password) {
+           return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+        }
+        return NextResponse.json({
+          success: true,
+          user: { id: admin.id, email: admin.email, role: "ADMIN", admin_level: admin.admin_level || "LEAD", fullName: admin.fullName || "Admin" },
+        });
+      }
 
-    // Applicant Login / General User
-    return NextResponse.json({
-      success: true,
-      user: {
-        id: `usr-${Buffer.from(email.toLowerCase()).toString("base64").substring(0, 10)}`,
-        email: email.toLowerCase(),
-        role: "APPLICANT",
-      },
-    });
+      // Then check regular users
+      const { data: user } = await supabaseAdmin.from('users').select('*').eq('email', email.toLowerCase()).maybeSingle();
+      if (user) {
+        if (user.password !== password) {
+           return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+        }
+        return NextResponse.json({
+          success: true,
+          user: { id: user.id, email: user.email, role: user.role, fullName: user.fullName },
+        });
+      }
+
+      return NextResponse.json({ error: "Account not found. Please sign up." }, { status: 404 });
+    }
   } catch (error) {
     console.error("Login Error:", error);
     return NextResponse.json({ error: "An unexpected error occurred. Please try again later." }, { status: 500 });
