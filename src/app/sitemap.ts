@@ -1,50 +1,38 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://codekrafters.tech';
-  
+  const baseUrl = 'https://codekraftersrmp.in';
+  const now = new Date();
+
+  // Public-only pages — admin, profile, login, signup, api, join/tasks are EXCLUDED
   return [
     {
       url: `${baseUrl}`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 1,
+      lastModified: now,
     },
     {
       url: `${baseUrl}/events`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/projects`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/blog`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
+      lastModified: now,
     },
     {
       url: `${baseUrl}/team`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
+      lastModified: new Date('2026-09-01'),
+    },
+    {
+      url: `${baseUrl}/projects`,
+      lastModified: new Date('2026-08-01'),
+    },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: now,
     },
     {
       url: `${baseUrl}/join`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.9,
+      lastModified: now,
     },
     {
       url: `${baseUrl}/krafterslink`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.6,
+      lastModified: new Date('2026-08-15'),
     },
   ];
 }
