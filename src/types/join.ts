@@ -1,6 +1,9 @@
-export type UserRole = "APPLICANT" | "ADMIN";
+export type UserRole = "PRESIDENT" | "DOMAIN_ADMIN" | "APPLICANT";
 
 export type ApplicationStatus =
+  | "Applied"
+  | "Task Ongoing"
+  | "Task Completed"
   | "Under Review"
   | "Shortlisted"
   | "Interview Scheduled"
@@ -34,6 +37,8 @@ export interface Application {
   status: ApplicationStatus;
   adminNotes?: string;
   rating?: number;
+  taskSubmissionUrl?: string;
+  taskSubmittedAt?: string;
   submittedAt: string;
   updatedAt?: string;
 }
@@ -65,7 +70,7 @@ export interface FilterOptions {
 export interface UserSession {
   email: string;
   role: UserRole;
-  admin_level?: "PRESIDENT" | "HEAD" | "LEAD";
+  domain_id?: string;
   fullName?: string;
   id: string;
 }
@@ -123,15 +128,22 @@ export const DOMAINS_LIST: RecruitmentDomain[] = [
 ];
 
 export const DEPARTMENTS = [
-  "Computer Science & Engineering (CSE)",
-  "CSE with AI & ML",
-  "CSE with Cyber Security",
-  "Information Technology (IT)",
-  "Electronics & Communication (ECE)",
-  "Data Science",
-  "Mechanical Engineering",
+  "Artificial Intelligence (AI)",
   "Biotechnology",
-  "Other",
+  "Civil Engineering",
+  "Computer Science and Business System",
+  "Computer Science and Engineering (CSE)",
+  "CSE with Artificial Intelligence and Machine Learning (AIML)",
+  "CSE with Big Data Analytics (BDA)",
+  "CSE with Cloud Computing (CC)",
+  "CSE with Cyber Security (CS)",
+  "CSE with Gaming Technology (GT)",
+  "CSE with Internet of Things (IOT)",
+  "Electrical and Electronics Engineering (EEE)",
+  "Electronics and Communication Engineering (ECE)",
+  "Electronics and Communication Engineering with specialization in Data Science",
+  "Information Technology (IT)",
+  "Mechanical Engineering",
 ];
 
 export const YEARS = ["1st Year", "2nd Year", "3rd Year", "4th Year"];

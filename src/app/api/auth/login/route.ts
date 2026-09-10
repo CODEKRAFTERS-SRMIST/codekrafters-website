@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { getIpFromRequest, checkRateLimit } from "@/lib/rate-limit";
 import { supabaseAdmin } from "@/lib/supabase";
+import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
   try {
     const ip = getIpFromRequest(request);
     const body = await request.json();
     
-    const { email, password, fullName, action } = body;
+    const { email, password } = body;
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and Password are required" }, { status: 400 });
@@ -25,58 +26,62 @@ export async function POST(request: Request) {
       );
     }
 
-    if (action === "SIGN_UP") {
-      // Check if user already exists in either table
-      const { data: existingUser } = await supabaseAdmin.from('users').select('email').eq('email', email.toLowerCase()).maybeSingle();
-      const { data: existingAdmin } = await supabaseAdmin.from('admins').select('email').eq('email', email.toLowerCase()).maybeSingle();
-
-      if (existingUser || existingAdmin) {
-        return NextResponse.json({ error: "An account with this email already exists." }, { status: 400 });
-      }
-
-      // Insert new user
-      const { data: newUser, error: insertError } = await supabaseAdmin
-        .from('users')
-        .insert([{ email: email.toLowerCase(), password, fullName: fullName || email.split("@")[0], role: "APPLICANT" }])
-        .select()
-        .single();
-
-      if (insertError) {
-        return NextResponse.json({ error: "Failed to create account." }, { status: 500 });
-      }
-
-      return NextResponse.json({
-        success: true,
-        user: { id: newUser.id, email: newUser.email, role: newUser.role, fullName: newUser.fullName },
-      });
-    } else {
-      // SIGN_IN
-      // First check admins
-      const { data: admin } = await supabaseAdmin.from('admins').select('*').eq('email', email.toLowerCase()).maybeSingle();
-      if (admin) {
-        if (admin.password !== password) {
-           return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
-        }
-        return NextResponse.json({
-          success: true,
-          user: { id: admin.id, email: admin.email, role: "ADMIN", admin_level: admin.admin_level || "LEAD", fullName: admin.fullName || "Admin" },
-        });
-      }
-
-      // Then check regular users
-      const { data: user } = await supabaseAdmin.from('users').select('*').eq('email', email.toLowerCase()).maybeSingle();
-      if (user) {
-        if (user.password !== password) {
-           return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
-        }
-        return NextResponse.json({
-          success: true,
-          user: { id: user.id, email: user.email, role: user.role, fullName: user.fullName },
-        });
-      }
-
-      return NextResponse.json({ error: "Account not found. Please sign up." }, { status: 404 });
+    const { data: user, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('*')
+      .eq('email', email.toLowerCase())
+      .maybeSingle();
+    
+    if (userError) {
+      console.error("Database user fetch error:", userError);
+      return NextResponse.json({ error: userError.message || "Database connection error." }, { status: 500 });
     }
+
+    if (!user) {
+      return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+    }
+
+    const storedPassword = user.password_hash || user.password;
+    if (!storedPassword) {
+      return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+    }
+
+    let isValid = false;
+    if (storedPassword.startsWith("$2a$") || storedPassword.startsWith("$2b$") || storedPassword.startsWith("$2y$")) {
+      isValid = await bcrypt.compare(password, storedPassword);
+    } else {
+      // Plain text password entered directly in database
+      isValid = storedPassword === password;
+      if (isValid) {
+        // Automatically upgrade to secure bcrypt hash in backend
+        try {
+          const salt = await bcrypt.genSalt(10);
+          const newHash = await bcrypt.hash(password, salt);
+          const updateData: any = {};
+          if ("password_hash" in user) updateData.password_hash = newHash;
+          if ("password" in user) updateData.password = newHash;
+          if (Object.keys(updateData).length === 0) updateData.password_hash = newHash;
+          await supabaseAdmin.from('users').update(updateData).eq('id', user.id);
+        } catch (e) {
+          console.error("Auto-hash upgrade error:", e);
+        }
+      }
+    }
+
+    if (!isValid) {
+      return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        domain_id: user.domain_id,
+        fullName: user.full_name || user.fullName || user.email.split("@")[0],
+      },
+    });
   } catch (error) {
     console.error("Login Error:", error);
     return NextResponse.json({ error: "An unexpected error occurred. Please try again later." }, { status: 500 });

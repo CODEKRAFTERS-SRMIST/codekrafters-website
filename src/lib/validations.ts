@@ -26,7 +26,19 @@ export const applicationPostSchema = z.object({
 
 export const applicationPatchSchema = z.object({
   id: z.string().uuid("Invalid application ID"),
-  status: z.enum(["Under Review", "Shortlisted", "Interview Scheduled", "Accepted", "Rejected"]).optional(),
+  status: z
+    .enum([
+      "Applied",
+      "Task Ongoing",
+      "Task Completed",
+      "Under Review",
+      "Shortlisted",
+      "Interview Scheduled",
+      "Accepted",
+      "Rejected",
+    ])
+    .optional(),
   adminNotes: z.string().max(5000).optional(),
   rating: z.number().min(0).max(10).optional(),
+  taskSubmissionUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 }).strict();

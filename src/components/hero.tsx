@@ -37,8 +37,9 @@ const Hero: React.FC = () => {
     ))
 
   const images = [
-    "/hero-img/IMG_1498.DNG",
-    "/hero-img/IMG_1501.DNG",
+    "/hero-img/core.jpeg",
+    "/hero-img/group3.jpg",
+
   ]
 
   const [index, setIndex] = useState(0)
@@ -299,8 +300,8 @@ const Hero: React.FC = () => {
         <div className="flex flex-col justify-center items-center lg:ml-10 w-full lg:w-[55%]">
           <div
             ref={imageRef}
-            className="relative rounded-3xl overflow-hidden shadow-[0_0_40px_#000a] w-[90%] sm:w-[85%] lg:w-[72%] max-w-[560px]"
-            style={{ height: "clamp(260px, 38vh, 440px)" }}
+            className="relative rounded-[2rem] overflow-hidden border-[4px] border-[#F9B000] shadow-[20px_20px_0_rgba(0,0,0,0.8)] w-[95%] sm:w-[95%] lg:w-[95%] max-w-[800px] lg:-ml-12 z-10"
+            style={{ height: "clamp(300px, 48vh, 580px)" }}
           >
             {images.map((src, i) => (
               <div
