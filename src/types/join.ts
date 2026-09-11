@@ -1,4 +1,4 @@
-export type UserRole = "PRESIDENT" | "DOMAIN_ADMIN" | "APPLICANT";
+export type UserRole = "PRESIDENT" | "VICE_PRESIDENT" | "DOMAIN_ADMIN" | "APPLICANT";
 
 export type ApplicationStatus =
   | "Applied"

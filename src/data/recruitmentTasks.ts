@@ -87,7 +87,7 @@ export const DOMAIN_TASKS_DATA: Record<string, DomainTaskDetail> = {
     category: "Technical",
     tagline: "Build responsive, high-performance web applications with modern tech stacks.",
     deadline: "Thursday, September 24, 2026 • 11:59 PM IST",
-    whatsappLink: "https://chat.whatsapp.com/CodeKraftersWebDev",
+    whatsappLink: "https://chat.whatsapp.com/KZdCE6slyu14CtM7whD6SH?s=cl&p=i&mlu=0&ilr=4",
     submissionLink: "https://forms.gle/CodeKraftersWebDevSubmission",
     overview:
       "Craft a modern, responsive web application or interactive component system. We evaluate clean code architecture, design craft, state management, and user experience.",
@@ -135,7 +135,7 @@ export const DOMAIN_TASKS_DATA: Record<string, DomainTaskDetail> = {
     category: "Technical",
     tagline: "Pioneer decentralized applications, smart contracts, and Web3 primitives.",
     deadline: "Thursday, September 24, 2026 • 11:59 PM IST",
-    whatsappLink: "https://chat.whatsapp.com/CodeKraftersWeb3",
+    whatsappLink: "https://chat.whatsapp.com/G8H3ufbl0CC0kaI0MNIeGy?s=cl&p=i&mlu=0&ilr=4",
     submissionLink: "https://forms.gle/CodeKraftersWeb3Submission",
     overview:
       "Design and implement a decentralized smart contract system or interactive dApp frontend that demonstrates your understanding of on-chain protocols and wallet interactions.",
@@ -182,7 +182,7 @@ export const DOMAIN_TASKS_DATA: Record<string, DomainTaskDetail> = {
     category: "Technical",
     tagline: "Defend systems, analyze threats, and master defensive/offensive security.",
     deadline: "Thursday, September 24, 2026 • 11:59 PM IST",
-    whatsappLink: "https://chat.whatsapp.com/CodeKraftersCyberSec",
+    whatsappLink: "https://chat.whatsapp.com/FJgGeB5v6bm3jGYxxdz0rA?s=cl&p=i&mlu=0&ilr=4",
     submissionLink: "https://forms.gle/CodeKraftersCyberSecSubmission",
     overview:
       "Perform a security assessment, solve targeted CTF challenges, or build an automated security scanner/script.",
@@ -226,7 +226,7 @@ export const DOMAIN_TASKS_DATA: Record<string, DomainTaskDetail> = {
     category: "Technical",
     tagline: "Master algorithms, data structures, and high-speed problem solving.",
     deadline: "Thursday, September 24, 2026 • 11:59 PM IST",
-    whatsappLink: "https://chat.whatsapp.com/CodeKraftersCP",
+    whatsappLink: "https://chat.whatsapp.com/DzNZwqzsEde2dl5cqkVQ4k?s=cl&p=i&mlu=0&ilr=4",
     submissionLink: "https://forms.gle/CodeKraftersCPSubmission",
     overview:
       "Solve a curated set of algorithmic challenges and provide well-documented, optimal solutions with mathematical time/space complexity proofs.",
@@ -261,7 +261,7 @@ export const DOMAIN_TASKS_DATA: Record<string, DomainTaskDetail> = {
     category: "Creative",
     tagline: "Design captivating digital experiences, design systems, and visual identities.",
     deadline: "Thursday, September 24, 2026 • 11:59 PM IST",
-    whatsappLink: "https://chat.whatsapp.com/CodeKraftersCreatives",
+    whatsappLink: "https://chat.whatsapp.com/GLszP8zeUsB79YP3h6lzpj?s=cl&p=i&mlu=0&ilr=4",
     submissionLink: "https://forms.gle/CodeKraftersCreativesSubmission",
     overview:
       "Create a high-fidelity Figma UI/UX prototype and design system for a designated CodeKrafters product concept.",
@@ -305,7 +305,7 @@ export const DOMAIN_TASKS_DATA: Record<string, DomainTaskDetail> = {
     category: "Non-Technical",
     tagline: "Craft compelling stories, technical narratives, and developer articles.",
     deadline: "Thursday, September 24, 2026 • 11:59 PM IST",
-    whatsappLink: "https://chat.whatsapp.com/CodeKraftersContent",
+    whatsappLink: "https://chat.whatsapp.com/Dm3E60crOin4kJgS19stQn?s=cl&p=i&mlu=0&ilr=4",
     submissionLink: "https://forms.gle/CodeKraftersContentSubmission",
     overview:
       "Write a high-impact technical article or brand editorial explaining a complex tech concept in an engaging, accessible manner.",
@@ -348,7 +348,7 @@ export const DOMAIN_TASKS_DATA: Record<string, DomainTaskDetail> = {
     category: "Non-Technical",
     tagline: "Drive partnerships, orchestrate events, and scale developer communities.",
     deadline: "Thursday, September 24, 2026 • 11:59 PM IST",
-    whatsappLink: "https://chat.whatsapp.com/CodeKraftersPR",
+    whatsappLink: "https://chat.whatsapp.com/LfMxoRQlh299cv1L5RDLCS?s=cl&p=i&mlu=0&ilr=4",
     submissionLink: "https://forms.gle/CodeKraftersPRSubmission",
     overview:
       "Design a comprehensive event proposal and sponsorship outreach strategy for an upcoming flagship CodeKrafters tech summit.",

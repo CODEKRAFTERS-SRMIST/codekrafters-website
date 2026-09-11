@@ -204,26 +204,20 @@ export default function DomainTaskPage({ params }: TaskPageProps) {
               </div>
 
               {/* Direct CTA Action Buttons */}
-              <div className="flex flex-wrap gap-3">
-                <a
-                  href={task.submissionLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-3 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] font-black text-xs uppercase tracking-wider rounded-xl border-2 border-[#0D0D0D] shadow-[3px_3px_0_#F2A516] hover:translate-y-[-2px] transition-all cursor-pointer"
-                >
-                  <Send className="w-4 h-4" /> Submit Task Solution
-                  <ExternalLink className="w-3.5 h-3.5 opacity-70" />
-                </a>
-
+              <div className="flex flex-wrap items-center gap-3">
                 <a
                   href={task.whatsappLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-3 bg-[#25D366] text-[#0D0D0D] font-black text-xs uppercase tracking-wider rounded-xl border-2 border-[#0D0D0D] shadow-[3px_3px_0_#0D0D0D] hover:translate-y-[-2px] transition-all cursor-pointer hover:bg-[#20bd5a]"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#25D366] text-[#0D0D0D] font-black text-sm uppercase tracking-wider rounded-xl border-2 border-[#0D0D0D] shadow-[4px_4px_0_#0D0D0D] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_#0D0D0D] transition-all cursor-pointer hover:bg-[#20bd5a]"
                 >
-                  <MessageCircle className="w-4 h-4 text-[#0D0D0D]" /> Join Domain WhatsApp Group
-                  <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                  <MessageCircle className="w-5 h-5 text-[#0D0D0D]" /> Join Official {task.domainName} WhatsApp Group
+                  <ExternalLink className="w-4 h-4 opacity-70" />
                 </a>
+
+                <span className="text-xs font-extrabold uppercase text-[#0D0D0D]/70 bg-[#FFF2C6] border-2 border-[#0D0D0D] px-4 py-2.5 rounded-xl">
+                  Task briefing & submission updates will be announced in WhatsApp
+                </span>
               </div>
             </header>
 

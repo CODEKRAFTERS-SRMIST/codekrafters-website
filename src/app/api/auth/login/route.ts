@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getIpFromRequest, checkRateLimit } from "@/lib/rate-limit";
 import { supabaseAdmin } from "@/lib/supabase";
+import { setSession } from "@/lib/session";
 import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
@@ -49,28 +50,18 @@ export async function POST(request: Request) {
     let isValid = false;
     if (storedPassword.startsWith("$2a$") || storedPassword.startsWith("$2b$") || storedPassword.startsWith("$2y$")) {
       isValid = await bcrypt.compare(password, storedPassword);
-    } else {
-      // Plain text password entered directly in database
-      isValid = storedPassword === password;
-      if (isValid) {
-        // Automatically upgrade to secure bcrypt hash in backend
-        try {
-          const salt = await bcrypt.genSalt(10);
-          const newHash = await bcrypt.hash(password, salt);
-          const updateData: any = {};
-          if ("password_hash" in user) updateData.password_hash = newHash;
-          if ("password" in user) updateData.password = newHash;
-          if (Object.keys(updateData).length === 0) updateData.password_hash = newHash;
-          await supabaseAdmin.from('users').update(updateData).eq('id', user.id);
-        } catch (e) {
-          console.error("Auto-hash upgrade error:", e);
-        }
-      }
     }
 
     if (!isValid) {
       return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
     }
+
+    // Set secure JWT session
+    await setSession({
+      id: user.id,
+      role: user.role,
+      domain_id: user.domain_id,
+    });
 
     return NextResponse.json({
       success: true,

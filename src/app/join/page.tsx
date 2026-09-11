@@ -48,10 +48,13 @@ export default function JoinPage() {
 
 
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setSession(null);
     setUserApp(null);
     setIsEditing(false);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {}
     try {
       localStorage.removeItem("codekrafters_user_session");
       window.dispatchEvent(new Event("auth_change"));
@@ -116,7 +119,7 @@ export default function JoinPage() {
               </button>
             </div>
           </div>
-        ) : (session.role === "PRESIDENT" || session.role === "DOMAIN_ADMIN") ? (
+        ) : (session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT" || session.role === "DOMAIN_ADMIN") ? (
           /* State 3: Admin Session -> Admin Panel */
           <div className="py-4">
             <AdminDashboard session={session} onLogout={handleLogout} />

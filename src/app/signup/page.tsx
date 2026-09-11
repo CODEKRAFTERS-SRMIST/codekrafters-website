@@ -30,7 +30,7 @@ export default function SignupPage() {
       const searchParams = new URLSearchParams(window.location.search);
       const redirect = searchParams.get("redirect");
 
-      if (newSession.role === "PRESIDENT" || newSession.role === "DOMAIN_ADMIN") {
+      if (newSession.role === "PRESIDENT" || newSession.role === "VICE_PRESIDENT" || newSession.role === "DOMAIN_ADMIN") {
         window.location.href = "/join"; 
       } else {
         window.location.href = redirect || "/profile";

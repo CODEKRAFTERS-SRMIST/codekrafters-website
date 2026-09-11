@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { getSession } from "@/lib/session";
 import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
   try {
+    const session = await getSession();
     const body = await request.json();
     const { userId, oldPassword, newPassword } = body;
+
+    if (!session || session.id !== userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     if (!userId || !oldPassword || !newPassword) {
       return NextResponse.json(

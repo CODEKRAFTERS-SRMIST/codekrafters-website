@@ -113,7 +113,6 @@ export function ApplicationStatusCard({
   const [submissionInputUrl, setSubmissionInputUrl] = useState<string>(application.taskSubmissionUrl || "");
   const [submittingTask, setSubmittingTask] = useState<boolean>(false);
   const [submissionSuccessToast, setSubmissionSuccessToast] = useState<string | null>(null);
-  const [checkingReview, setCheckingReview] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -175,21 +174,6 @@ export function ApplicationStatusCard({
       alert(err.message || "Failed to submit task");
     } finally {
       setSubmittingTask(false);
-    }
-  }
-
-  // Handle applicant checking for evaluation update (Task Completed -> Under Review)
-  async function handleCheckReviewUpdate() {
-    setCheckingReview(true);
-    try {
-      await updateApplicationStatus(application.id, "Under Review");
-      setLocalStatus("Under Review");
-      setSubmissionSuccessToast("Status updated! Domain evaluators are reviewing your submission.");
-      setTimeout(() => setSubmissionSuccessToast(null), 4000);
-    } catch (err: any) {
-      console.warn("Failed to update status to Under Review:", err);
-    } finally {
-      setCheckingReview(false);
     }
   }
 
@@ -264,21 +248,6 @@ export function ApplicationStatusCard({
           <p className="text-xs sm:text-sm font-bold text-[#0D0D0D]/80 mt-2 max-w-lg mx-auto relative z-10">
             {currentStatus.desc}
           </p>
-
-          {/* Under Review Action: If Task Completed, applicant can click to check status & transition to Under Review */}
-          {localStatus === "Task Completed" && (
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-2 relative z-10">
-              <button
-                type="button"
-                onClick={handleCheckReviewUpdate}
-                disabled={checkingReview}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] rounded-xl text-xs font-black uppercase tracking-wider border-2 border-[#0D0D0D] shadow-[3px_3px_0_#F2A516] hover:translate-y-[-1px] transition-all cursor-pointer"
-              >
-                <Clock className="w-4 h-4 text-[#F2A516]" />
-                {checkingReview ? "Checking Status..." : "Check Review & Evaluation Update"}
-              </button>
-            </div>
-          )}
         </div>
 
         {/* ============================================================ */}

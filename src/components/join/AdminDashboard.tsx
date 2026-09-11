@@ -123,7 +123,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
   };
 
   useEffect(() => {
-    if (activeTab === "USERS" && session.role === "PRESIDENT") {
+    if (activeTab === "USERS" && (session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT")) {
       fetchUsers();
     }
   }, [activeTab, session.role]);
@@ -131,7 +131,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
-      if (params.get("tab")?.toUpperCase() === "USERS" && session.role === "PRESIDENT") {
+      if (params.get("tab")?.toUpperCase() === "USERS" && (session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT")) {
         setActiveTab("USERS");
       }
     } catch (e) {}
@@ -258,6 +258,23 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
   };
 
   const handleRoleChange = async (userId: string, newRole: string, newDomainId?: string) => {
+    setSystemUsers((prev) =>
+      prev.map((u) =>
+        u.id === userId
+          ? {
+              ...u,
+              role: newRole,
+              domain_id:
+                newRole === "DOMAIN_ADMIN"
+                  ? newDomainId !== undefined
+                    ? newDomainId
+                    : u.domain_id
+                  : null,
+            }
+          : u
+      )
+    );
+
     try {
       const res = await fetch("/api/admin/users", {
         method: "PATCH",
@@ -266,18 +283,20 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
           adminId: session.id,
           targetUserId: userId,
           role: newRole,
-          domain_id: newDomainId
-        })
+          domain_id: newRole === "DOMAIN_ADMIN" ? newDomainId : null,
+        }),
       });
       if (res.ok) {
-        showToast("User role updated successfully");
+        showToast("User updated successfully");
         fetchUsers();
       } else {
         const data = await res.json();
-        showToast(data.error || "Failed to update role");
+        showToast(data.error || "Failed to update user");
+        fetchUsers();
       }
     } catch (err) {
       showToast("Error updating user");
+      fetchUsers();
     }
   };
 
@@ -306,7 +325,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
           </div>
           <div>
             <div className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#0D0D0D] text-[#FFEFB4] text-[10px] font-extrabold uppercase rounded-full shadow-[2px_2px_0_#F2A516] mb-1">
-              <Sparkles className="w-3 h-3 text-[#F2A516]" /> {session.role === "PRESIDENT" ? "President Dashboard" : "Domain Admin Dashboard"}
+              <Sparkles className="w-3 h-3 text-[#F2A516]" /> {session.role === "PRESIDENT" ? "President Dashboard" : session.role === "VICE_PRESIDENT" ? "Vice President Dashboard" : "Domain Admin Dashboard"}
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold uppercase text-[#0D0D0D] tracking-tight">
               Recruitment Center
@@ -341,7 +360,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
         </div>
       </div>
 
-      {session.role === "PRESIDENT" && (
+      {(session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT") && (
         <div className="flex flex-wrap gap-2 sm:gap-4 border-b-2 border-[#0D0D0D] pb-2">
           <button
             onClick={() => setActiveTab("APPLICATIONS")}
@@ -376,8 +395,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                   <tr className="border-b-2 border-[#0D0D0D] text-[11px] font-extrabold uppercase text-[#0D0D0D] bg-[#FFF2C6]">
                     <th className="p-3">User</th>
                     <th className="p-3">Current Role</th>
-                    <th className="p-3">Domain (If Admin)</th>
-                    <th className="p-3 text-right">Actions</th>
+                    <th className="p-3">Assigned Domain</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y border-[#0D0D0D]/10 text-xs">
@@ -388,24 +406,28 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                         <select 
                           value={u.role}
                           onChange={(e) => {
-                            if (e.target.value !== "DOMAIN_ADMIN") {
-                              handleRoleChange(u.id, e.target.value, undefined);
-                            }
+                            const newRole = e.target.value;
+                            handleRoleChange(
+                              u.id, 
+                              newRole, 
+                              newRole === "DOMAIN_ADMIN" ? (u.domain_id || "") : undefined
+                            );
                           }}
                           className="bg-white text-black font-bold border-2 border-[#0D0D0D] rounded-lg px-2.5 py-1.5 text-xs shadow-[2px_2px_0_#0D0D0D] focus:outline-none focus:ring-2 focus:ring-[#F2A516] cursor-pointer"
                           style={{ colorScheme: "light", color: "#000000" }}
                         >
                           <option value="APPLICANT" className="text-black bg-white font-medium" style={{ color: "#000000", backgroundColor: "#ffffff" }}>Applicant</option>
                           <option value="DOMAIN_ADMIN" className="text-black bg-white font-medium" style={{ color: "#000000", backgroundColor: "#ffffff" }}>Domain Admin</option>
+                          <option value="VICE_PRESIDENT" className="text-black bg-white font-medium" style={{ color: "#000000", backgroundColor: "#ffffff" }}>Vice President</option>
                           <option value="PRESIDENT" className="text-black bg-white font-medium" style={{ color: "#000000", backgroundColor: "#ffffff" }}>President</option>
                         </select>
                       </td>
                       <td className="p-3">
-                        {u.role === "DOMAIN_ADMIN" && (
+                        {u.role === "DOMAIN_ADMIN" ? (
                           <select
                             value={u.domain_id || ""}
                             onChange={(e) => handleRoleChange(u.id, "DOMAIN_ADMIN", e.target.value)}
-                            className="bg-white text-black font-bold border-2 border-[#0D0D0D] rounded-lg px-2.5 py-1.5 text-xs shadow-[2px_2px_0_#0D0D0D] focus:outline-none focus:ring-2 focus:ring-[#F2A516] cursor-pointer"
+                            className={`bg-white text-black font-bold border-2 ${!u.domain_id ? "border-amber-500 ring-2 ring-amber-400/50" : "border-[#0D0D0D]"} rounded-lg px-2.5 py-1.5 text-xs shadow-[2px_2px_0_#0D0D0D] focus:outline-none focus:ring-2 focus:ring-[#F2A516] cursor-pointer`}
                             style={{ colorScheme: "light", color: "#000000" }}
                           >
                             <option value="" className="text-gray-500 bg-white" style={{ color: "#666666", backgroundColor: "#ffffff" }}>Select Domain...</option>
@@ -415,15 +437,8 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                               </option>
                             ))}
                           </select>
-                        )}
-                        {u.role !== "DOMAIN_ADMIN" && <span className="text-gray-500 font-bold">N/A</span>}
-                      </td>
-                      <td className="p-3 text-right">
-                        {u.role === "APPLICANT" && (
-                          <button onClick={() => {
-                            const domain = prompt("Enter domain name from: " + DOMAINS_LIST.map(d => d.name).join(", "));
-                            if (domain) handleRoleChange(u.id, "DOMAIN_ADMIN", domain);
-                          }} className="text-[10px] bg-[#0D0D0D] text-white px-2 py-1 rounded">Promote to Admin</button>
+                        ) : (
+                          <span className="text-gray-400 font-bold">—</span>
                         )}
                       </td>
                     </tr>

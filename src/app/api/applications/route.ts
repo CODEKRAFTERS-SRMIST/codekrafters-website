@@ -4,6 +4,7 @@ import { Application } from "@/types/join";
 import { checkRateLimit, getIpFromRequest } from "@/lib/rate-limit";
 import { applicationPostSchema, applicationPatchSchema } from "@/lib/validations";
 import { getLiveRecruitmentSettings } from "@/lib/recruitment-settings";
+import { getSession } from "@/lib/session";
 
 // Helper to convert snake_case DB row to camelCase frontend type
 function mapAppFromDB(row: any): Application {
@@ -46,9 +47,20 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Too Many Requests" }, { status: 429, headers: { 'Retry-After': String(limit.retryAfter || 60) } });
   }
 
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(request.url);
-  const userId = searchParams.get("userId");
-  const email = searchParams.get("email");
+  let userId = searchParams.get("userId");
+  let email = searchParams.get("email");
+
+  if (session.role !== "PRESIDENT" && session.role !== "VICE_PRESIDENT" && session.role !== "DOMAIN_ADMIN") {
+    // Regular users can only query their own data
+    userId = session.id;
+    email = null; // Ignore email search for regular users
+  }
 
   try {
     const settings = await getLiveRecruitmentSettings();
@@ -98,6 +110,11 @@ export async function POST(request: Request) {
   }
 
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     
     const parsed = applicationPostSchema.safeParse(body);
@@ -106,6 +123,9 @@ export async function POST(request: Request) {
     }
     
     const validatedData = parsed.data;
+    
+    // Force the userId to be the authenticated user's ID
+    validatedData.userId = session.id;
     
     // Check if exists
     const { data: existing } = await supabaseAdmin
@@ -178,6 +198,11 @@ export async function PATCH(request: Request) {
   }
 
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     
     const parsed = applicationPatchSchema.safeParse(body);
@@ -186,6 +211,21 @@ export async function PATCH(request: Request) {
     }
     
     const { id, status, adminNotes, rating, taskSubmissionUrl } = parsed.data;
+
+    const isAdmin = session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT" || session.role === "DOMAIN_ADMIN";
+    
+    // Non-admins cannot update admin fields
+    if (!isAdmin && (status !== undefined || adminNotes !== undefined || rating !== undefined)) {
+      return NextResponse.json({ error: "Forbidden: Admin only fields" }, { status: 403 });
+    }
+
+    // Non-admins must own the application they are modifying (e.g. submitting task)
+    if (!isAdmin) {
+      const { data: app } = await supabaseAdmin.from("applications").select("user_id").eq("id", id).single();
+      if (!app || app.user_id !== session.id) {
+        return NextResponse.json({ error: "Forbidden: Not your application" }, { status: 403 });
+      }
+    }
 
     const updates: any = { updated_at: new Date().toISOString() };
     if (status !== undefined) updates.status = status;

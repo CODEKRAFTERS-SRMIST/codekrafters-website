@@ -27,7 +27,7 @@ function StoryComponent() {
 
   const lenis = useLenis((lenis) => {
     // called every scroll
-    console.log(lenis);
+    // Removed sensitive or unnecessary console log
   });
 
   useEffect(() => {

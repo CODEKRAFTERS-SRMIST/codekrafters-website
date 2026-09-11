@@ -1,30 +1,23 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
-
+import { getSession } from "@/lib/session";
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const session = await getSession();
     
     let query = supabaseAdmin
       .from("event_postings")
       .select("*")
       .order("created_at", { ascending: false });
 
-    // If no userId provided, it's public. Only show APPROVED.
-    if (!userId) {
+    // If not authenticated or just an applicant, only show APPROVED.
+    if (!session || session.role === "APPLICANT") {
       query = query.eq("status", "APPROVED");
-    } else {
-      // Admin request. Verify user.
-      const { data: user } = await supabaseAdmin.from("users").select("role, domain_id").eq("id", userId).maybeSingle();
-      if (!user || user.role === "APPLICANT") {
-        query = query.eq("status", "APPROVED");
-      } else if (user.role === "DOMAIN_ADMIN") {
-        // Domain admin sees their pending and all approved
-        query = query.or(`status.eq.APPROVED,created_by_id.eq.${userId}`);
-      }
-      // President sees all (no filter needed)
+    } else if (session.role === "DOMAIN_ADMIN") {
+      // Domain admin sees their pending and all approved
+      query = query.or(`status.eq.APPROVED,created_by_id.eq.${session.id}`);
     }
+    // President sees all (no filter needed)
 
     const { data, error } = await query;
 
@@ -42,36 +35,36 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { category, title, description, image_url, userId } = body;
+    const session = await getSession();
+    if (!session || session.role === "APPLICANT") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    if (!category || !title || !image_url || !userId) {
+    const body = await request.json();
+    const { category, title, description, image_url } = body;
+
+    if (!category || !title || !image_url) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const { data: user } = await supabaseAdmin.from("users").select("role, domain_id").eq("id", userId).maybeSingle();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
     let status = 'PENDING';
     
-    if (user.role === "PRESIDENT") {
+    if (session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT") {
       status = 'APPROVED';
-    } else if (user.role === "DOMAIN_ADMIN") {
+    } else if (session.role === "DOMAIN_ADMIN") {
       // Only content, creatives, pr can create
-      const domainNorm = (user.domain_id || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const domainNorm = (session.domain_id || "").toLowerCase().replace(/[^a-z0-9]/g, "");
       const allowedDomains = ["content", "creatives", "prmanagement"];
       if (!allowedDomains.includes(domainNorm)) {
          return NextResponse.json({ error: "Your domain cannot create events" }, { status: 403 });
       }
       status = 'PENDING';
-    } else {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const { data, error } = await supabaseAdmin
       .from("event_postings")
       .insert([
-        { category, title, description, image_url, status, created_by_id: userId, approved_by_id: user.role === "PRESIDENT" ? userId : null }
+        { category, title, description, image_url, status, created_by_id: session.id, approved_by_id: (session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT") ? session.id : null }
       ])
       .select()
       .single();
@@ -90,15 +83,17 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const body = await request.json();
-    const { id, category, title, description, image_url, userId } = body;
+    const session = await getSession();
+    if (!session || session.role === "APPLICANT") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    if (!id || !category || !title || !image_url || !userId) {
+    const body = await request.json();
+    const { id, category, title, description, image_url } = body;
+
+    if (!id || !category || !title || !image_url) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
-    
-    const { data: user } = await supabaseAdmin.from("users").select("role").eq("id", userId).maybeSingle();
-    if (!user || user.role === "APPLICANT") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { data, error } = await supabaseAdmin
       .from("event_postings")
@@ -121,21 +116,21 @@ export async function PUT(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const body = await request.json();
-    const { id, userId, status } = body;
-
-    if (!id || !userId || !status) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const session = await getSession();
+    if (!session || (session.role !== "PRESIDENT" && session.role !== "VICE_PRESIDENT")) {
+      return NextResponse.json({ error: "Only President or Vice President can approve events" }, { status: 403 });
     }
 
-    const { data: user } = await supabaseAdmin.from("users").select("role").eq("id", userId).maybeSingle();
-    if (!user || user.role !== "PRESIDENT") {
-      return NextResponse.json({ error: "Only President can approve events" }, { status: 403 });
+    const body = await request.json();
+    const { id, status } = body;
+
+    if (!id || !status) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const { data, error } = await supabaseAdmin
       .from("event_postings")
-      .update({ status, approved_by_id: status === "APPROVED" ? userId : null })
+      .update({ status, approved_by_id: status === "APPROVED" ? session.id : null })
       .eq("id", id)
       .select().single();
 
@@ -153,17 +148,16 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    const userId = searchParams.get("userId");
-
-    if (!id || !userId) {
-      return NextResponse.json({ error: "Missing event ID or userId" }, { status: 400 });
+    const session = await getSession();
+    if (!session || session.role === "APPLICANT") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const { data: user } = await supabaseAdmin.from("users").select("role").eq("id", userId).maybeSingle();
-    if (!user || user.role === "APPLICANT") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Missing event ID" }, { status: 400 });
     }
 
     const { error } = await supabaseAdmin

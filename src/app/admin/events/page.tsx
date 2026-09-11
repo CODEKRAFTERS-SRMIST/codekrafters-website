@@ -31,7 +31,7 @@ export default function AdminEventsPage() {
       const rawSession = localStorage.getItem("codekrafters_user_session");
       if (rawSession) {
         const parsed: UserSession = JSON.parse(rawSession);
-        if (parsed.role === 'PRESIDENT' || parsed.role === 'DOMAIN_ADMIN') {
+        if (parsed.role === 'PRESIDENT' || parsed.role === 'VICE_PRESIDENT' || parsed.role === 'DOMAIN_ADMIN') {
           setSession(parsed);
           fetchEvents(parsed.id);
         }
@@ -50,10 +50,14 @@ export default function AdminEventsPage() {
     window.location.href = "/admin/events";
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setSession(null);
     try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {}
+    try {
       localStorage.removeItem("codekrafters_user_session");
+      window.dispatchEvent(new Event("auth_change"));
     } catch (e) {}
   };
 
@@ -184,7 +188,7 @@ export default function AdminEventsPage() {
     );
   }
 
-  if (!session || (session.role !== 'PRESIDENT' && session.role !== 'DOMAIN_ADMIN')) {
+  if (!session || (session.role !== 'PRESIDENT' && session.role !== 'VICE_PRESIDENT' && session.role !== 'DOMAIN_ADMIN')) {
     return (
       <div className="min-h-screen bg-[#FFEFB4] overflow-x-hidden flex flex-col justify-center items-center p-4">
          <div className="w-full max-w-7xl">
@@ -195,7 +199,7 @@ export default function AdminEventsPage() {
   }
 
   const domainNorm = (session.domain_id || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-  const canCreate = session.role === 'PRESIDENT' || (session.role === 'DOMAIN_ADMIN' && ['content', 'creatives', 'prmanagement'].includes(domainNorm));
+  const canCreate = session.role === 'PRESIDENT' || session.role === 'VICE_PRESIDENT' || (session.role === 'DOMAIN_ADMIN' && ['content', 'creatives', 'prmanagement'].includes(domainNorm));
 
   return (
     <div className="min-h-screen bg-[#FFEFB4] p-8">
@@ -361,7 +365,7 @@ export default function AdminEventsPage() {
                             </button>
                           </>
                         )}
-                        {session.role === 'PRESIDENT' && event.status === 'PENDING' && (
+                        {(session.role === 'PRESIDENT' || session.role === 'VICE_PRESIDENT') && event.status === 'PENDING' && (
                           <>
                             <button 
                               onClick={() => handleStatusUpdate(event.id, 'APPROVED')}
