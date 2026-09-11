@@ -3,7 +3,6 @@
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Terminal, Shield, Cpu, Code2, Sparkles, Globe, Users } from "lucide-react";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -43,16 +42,6 @@ const PARAGRAPH_WORDS: WordToken[] = [
   { text: "fostering" },
   { text: "engineering" },
   { text: "excellence." },
-];
-
-const DOMAINS_PILLS = [
-  { name: "Web3 & Blockchain", icon: Globe },
-  { name: "AI & Machine Learning", icon: Cpu },
-  { name: "Cybersecurity", icon: Shield },
-  { name: "Competitive Programming", icon: Code2 },
-  { name: "Creatives & UI/UX", icon: Sparkles },
-  { name: "Public Relations", icon: Users },
-  { name: "Operations", icon: Terminal },
 ];
 
 export default function AboutSection() {
@@ -149,27 +138,6 @@ export default function AboutSection() {
               </span>
             ))}
           </p>
-        </div>
-
-        {/* 7 DOMAINS QUICK PILLS */}
-        <div className="pt-4 sm:pt-6">
-          <div className="text-white/40 font-mono text-xs uppercase tracking-widest mb-3">
-            SPECIALIZED DOMAINS
-          </div>
-          <div className="flex flex-wrap gap-2 sm:gap-3">
-            {DOMAINS_PILLS.map((d) => {
-              const Icon = d.icon;
-              return (
-                <div
-                  key={d.name}
-                  className="flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-[#F9B000]/40 transition-all duration-300 text-xs sm:text-sm text-white/80 font-medium"
-                >
-                  <Icon className="w-3.5 h-3.5 text-[#F9B000]" />
-                  <span>{d.name}</span>
-                </div>
-              );
-            })}
-          </div>
         </div>
       </div>
     </section>

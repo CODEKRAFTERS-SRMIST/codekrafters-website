@@ -2,12 +2,9 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "gsap";
 import {
-  ArrowUpRight,
-  ArrowDown,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -271,11 +268,6 @@ export default function Hero() {
           <p className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-wider sm:tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#F9B000] via-[#FFE082] to-[#F9B000] drop-shadow-[0_0_25px_rgba(249,176,0,0.35)] uppercase py-1">
             IT&apos;S MORE THAN A CLUB
           </p>
-          <p className="text-xs sm:text-sm md:text-base text-white/60 font-normal max-w-xl mx-auto leading-relaxed">
-            The premier student-led developer collective. 7 specialized domains
-            shipping real software, winning national hackathons, and empowering
-            the next generation of engineers.
-          </p>
         </motion.div>
       </div>
 
@@ -361,30 +353,6 @@ export default function Hero() {
               <h3 className="text-white font-bold text-sm sm:text-lg md:text-xl drop-shadow-md">
                 {active.title}
               </h3>
-              <p className="hidden md:block text-white/70 text-xs sm:text-sm font-normal leading-relaxed line-clamp-2">
-                {active.description}
-              </p>
-            </div>
-
-            {/* ACTION BUTTONS (CLEANLY POSITIONED) */}
-            <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-              <Link
-                href="/join"
-                className="inline-flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 rounded-full bg-white text-black hover:bg-[#F9B000] transition-all duration-300 font-bold text-xs sm:text-sm tracking-wide uppercase shadow-lg group"
-              >
-                <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-black text-white flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                </span>
-                <span>Join The Squad</span>
-              </Link>
-
-              <a
-                href="#domains"
-                className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 backdrop-blur-md transition-all duration-300 font-semibold text-xs sm:text-sm tracking-wide"
-              >
-                <span>Explore Domains</span>
-                <ArrowDown className="w-3.5 h-3.5 text-[#F9B000]" />
-              </a>
             </div>
           </div>
         </motion.div>
