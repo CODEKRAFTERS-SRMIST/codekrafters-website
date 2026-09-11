@@ -45,8 +45,12 @@ export default function UserProfile() {
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {}
     localStorage.removeItem("codekrafters_user_session");
+    window.dispatchEvent(new Event("auth_change"));
     window.location.href = "/";
   };
 
@@ -139,14 +143,14 @@ export default function UserProfile() {
             transition={{ delay: 0.3, type: "spring", bounce: 0.5 }}
             className="absolute top-6 right-6 bg-[#F2A516] text-[10px] sm:text-xs font-black uppercase px-3 py-1.5 rounded-full border-2 border-[#0D0D0D] shadow-[3px_3px_0_#0D0D0D] flex items-center gap-1.5 transform hover:scale-110 transition-transform cursor-default"
           >
-            {session.role === "PRESIDENT" ? (
+            {session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT" ? (
               <Crown className="w-3.5 h-3.5" />
             ) : session.role === "DOMAIN_ADMIN" ? (
               <Shield className="w-3.5 h-3.5" />
             ) : (
               <Terminal className="w-3.5 h-3.5" />
             )}
-            {session.role === "PRESIDENT" ? "PRESIDENT" : session.role === "DOMAIN_ADMIN" ? "DOMAIN ADMIN" : "APPLICANT"}
+            {session.role === "PRESIDENT" ? "PRESIDENT" : session.role === "VICE_PRESIDENT" ? "VICE PRESIDENT" : session.role === "DOMAIN_ADMIN" ? "DOMAIN ADMIN" : "APPLICANT"}
           </motion.div>
 
           {/* Profile Header */}
@@ -197,7 +201,7 @@ export default function UserProfile() {
           <div className="space-y-5">
 
             {/* Admin Command Center */}
-            {(session.role === "PRESIDENT" || session.role === "DOMAIN_ADMIN") && (
+            {(session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT" || session.role === "DOMAIN_ADMIN") && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -236,7 +240,7 @@ export default function UserProfile() {
                   </span>
                 </button>
 
-                {session.role === "PRESIDENT" && (
+                {(session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT") && (
                   <button
                     onClick={() => (window.location.href = "/join?tab=users")}
                     className="w-full bg-[#0D0D0D] text-[#FFEFB4] hover:bg-[#1a1a1a] font-black uppercase py-4 px-5 rounded-xl border-[3px] border-[#F2A516] shadow-[4px_4px_0_#F2A516] hover:translate-y-[-3px] hover:shadow-[6px_6px_0_#F2A516] transition-all flex items-center justify-between group"

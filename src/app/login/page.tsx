@@ -31,7 +31,7 @@ export default function LoginPage() {
       const redirect = searchParams.get("redirect");
 
       // Navigate based on role and redirect param
-      if (newSession.role === "PRESIDENT" || newSession.role === "DOMAIN_ADMIN") {
+      if (newSession.role === "PRESIDENT" || newSession.role === "VICE_PRESIDENT" || newSession.role === "DOMAIN_ADMIN") {
         window.location.href = redirect || "/join"; 
       } else {
         window.location.href = redirect || "/profile";

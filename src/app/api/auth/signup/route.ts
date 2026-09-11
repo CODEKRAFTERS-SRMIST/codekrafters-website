@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getIpFromRequest, checkRateLimit } from "@/lib/rate-limit";
 import { supabaseAdmin } from "@/lib/supabase";
+import { setSession } from "@/lib/session";
 import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
@@ -49,6 +50,13 @@ export async function POST(request: Request) {
       console.error("Signup insert error:", insertError);
       return NextResponse.json({ error: insertError.message || "Failed to create account." }, { status: 500 });
     }
+
+    // Automatically set secure session cookie upon registration
+    await setSession({
+      id: newUser.id,
+      role: newUser.role,
+      domain_id: newUser.domain_id || null,
+    });
 
     return NextResponse.json({
       success: true,

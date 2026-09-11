@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { getLiveRecruitmentSettings, saveLiveRecruitmentSettings } from "@/lib/recruitment-settings";
+import { getSession } from "@/lib/session";
 
 export async function GET() {
   const settings = await getLiveRecruitmentSettings();
@@ -12,23 +13,13 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    const body = await request.json();
-    const { adminId, current_phase, tasks_visible } = body;
-
-    if (!adminId) {
-      return NextResponse.json({ error: "Missing adminId" }, { status: 400 });
-    }
-
-    // Verify admin privileges
-    const { data: user } = await supabaseAdmin
-      .from("users")
-      .select("role")
-      .eq("id", adminId)
-      .maybeSingle();
-
-    if (!user || (user.role !== "PRESIDENT" && user.role !== "DOMAIN_ADMIN")) {
+    const session = await getSession();
+    if (!session || (session.role !== "PRESIDENT" && session.role !== "VICE_PRESIDENT" && session.role !== "DOMAIN_ADMIN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
+
+    const body = await request.json();
+    const { current_phase, tasks_visible } = body;
 
     const currentSettings = await getLiveRecruitmentSettings();
     const newPhase = typeof current_phase === "number" ? current_phase : currentSettings.current_phase;

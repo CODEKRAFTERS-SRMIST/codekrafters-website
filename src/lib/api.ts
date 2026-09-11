@@ -1,7 +1,5 @@
 import { Application, ApplicantFormData, ApplicationStatus } from "@/types/join";
 
-const STORAGE_KEY = "codekrafters_join_applications_v1";
-
 export function safeUrl(url?: string): string {
   if (!url || typeof url !== "string") return "";
   const trimmed = url.trim();

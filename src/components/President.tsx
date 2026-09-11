@@ -60,7 +60,7 @@ export default function PresidentIntroRetro() {
               <div className="flex items-center justify-center md:justify-start gap-3 mx-auto md:mx-0">
                 <div className="bg-[#0D0D0D] text-[#FFEFB4] inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-md shadow-[2px_2px_0_#F2A516] sm:shadow-[4px_4px_0_#F2A516]">
                   <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold tracking-wider">
-                    SANJAY
+                    SANJAY GANESH
                   </h3>
                 </div>
                 <a 
@@ -76,7 +76,7 @@ export default function PresidentIntroRetro() {
 
               <p className="text-sm sm:text-base md:text-lg leading-relaxed font-medium max-w-lg mx-auto md:mx-0">
                 Guiding CodeKrafters with clarity, creativity, and conviction —{" "}
-                <span className="text-[#F2A516] font-semibold">Sanjay</span> has shaped
+                <span className="text-[#F2A516] font-semibold">Sanjay Ganesh</span> has shaped
                 our community into one of SRM's most dynamic tech forces. From
                 hackathons to innovation tracks, his retro-meets-modern leadership
                 style defines our club's culture.

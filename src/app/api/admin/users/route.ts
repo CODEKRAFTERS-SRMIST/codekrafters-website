@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { getSession } from "@/lib/session";
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
-    
-    if (!userId) return NextResponse.json({ error: "Missing userId" }, { status: 400 });
-
-    const { data: user } = await supabaseAdmin.from("users").select("role").eq("id", userId).maybeSingle();
-    if (!user || user.role !== "PRESIDENT") return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    const session = await getSession();
+    if (!session || (session.role !== "PRESIDENT" && session.role !== "VICE_PRESIDENT")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
 
     const { data, error } = await supabaseAdmin
       .from("users")
@@ -35,15 +33,17 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const body = await request.json();
-    const { adminId, targetUserId, role, domain_id } = body;
-
-    if (!adminId || !targetUserId || !role) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const session = await getSession();
+    if (!session || (session.role !== "PRESIDENT" && session.role !== "VICE_PRESIDENT")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const { data: user } = await supabaseAdmin.from("users").select("role").eq("id", adminId).maybeSingle();
-    if (!user || user.role !== "PRESIDENT") return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    const body = await request.json();
+    const { targetUserId, role, domain_id } = body;
+
+    if (!targetUserId || !role) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
 
     const { data, error } = await supabaseAdmin
       .from("users")
