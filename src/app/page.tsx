@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/navbar"
 import Hero from "@/components/hero"
 import AboutSection from "@/components/About"
+import MangaStorySection from "@/components/MangaStory"
 import EventSection from "@/components/Events"
 import SponsorsComponent from "@/components/sponsor"
 import Footer from "@/components/Footer"
@@ -16,6 +17,8 @@ export default function Home() {
       <Hero />
 
       <AboutSection />
+
+      <MangaStorySection />
 
       <DomainsSection />
 
