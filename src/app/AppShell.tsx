@@ -9,6 +9,7 @@ import "lenis/dist/lenis.css";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
+  gsap.ticker.lagSmoothing(0);
 }
 
 function ScrollTriggerBridge() {
@@ -18,11 +19,32 @@ function ScrollTriggerBridge() {
 
   useEffect(() => {
     if (!lenis) return;
-    const timer = setTimeout(() => {
+
+    const calibrateLenis = () => {
+      const isNarrow = window.innerWidth < 1024;
+      const targetMultiplier = isNarrow ? 0.35 : 0.7;
+
+      if (lenis.options) {
+        lenis.options.wheelMultiplier = targetMultiplier;
+      }
+      const vs = (lenis as any).virtualScroll;
+      if (vs && vs.options) {
+        vs.options.wheelMultiplier = targetMultiplier;
+      }
+
       lenis.resize();
       ScrollTrigger.refresh();
-    }, 500);
-    return () => clearTimeout(timer);
+    };
+
+    calibrateLenis();
+    window.addEventListener("resize", calibrateLenis);
+
+    const timer = setTimeout(calibrateLenis, 400);
+
+    return () => {
+      window.removeEventListener("resize", calibrateLenis);
+      clearTimeout(timer);
+    };
   }, [lenis]);
 
   return null;
@@ -49,9 +71,29 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       root
       options={{
         autoRaf: true,
-        duration: 1.2,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        lerp: 0.08,
         smoothWheel: true,
+        syncTouch: false,
+        wheelMultiplier: 0.7,
+        virtualScroll: (data) => {
+          if (typeof window !== "undefined") {
+            const isNarrow = window.innerWidth < 1024;
+            const isWheel = data.event.type.includes("wheel");
+
+            if (isWheel && isNarrow) {
+              // Smoothly scale down desktop mouse wheel delta when testing mobile viewport
+              data.deltaY *= 0.45;
+              data.deltaX *= 0.45;
+
+              // Cap single runaway wheel burst so sections are never skipped
+              const maxWheelDelta = 48;
+              if (Math.abs(data.deltaY) > maxWheelDelta) {
+                data.deltaY = Math.sign(data.deltaY) * maxWheelDelta;
+              }
+            }
+          }
+          return true;
+        },
       }}
     >
       <ScrollTriggerBridge />

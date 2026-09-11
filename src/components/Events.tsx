@@ -520,12 +520,33 @@ const InfiniteScrollRow = ({ items, direction = 'left', speed = 30 }: { items: t
 
     let rafId: number;
     let isVisible = false;
+    let isRunning = false;
     let pos = 0;
     let loopWidth = 0;
     const spd = 0.8; // px per frame
 
+    const animate = () => {
+      if (!isVisible) {
+        isRunning = false;
+        return;
+      }
+      if (!pausedRef.current) {
+        pos += direction === 'left' ? spd : -spd;
+        if (direction === 'left' && pos >= loopWidth) pos -= loopWidth;
+        if (direction === 'right' && pos <= 0) pos += loopWidth;
+        track.style.transform = `translateX(-${pos}px)`;
+      }
+      rafId = requestAnimationFrame(animate);
+    };
+
     const observer = new IntersectionObserver(
-      ([entry]) => { isVisible = entry.isIntersecting; },
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible && !isRunning) {
+          isRunning = true;
+          rafId = requestAnimationFrame(animate);
+        }
+      },
       { threshold: 0.01 }
     );
     observer.observe(wrap);
@@ -534,17 +555,10 @@ const InfiniteScrollRow = ({ items, direction = 'left', speed = 30 }: { items: t
     rafId = requestAnimationFrame(() => {
       loopWidth = track.offsetWidth / 3;
       if (direction === 'right') pos = loopWidth;
-
-      const animate = () => {
-        if (isVisible && !pausedRef.current) {
-          pos += direction === 'left' ? spd : -spd;
-          if (direction === 'left' && pos >= loopWidth) pos -= loopWidth;
-          if (direction === 'right' && pos <= 0) pos += loopWidth;
-          track.style.transform = `translateX(-${pos}px)`;
-        }
-        rafId = requestAnimationFrame(animate);
-      };
-      rafId = requestAnimationFrame(animate);
+      if (isVisible) {
+        isRunning = true;
+        animate();
+      }
     });
 
     return () => {
@@ -579,7 +593,7 @@ export default function Events() {
   return (
     <section className="relative py-20 overflow-hidden bg-[#0B1221]" id="events">
       {/* Background Effects */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-[#F2B200]/10 rounded-full pointer-events-none opacity-50 blur-[50px] sm:blur-[100px]" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[300px] sm:h-[500px] bg-[#F2B200]/10 rounded-full pointer-events-none opacity-50 blur-[30px] sm:blur-[100px]" />
       
       <div className="container mx-auto px-4 mb-16 relative z-10">
         <div className="flex flex-col items-center justify-center text-center space-y-4">
@@ -603,8 +617,10 @@ export default function Events() {
 
         <InfiniteScrollRow items={row1Images} direction="left" />
         <InfiniteScrollRow items={row2Images} direction="right" />
-        <InfiniteScrollRow items={row3Images} direction="left" />
-        <InfiniteScrollRow items={row4Images} direction="right" />
+        <div className="hidden md:flex flex-col gap-2">
+          <InfiniteScrollRow items={row3Images} direction="left" />
+          <InfiniteScrollRow items={row4Images} direction="right" />
+        </div>
       </div>
     </section>
   );

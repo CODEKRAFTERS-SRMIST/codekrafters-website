@@ -117,7 +117,7 @@ const MANGA_PAGES: MangaPageData[] = [
   },
   {
     pageNumber: 4,
-    baseImage: "/manga_art/page4.png",
+    baseImage: "/manga_art/page4_ref.jpeg",
     bubbles: [],
   },
 ];
@@ -126,67 +126,256 @@ export default function MangaStorySection() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Preload all base images and speech bubble cutouts into browser cache
+    if (typeof window !== "undefined") {
+      MANGA_PAGES.forEach((page) => {
+        const img = new window.Image();
+        img.src = page.baseImage;
+        page.bubbles.forEach((b) => {
+          const bImg = new window.Image();
+          bImg.src = b.src;
+        });
+      });
+    }
+
     if (!containerRef.current) return;
 
-    // Execute scroll-pinning strictly on desktop viewports (>= 1024px)
+    // Execute scroll-scrub animations only on desktop viewports (>= 1024px)
     const mm = gsap.matchMedia();
 
     mm.add("(min-width: 1024px)", () => {
-      const pageWrappers = gsap.utils.toArray<HTMLElement>(".manga-page-wrapper");
+      const container = containerRef.current;
+      if (!container) return;
 
-      pageWrappers.forEach((wrapper) => {
-        const pinContainer = wrapper.querySelector<HTMLElement>(".manga-pin-container");
-        const bubbles = wrapper.querySelectorAll<HTMLElement>(".manga-bubble");
+      const slides = gsap.utils.toArray<HTMLElement>(".manga-slide");
+      const allBubbles = gsap.utils.toArray<HTMLElement>(".manga-bubble");
 
-        if (!pinContainer) return;
-
-        // Hide speech bubbles initially
-        if (bubbles.length > 0) {
-          gsap.set(bubbles, {
-            scale: 0,
-            opacity: 0,
-            transformOrigin: "center center",
-          });
-        }
-
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: wrapper,
-            start: "top top",
-            end: "+=120%",
-            pin: pinContainer,
-            pinSpacing: true,
-            scrub: 0.5,
-            anticipatePin: 1,
-          },
-        });
-
-        // Sequence speech bubbles popping in on scroll
-        if (bubbles.length > 0) {
-          bubbles.forEach((bubble) => {
-            tl.to(
-              bubble,
-              {
-                scale: 1,
-                opacity: 1,
-                duration: 0.8,
-                ease: "back.out(2)",
-              },
-              "+=0.2"
-            );
-          });
-          // Hold time to comfortably read the completed page before transition
-          tl.to({}, { duration: 0.5 });
-        } else {
-          // Page 4: hold sunset illustration for reading before unpinning
-          tl.to({}, { duration: 1.2 });
-        }
+      // Initial state: hide speech bubbles initially
+      gsap.set(allBubbles, {
+        scale: 0,
+        opacity: 0,
+        transformOrigin: "center center",
       });
+
+      // Initial state: slide 0 at yPercent: 0, slides 1-3 positioned down at yPercent: 100
+      slides.forEach((slide, i) => {
+        gsap.set(slide, {
+          yPercent: i === 0 ? 0 : 100,
+          opacity: 1,
+          visibility: "visible",
+        });
+      });
+
+      // Master pinned timeline:
+      // end: "+=550%" provides comfortable scroll room
+      // scrub: 0.8 smooths out mouse wheel notches
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: container,
+          start: "top top",
+          end: "+=550%",
+          pin: true,
+          pinSpacing: true,
+          scrub: 0.8,
+          anticipatePin: 1,
+          onUpdate: (self) => {
+            const p = self.progress;
+            let current = 1;
+            if (p >= 0.72) current = 4;
+            else if (p >= 0.46) current = 3;
+            else if (p >= 0.20) current = 2;
+
+            const counter = document.getElementById("manga-page-counter");
+            if (counter) counter.innerText = `PAGE ${current} / 4`;
+
+            // Update interactive progress dots
+            for (let i = 1; i <= 4; i++) {
+              const dot = document.getElementById(`manga-dot-${i}`);
+              if (dot) {
+                if (i === current) {
+                  dot.className = "w-5 h-1.5 rounded-full bg-[#FFA500] transition-all duration-300 shadow-[0_0_8px_#FFA500]";
+                } else {
+                  dot.className = "w-1.5 h-1.5 rounded-full bg-white/30 transition-all duration-300";
+                }
+              }
+            }
+          },
+        },
+      });
+
+      // ----------------------------------------------------
+      // PAGE 1: Speech bubbles pop in snappily
+      // ----------------------------------------------------
+      tl.to(".manga-bubble-p1-b1", {
+        scale: 1,
+        opacity: 1,
+        duration: 0.35,
+        ease: "back.out(1.7)",
+      });
+      tl.to(
+        ".manga-bubble-p1-b2",
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.35,
+          ease: "back.out(1.7)",
+        },
+        "-=0.1"
+      );
+      // Brief comfortable hold to read Page 1 dialogue
+      tl.to({}, { duration: 0.4 });
+
+      // ----------------------------------------------------
+      // SLIDE 1 -> 2: Constant smooth velocity (ease: "none")
+      // Direct 1:1 scroll wheel control with no sudden speedups
+      // ----------------------------------------------------
+      tl.to(
+        slides[0],
+        {
+          yPercent: -100,
+          ease: "none",
+          duration: 1.0,
+        },
+        "p1-to-p2"
+      );
+      tl.to(
+        slides[1],
+        {
+          yPercent: 0,
+          ease: "none",
+          duration: 1.0,
+        },
+        "p1-to-p2"
+      );
+
+      // ----------------------------------------------------
+      // PAGE 2: Speech bubbles pop in
+      // ----------------------------------------------------
+      tl.to(".manga-bubble-p2-b1", {
+        scale: 1,
+        opacity: 1,
+        duration: 0.35,
+        ease: "back.out(1.7)",
+      });
+      tl.to(
+        ".manga-bubble-p2-b2",
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.35,
+          ease: "back.out(1.7)",
+        },
+        "-=0.1"
+      );
+      tl.to(
+        ".manga-bubble-p2-b3",
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.35,
+          ease: "back.out(1.7)",
+        },
+        "-=0.1"
+      );
+      // Brief comfortable hold to read Page 2 dialogue
+      tl.to({}, { duration: 0.4 });
+
+      // ----------------------------------------------------
+      // SLIDE 2 -> 3: Constant smooth velocity (ease: "none")
+      // ----------------------------------------------------
+      tl.to(
+        slides[1],
+        {
+          yPercent: -100,
+          ease: "none",
+          duration: 1.0,
+        },
+        "p2-to-p3"
+      );
+      tl.to(
+        slides[2],
+        {
+          yPercent: 0,
+          ease: "none",
+          duration: 1.0,
+        },
+        "p2-to-p3"
+      );
+
+      // ----------------------------------------------------
+      // PAGE 3: Speech bubbles pop in
+      // ----------------------------------------------------
+      tl.to(".manga-bubble-p3-b1", {
+        scale: 1,
+        opacity: 1,
+        duration: 0.35,
+        ease: "back.out(1.7)",
+      });
+      tl.to(
+        ".manga-bubble-p3-b2",
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.35,
+          ease: "back.out(1.7)",
+        },
+        "-=0.1"
+      );
+      tl.to(
+        ".manga-bubble-p3-b3",
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.35,
+          ease: "back.out(1.7)",
+        },
+        "-=0.1"
+      );
+      tl.to(
+        ".manga-bubble-p3-b4",
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.35,
+          ease: "back.out(1.7)",
+        },
+        "-=0.1"
+      );
+      // Brief comfortable hold to read Page 3 dialogue
+      tl.to({}, { duration: 0.4 });
+
+      // ----------------------------------------------------
+      // SLIDE 3 -> 4: Constant smooth velocity (ease: "none")
+      // ----------------------------------------------------
+      tl.to(
+        slides[2],
+        {
+          yPercent: -100,
+          ease: "none",
+          duration: 1.0,
+        },
+        "p3-to-p4"
+      );
+      tl.to(
+        slides[3],
+        {
+          yPercent: 0,
+          ease: "none",
+          duration: 1.0,
+        },
+        "p3-to-p4"
+      );
+
+      // ----------------------------------------------------
+      // PAGE 4: Generous Finale Hold (Sunset Conclusion)
+      // Long hold ensures Page 4 stays fully visible and pinned
+      // ----------------------------------------------------
+      tl.to({}, { duration: 2.2 });
 
       // Refresh ScrollTrigger once DOM layout stabilizes
       const timer = setTimeout(() => {
         ScrollTrigger.refresh();
-      }, 400);
+      }, 300);
 
       return () => clearTimeout(timer);
     });
@@ -198,57 +387,75 @@ export default function MangaStorySection() {
     <section
       id="manga-story"
       ref={containerRef}
-      className="hidden lg:block relative w-full bg-[#070709] text-white select-none overflow-hidden"
+      className="hidden lg:block relative w-full h-screen bg-black text-white select-none overflow-hidden"
     >
-      {/* 4 SEQUENTIAL PINNED MANGA PAGES */}
-      {MANGA_PAGES.map((page) => (
+      {/* 4 FULL-SCREEN STACKED MANGA SLIDES */}
+      {MANGA_PAGES.map((page, idx) => (
         <div
           key={page.pageNumber}
-          className="manga-page-wrapper relative w-full h-[220vh]"
+          className={`manga-slide manga-slide-${idx} absolute inset-0 w-full h-screen bg-black flex items-center justify-center overflow-hidden`}
+          style={{
+            zIndex: idx + 1,
+          }}
         >
-          {/* PINNED CONTAINER - FILLS VIEWPORT COMPLETELY WITHOUT ANY DISTRACTING HEADERS */}
-          <div className="manga-pin-container relative w-full h-screen flex items-center justify-center p-2 sm:p-4 bg-[#070709]">
-            {/* ULTRA SCREEN-FITTING 16:9 MANGA FRAME */}
-            <div
-              className="relative aspect-[16/9] rounded-xl overflow-hidden shadow-[0_12px_60px_rgba(0,0,0,0.95)] border border-white/[0.12] bg-[#030304]"
-              style={{
-                width: "min(96vw, calc((100vh - 24px) * 16 / 9))",
-                height: "min(calc(100vh - 24px), calc(96vw * 9 / 16))",
-              }}
-            >
-              {/* MANGA BASE ARTWORK */}
-              <Image
-                src={page.baseImage}
-                alt={`Manga Page ${page.pageNumber}`}
-                fill
-                priority={page.pageNumber <= 2}
-                sizes="(min-width: 1024px) 1600px, 100vw"
-                className="object-cover pointer-events-none select-none"
-              />
+          {/* TRUE FULL-SCREEN 16:9 CINEMATIC CANVAS (ZERO BORDERS, ZERO PADDING) */}
+          <div
+            className="relative overflow-hidden bg-black flex items-center justify-center"
+            style={{
+              width: "min(100vw, calc(100vh * 16 / 9))",
+              height: "min(100vh, calc(100vw * 9 / 16))",
+            }}
+          >
+            {/* MANGA BASE ARTWORK */}
+            <Image
+              src={page.baseImage}
+              alt={`Manga Page ${page.pageNumber}`}
+              fill
+              priority={true}
+              unoptimized={true}
+              sizes="100vw"
+              className="object-contain pointer-events-none select-none"
+            />
 
-              {/* OVERLAY SPEECH BUBBLE CUTOUTS */}
-              {page.bubbles.map((bubble) => (
-                <div
-                  key={bubble.id}
-                  className="manga-bubble absolute pointer-events-none select-none will-change-transform drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
-                  style={{
-                    left: bubble.left,
-                    top: bubble.top,
-                    width: bubble.width,
-                  }}
-                >
-                  <img
-                    src={bubble.src}
-                    alt={bubble.alt}
-                    className="w-full h-auto block object-contain select-none"
-                    loading="eager"
-                  />
-                </div>
-              ))}
-            </div>
+            {/* INTERACTIVE POP-IN SPEECH BUBBLES */}
+            {page.bubbles.map((bubble) => (
+              <div
+                key={bubble.id}
+                className={`manga-bubble manga-bubble-${bubble.id} absolute pointer-events-none select-none will-change-transform drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)]`}
+                style={{
+                  left: bubble.left,
+                  top: bubble.top,
+                  width: bubble.width,
+                  zIndex: 20,
+                }}
+              >
+                <img
+                  src={bubble.src}
+                  alt={bubble.alt}
+                  className="w-full h-auto block object-contain select-none"
+                  loading="eager"
+                />
+              </div>
+            ))}
           </div>
         </div>
       ))}
+
+      {/* SLEEK FLOATING MANGA PAGE INDICATOR WITH ACTIVE DOTS */}
+      <div className="absolute bottom-6 right-8 z-50 flex items-center gap-3 bg-black/75 backdrop-blur-md px-4 py-2.5 rounded-full border border-white/15 text-xs font-mono tracking-widest pointer-events-none shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
+        <span className="text-[#FFA500] font-bold">MANGA</span>
+        <span className="text-white/30">|</span>
+        <div className="flex items-center gap-1.5">
+          <span id="manga-dot-1" className="w-5 h-1.5 rounded-full bg-[#FFA500] shadow-[0_0_8px_#FFA500]" />
+          <span id="manga-dot-2" className="w-1.5 h-1.5 rounded-full bg-white/30" />
+          <span id="manga-dot-3" className="w-1.5 h-1.5 rounded-full bg-white/30" />
+          <span id="manga-dot-4" className="w-1.5 h-1.5 rounded-full bg-white/30" />
+        </div>
+        <span className="text-white/30">|</span>
+        <span id="manga-page-counter" className="text-white/90 font-medium">
+          PAGE 1 / 4
+        </span>
+      </div>
     </section>
   );
 }

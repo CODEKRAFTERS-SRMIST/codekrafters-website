@@ -105,7 +105,7 @@ export default function AboutSection() {
       {/* AMBIENT BACKGROUND GLOWS */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] sm:w-[1100px] h-[450px] sm:h-[600px] rounded-full blur-[160px] opacity-25"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] sm:w-[1100px] h-[250px] sm:h-[600px] rounded-full blur-[40px] sm:blur-[160px] opacity-25"
           style={{
             background:
               "radial-gradient(circle, rgba(249,176,0,0.8) 0%, rgba(242,165,22,0.18) 45%, transparent 75%)",
@@ -157,7 +157,7 @@ export default function AboutSection() {
             {PARAGRAPH_WORDS.map((w, idx) => (
               <span
                 key={`${w.text}-${idx}`}
-                className={`about-word inline-block will-change-transform transition-all ${
+                className={`about-word inline-block transition-colors ${
                   w.highlight
                     ? "text-[#F9B000] font-black drop-shadow-[0_0_28px_rgba(249,176,0,0.55)]"
                     : "text-white font-extrabold"

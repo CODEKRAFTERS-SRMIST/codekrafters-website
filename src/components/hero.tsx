@@ -196,8 +196,10 @@ export default function Hero() {
 
   const active = SLIDES[currentSlide];
 
-  /* PREVIOUS BACKGROUND rotation on scroll */
+  /* PREVIOUS BACKGROUND rotation on scroll (Desktop only to prevent mobile lag) */
   useEffect(() => {
+    if (typeof window === "undefined" || window.innerWidth < 1024) return;
+
     const yellow = document.querySelector(".bg-layer-yellow");
     const black = document.querySelector(".bg-layer-black");
 
@@ -241,7 +243,7 @@ export default function Hero() {
         <div className="bg-layer-black will-change-transform absolute top-[32%] left-[-10%] w-[150%] h-[50%] bg-[#111111] rotate-[-6deg] opacity-[0.45]" />
         {/* Subtle center amber glow to keep title illuminated */}
         <div
-          className="absolute -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[350px] rounded-full blur-[130px] opacity-20"
+          className="absolute -top-24 left-1/2 -translate-x-1/2 w-[320px] sm:w-[700px] h-[200px] sm:h-[350px] rounded-full blur-[40px] sm:blur-[130px] opacity-20"
           style={{
             background:
               "radial-gradient(ellipse at center, #F9B000 0%, #E69500 50%, transparent 80%)",
@@ -308,7 +310,7 @@ export default function Hero() {
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className="relative w-full rounded-2xl sm:rounded-[2.5rem] overflow-hidden border border-white/15 bg-[#0e0e12] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/10] touch-pan-y select-none"
+          className="relative w-full rounded-2xl sm:rounded-[2.5rem] overflow-hidden border border-white/15 bg-[#0e0e12] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] aspect-[4/4.8] sm:aspect-[16/9] lg:aspect-[21/10] touch-pan-y select-none"
         >
           {/* REAL CLUB SLIDESHOW IMAGES */}
           <AnimatePresence mode="wait">
@@ -333,8 +335,6 @@ export default function Hero() {
             </motion.div>
           </AnimatePresence>
 
-
-
           {/* BOTTOM OVERLAY: TITLE ALONE ON MOBILE (CLEAN & UNCLUTTERED) */}
           <div className="absolute inset-x-0 bottom-0 p-4 sm:p-7 lg:p-10 z-20 flex flex-col sm:flex-row sm:items-end justify-between gap-1.5 sm:gap-6 pointer-events-none">
             {/* EVENT TITLE (NAME OF EVENT ALONE ON MOBILE) */}
@@ -350,7 +350,35 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* MILESTONES STATS STRIP (DESKTOP & TABLET ONLY - HIDDEN ON MOBILE AS REQUESTED) */}
+      {/* MOBILE STATS COUNTER STRIP (7 DOMAINS • 150+ MEMBERS • 10+ EVENTS) */}
+      <div className="grid sm:hidden grid-cols-3 gap-2 w-full max-w-sm mx-auto text-center mt-6 px-1">
+        <div className="flex flex-col items-center justify-center">
+          <div className="text-3xl font-black text-[#FFA500] tracking-tight">
+            {counters[0]}
+          </div>
+          <div className="text-[11px] font-bold tracking-wider text-white/80 uppercase mt-1 font-sans">
+            DOMAINS
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center">
+          <div className="text-3xl font-black text-[#FFA500] tracking-tight">
+            {counters[1]}+
+          </div>
+          <div className="text-[11px] font-bold tracking-wider text-white/80 uppercase mt-1 font-sans">
+            MEMBERS
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center">
+          <div className="text-3xl font-black text-[#FFA500] tracking-tight">
+            {counters[2]}+
+          </div>
+          <div className="text-[11px] font-bold tracking-wider text-white/80 uppercase mt-1 font-sans">
+            EVENTS
+          </div>
+        </div>
+      </div>
+
+      {/* MILESTONES STATS STRIP (TABLET & DESKTOP) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -360,14 +388,14 @@ export default function Hero() {
         {MILESTONES.map((m, idx) => (
           <div
             key={m.label}
-            className="rounded-2xl sm:rounded-3xl bg-[#0f0f12] border border-white/[0.08] hover:border-white/20 py-7 px-4 text-center transition-all duration-300 shadow-[0_10px_30px_rgba(0,0,0,0.5)] group"
+            className="rounded-2xl sm:rounded-3xl bg-[#0f0f12] border border-white/[0.08] hover:border-[#FFA500]/40 py-7 px-4 text-center transition-all duration-300 shadow-[0_10px_30px_rgba(0,0,0,0.5)] group"
           >
-            <div className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight group-hover:text-[#F9B000] transition-colors">
+            <div className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#FFA500] tracking-tight group-hover:scale-105 transition-transform">
               {m.prefix || ""}
               {counters[idx]}
               {m.suffix}
             </div>
-            <div className="text-xs sm:text-sm font-semibold tracking-wider text-white/50 uppercase mt-2.5 font-sans">
+            <div className="text-xs sm:text-sm font-semibold tracking-wider text-white/70 uppercase mt-2.5 font-sans">
               {m.label}
             </div>
           </div>
