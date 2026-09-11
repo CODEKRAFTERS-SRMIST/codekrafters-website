@@ -1,0 +1,32 @@
+# CodeKrafters SRM
+
+> CodeKrafters is the premier student tech community at SRM Institute of Science and Technology, Ramapuram (Chennai, India). We operate across 7 technical and non-technical domains, run hackathons, workshops, and real-world student developer projects.
+
+## About Us
+
+- `Homepage -> https://codekraftersrmp.in`: Main website — overview of the club, domains, events, and team
+- `Our Team -> https://codekraftersrmp.in/team`: Meet the student leaders, domain heads, and core members
+- `Events -> https://codekraftersrmp.in/events`: Upcoming and past tech events, hackathons, and workshops
+- `Projects -> https://codekraftersrmp.in/projects`: Open-source projects and student developer work
+- `Blog -> https://codekraftersrmp.in/blog`: Technical articles and tutorials by CodeKrafters members
+- `Join Us -> https://codekraftersrmp.in/join`: Recruitment portal — apply to join the community
+- `KraftersLink -> https://codekraftersrmp.in/krafterslink`: All official social media and community links
+
+## Key Facts
+
+- Founded: 2022
+- Institution: SRM Institute of Science and Technology, Ramapuram Campus, Chennai, India
+- Community size: 500+ active student developers
+- Domains: Artificial Intelligence, Web Development, Cybersecurity, App Development, Design & Creatives, Content, PR & Events Management
+- Contact: codekraftersrmp@gmail.com
+- Instagram: https://www.instagram.com/codekrafterssrm/
+- LinkedIn: https://www.linkedin.com/company/codekrafters-srm/
+- GitHub: https://github.com/CODEKRAFTERS-SRMIST
+
+## What We Do
+
+CodeKrafters provides SRM students with hands-on experience in real-world tech domains. Members work on live projects, compete in hackathons, create technical content, and build a strong developer portfolio before graduation. The club bridges the gap between academic learning and industry-ready skills.
+
+## Recruitment
+
+CodeKrafters recruits annually. Applicants choose up to 2 domains, complete a technical task, and go through an interview process. All 16 SRM departments are welcome to apply.

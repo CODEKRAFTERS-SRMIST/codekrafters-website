@@ -5,7 +5,7 @@ import { Navbar } from "@/components/navbar";
 import { LoginCard } from "@/components/join/LoginCard";
 import { UserSession } from "@/types/join";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [session, setSession] = useState<UserSession | null>(null);
 
   useEffect(() => {
@@ -30,9 +30,8 @@ export default function LoginPage() {
       const searchParams = new URLSearchParams(window.location.search);
       const redirect = searchParams.get("redirect");
 
-      // Navigate based on role and redirect param
       if (newSession.role === "PRESIDENT" || newSession.role === "DOMAIN_ADMIN") {
-        window.location.href = redirect || "/join"; 
+        window.location.href = "/join"; 
       } else {
         window.location.href = redirect || "/profile";
       }
@@ -65,7 +64,7 @@ export default function LoginPage() {
 
       <main className="flex-1 flex flex-col justify-center px-4 sm:px-6 md:px-8 w-full my-6">
         <div className="py-6 sm:py-12">
-          <LoginCard onLoginSuccess={handleLoginSuccess} />
+          <LoginCard onLoginSuccess={handleLoginSuccess} defaultIsSignUp={true} />
         </div>
       </main>
     </div>

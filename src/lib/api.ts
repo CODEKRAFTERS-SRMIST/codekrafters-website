@@ -48,7 +48,8 @@ export async function updateApplicationStatus(
   appId: string,
   status: ApplicationStatus,
   adminNotes?: string,
-  rating?: number
+  rating?: number,
+  taskSubmissionUrl?: string
 ): Promise<Application> {
   const res = await fetch("/api/applications", {
     method: "PATCH",
@@ -58,12 +59,20 @@ export async function updateApplicationStatus(
       status,
       adminNotes,
       rating,
+      taskSubmissionUrl,
     }),
   });
 
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to update application");
   return data.application;
+}
+
+export async function submitCandidateTask(
+  appId: string,
+  submissionUrl: string
+): Promise<Application> {
+  return updateApplicationStatus(appId, "Task Completed", undefined, undefined, submissionUrl);
 }
 
 export function exportApplicationsToCSV(applications: Application[]): void {

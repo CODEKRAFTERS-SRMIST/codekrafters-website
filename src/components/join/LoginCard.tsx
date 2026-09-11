@@ -7,10 +7,11 @@ import { User, ShieldCheck, Mail, Lock, Sparkles, ArrowRight, CheckCircle2 } fro
 
 interface LoginCardProps {
   onLoginSuccess: (session: UserSession) => void;
+  defaultIsSignUp?: boolean;
 }
 
-export function LoginCard({ onLoginSuccess }: LoginCardProps) {
-  const [isSignUp, setIsSignUp] = useState(false);
+export function LoginCard({ onLoginSuccess, defaultIsSignUp = false }: LoginCardProps) {
+  const [isSignUp, setIsSignUp] = useState(defaultIsSignUp);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -39,10 +40,11 @@ export function LoginCard({ onLoginSuccess }: LoginCardProps) {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const endpoint = isSignUp ? "/api/auth/signup" : "/api/auth/login";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, fullName: isSignUp ? fullName : undefined, action: isSignUp ? "SIGN_UP" : "SIGN_IN" }),
+        body: JSON.stringify({ email, password, fullName: isSignUp ? fullName : undefined }),
       });
 
       const data = await res.json();
@@ -55,7 +57,7 @@ export function LoginCard({ onLoginSuccess }: LoginCardProps) {
         id: data.user.id,
         email: data.user.email,
         role: data.user.role,
-        admin_level: data.user.admin_level,
+        domain_id: data.user.domain_id,
         fullName: data.user.fullName,
       });
     } catch (err: any) {

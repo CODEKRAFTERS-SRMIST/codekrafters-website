@@ -7,14 +7,17 @@ import {
   User,
   LogOut,
   Sparkles,
-  Zap,
   Shield,
   Crown,
   Terminal,
   Code2,
+  KeyRound,
+  Eye,
+  EyeOff,
+  ChevronDown,
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const russoOne = Russo_One({ subsets: ["latin"], weight: "400" });
 
@@ -22,20 +25,66 @@ export default function UserProfile() {
   const [session, setSession] = useState<UserSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Change password state
+  const [showChangePw, setShowChangePw] = useState(false);
+  const [oldPw, setOldPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [showOldPw, setShowOldPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwMsg, setPwMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   useEffect(() => {
     const rawSession = localStorage.getItem("codekrafters_user_session");
     if (rawSession) {
       setSession(JSON.parse(rawSession));
       setIsLoading(false);
     } else {
-      setSession(null);
-      setIsLoading(false);
+      window.location.href = "/login?redirect=/profile";
     }
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("codekrafters_user_session");
     window.location.href = "/";
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwMsg(null);
+    if (!oldPw || !newPw || !confirmPw) {
+      setPwMsg({ type: "error", text: "Please fill in all password fields." });
+      return;
+    }
+    if (newPw !== confirmPw) {
+      setPwMsg({ type: "error", text: "New passwords do not match." });
+      return;
+    }
+    if (newPw.length < 6) {
+      setPwMsg({ type: "error", text: "New password must be at least 6 characters." });
+      return;
+    }
+    setPwLoading(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: session?.id, oldPassword: oldPw, newPassword: newPw }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPwMsg({ type: "success", text: "Password changed successfully!" });
+        setOldPw(""); setNewPw(""); setConfirmPw("");
+        setTimeout(() => setShowChangePw(false), 2000);
+      } else {
+        setPwMsg({ type: "error", text: data.error || "Failed to change password." });
+      }
+    } catch {
+      setPwMsg({ type: "error", text: "Network error. Please try again." });
+    } finally {
+      setPwLoading(false);
+    }
   };
 
   if (isLoading) {
@@ -50,44 +99,7 @@ export default function UserProfile() {
   }
 
   if (!session) {
-    return (
-      <div className="min-h-screen bg-[#FFEFB4] flex flex-col font-sans relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-[0.1]"
-          style={{
-            backgroundImage: "radial-gradient(#0D0D0D 1px, transparent 1px)",
-            backgroundSize: "32px 32px",
-          }}
-        ></div>
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center p-4 pt-24 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="bg-[#f9f7e5] border-[3px] border-[#0D0D0D] rounded-3xl p-8 sm:p-12 shadow-[12px_12px_0_#0D0D0D] max-w-lg w-full text-center relative overflow-hidden"
-          >
-            <div className="w-20 h-20 bg-[#F2A516] rounded-full border-4 border-[#0D0D0D] flex items-center justify-center mx-auto mb-6 shadow-[4px_4px_0_#0D0D0D] relative z-10">
-              <User className="w-10 h-10 text-[#0D0D0D]" />
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-black uppercase text-[#0D0D0D] tracking-tight mb-3">
-              ACCESS DENIED
-            </h2>
-            <p className="text-sm text-[#333333] font-bold mb-8">
-              You must authenticate your identity to view the CodeKrafters
-              manifest.
-            </p>
-            <button
-              onClick={() =>
-                (window.location.href = "/login?redirect=/profile")
-              }
-              className="w-full bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] border-[3px] border-[#0D0D0D] py-4 px-6 rounded-full font-black text-sm sm:text-base uppercase tracking-widest shadow-[6px_6px_0_#F2A516] hover:translate-y-[-2px] hover:shadow-[8px_8px_0_#F2A516] transition-all flex items-center justify-center gap-2"
-            >
-              <Zap className="w-5 h-5" /> INITIALIZE LOGIN
-            </button>
-          </motion.div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -127,12 +139,14 @@ export default function UserProfile() {
             transition={{ delay: 0.3, type: "spring", bounce: 0.5 }}
             className="absolute top-6 right-6 bg-[#F2A516] text-[10px] sm:text-xs font-black uppercase px-3 py-1.5 rounded-full border-2 border-[#0D0D0D] shadow-[3px_3px_0_#0D0D0D] flex items-center gap-1.5 transform hover:scale-110 transition-transform cursor-default"
           >
-            {session.role === "ADMIN" ? (
+            {session.role === "PRESIDENT" ? (
               <Crown className="w-3.5 h-3.5" />
+            ) : session.role === "DOMAIN_ADMIN" ? (
+              <Shield className="w-3.5 h-3.5" />
             ) : (
               <Terminal className="w-3.5 h-3.5" />
             )}
-            {session.role === "ADMIN" ? "SYS_ADMIN" : "User"}
+            {session.role === "PRESIDENT" ? "PRESIDENT" : session.role === "DOMAIN_ADMIN" ? "DOMAIN ADMIN" : "APPLICANT"}
           </motion.div>
 
           {/* Profile Header */}
@@ -181,52 +195,9 @@ export default function UserProfile() {
           </div>
 
           <div className="space-y-5">
-            {/* Stats Dashboard */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 }}
-              className="grid grid-cols-2 gap-4 mb-2"
-            >
-              <div className="p-4 bg-white border-[3px] border-[#0D0D0D] rounded-2xl flex flex-col items-center justify-center text-center shadow-[4px_4px_0_#0D0D0D] relative overflow-hidden group hover:-translate-y-1 transition-transform">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-[#FFEFB4] rounded-bl-full -z-0 opacity-50 group-hover:scale-150 transition-transform duration-500"></div>
-                <span className="font-black text-[#0D0D0D] text-3xl mb-1 relative z-10 group-hover:text-[#F2A516] transition-colors">
-                  0
-                </span>
-                <span className="text-[10px] sm:text-xs uppercase font-extrabold text-[#333333] relative z-10 tracking-wider">
-                  Events Attended
-                </span>
-              </div>
-              <div className="p-4 bg-white border-[3px] border-[#0D0D0D] rounded-2xl flex flex-col items-center justify-center text-center shadow-[4px_4px_0_#0D0D0D] relative overflow-hidden group hover:-translate-y-1 transition-transform">
-                <div className="absolute top-0 left-0 w-16 h-16 bg-[#F2A516] rounded-br-full -z-0 opacity-20 group-hover:scale-150 transition-transform duration-500"></div>
-                <span className="font-black text-[#0D0D0D] text-3xl mb-1 relative z-10 group-hover:text-[#F2A516] transition-colors">
-                  1
-                </span>
-                <span className="text-[10px] sm:text-xs uppercase font-extrabold text-[#333333] relative z-10 tracking-wider">
-                  Active Apps
-                </span>
-              </div>
-            </motion.div>
-
-            {/* Clearance Level */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-              className="p-4 bg-white border-[3px] border-[#0D0D0D] rounded-2xl flex justify-between items-center shadow-[4px_4px_0_#0D0D0D]"
-            >
-              <span className="font-extrabold text-sm uppercase flex items-center gap-2">
-                <Shield className="w-4 h-4 text-[#F2A516]" /> Clearance Level
-              </span>
-              <span className="text-xs uppercase font-black bg-[#0D0D0D] text-[#FFEFB4] px-4 py-2 rounded-lg border-2 border-[#F2A516] shadow-[2px_2px_0_#F2A516] tracking-widest">
-                {session.role === "ADMIN"
-                  ? `Lvl_${session.admin_level || "LEAD"}`
-                  : "Lvl_APPLICANT"}
-              </span>
-            </motion.div>
 
             {/* Admin Command Center */}
-            {session.role === "ADMIN" && (
+            {(session.role === "PRESIDENT" || session.role === "DOMAIN_ADMIN") && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -265,14 +236,14 @@ export default function UserProfile() {
                   </span>
                 </button>
 
-                {session.admin_level === "PRESIDENT" && (
+                {session.role === "PRESIDENT" && (
                   <button
-                    onClick={() => (window.location.href = "/admin/president")}
+                    onClick={() => (window.location.href = "/join?tab=users")}
                     className="w-full bg-[#0D0D0D] text-[#FFEFB4] hover:bg-[#1a1a1a] font-black uppercase py-4 px-5 rounded-xl border-[3px] border-[#F2A516] shadow-[4px_4px_0_#F2A516] hover:translate-y-[-3px] hover:shadow-[6px_6px_0_#F2A516] transition-all flex items-center justify-between group"
                   >
                     <span className="flex items-center gap-3">
                       <Crown className="w-4 h-4 text-[#F2A516]" />
-                      Core Control
+                      User Management
                     </span>
                     <span className="text-[#F2A516] group-hover:translate-x-1 transition-transform">
                       →
@@ -282,12 +253,112 @@ export default function UserProfile() {
               </motion.div>
             )}
 
+            {/* Change Password */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="mt-4"
+            >
+              <button
+                onClick={() => { setShowChangePw(!showChangePw); setPwMsg(null); }}
+                className="w-full bg-[#FFF2C6] text-[#0D0D0D] font-black uppercase py-3.5 px-5 rounded-2xl border-[3px] border-[#0D0D0D] shadow-[3px_3px_0_#0D0D0D] hover:translate-y-[-2px] hover:shadow-[5px_5px_0_#0D0D0D] transition-all flex items-center justify-between group"
+              >
+                <span className="flex items-center gap-2">
+                  <KeyRound className="w-4 h-4 text-[#F2A516]" /> Change Password
+                </span>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showChangePw ? "rotate-180" : ""}`} />
+              </button>
+
+              <AnimatePresence>
+                {showChangePw && (
+                  <motion.form
+                    key="changepw"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    onSubmit={handleChangePassword}
+                    className="overflow-hidden"
+                  >
+                    <div className="mt-3 p-5 bg-white border-[3px] border-[#0D0D0D] rounded-2xl shadow-[3px_3px_0_#0D0D0D] space-y-4">
+                      {/* Old Password */}
+                      <div>
+                        <label className="block text-[10px] font-black uppercase tracking-wider text-[#555] mb-1.5">Current Password</label>
+                        <div className="relative">
+                          <input
+                            type={showOldPw ? "text" : "password"}
+                            value={oldPw}
+                            onChange={(e) => setOldPw(e.target.value)}
+                            placeholder="Enter current password"
+                            className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-4 py-2.5 text-sm font-bold text-[#0D0D0D] placeholder-[#0D0D0D]/30 focus:outline-none focus:ring-2 focus:ring-[#F2A516] pr-10"
+                          />
+                          <button type="button" onClick={() => setShowOldPw(!showOldPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#0D0D0D]/50 hover:text-[#0D0D0D] transition-colors">
+                            {showOldPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* New Password */}
+                      <div>
+                        <label className="block text-[10px] font-black uppercase tracking-wider text-[#555] mb-1.5">New Password</label>
+                        <div className="relative">
+                          <input
+                            type={showNewPw ? "text" : "password"}
+                            value={newPw}
+                            onChange={(e) => setNewPw(e.target.value)}
+                            placeholder="Min. 6 characters"
+                            className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-4 py-2.5 text-sm font-bold text-[#0D0D0D] placeholder-[#0D0D0D]/30 focus:outline-none focus:ring-2 focus:ring-[#F2A516] pr-10"
+                          />
+                          <button type="button" onClick={() => setShowNewPw(!showNewPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#0D0D0D]/50 hover:text-[#0D0D0D] transition-colors">
+                            {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Confirm Password */}
+                      <div>
+                        <label className="block text-[10px] font-black uppercase tracking-wider text-[#555] mb-1.5">Confirm New Password</label>
+                        <input
+                          type="password"
+                          value={confirmPw}
+                          onChange={(e) => setConfirmPw(e.target.value)}
+                          placeholder="Re-enter new password"
+                          className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-4 py-2.5 text-sm font-bold text-[#0D0D0D] placeholder-[#0D0D0D]/30 focus:outline-none focus:ring-2 focus:ring-[#F2A516]"
+                        />
+                      </div>
+
+                      {/* Feedback message */}
+                      {pwMsg && (
+                        <div className={`p-3 rounded-xl text-xs font-black border-2 ${
+                          pwMsg.type === "success"
+                            ? "bg-emerald-100 border-emerald-800 text-emerald-900"
+                            : "bg-rose-100 border-rose-800 text-rose-900"
+                        }`}>
+                          {pwMsg.text}
+                        </div>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={pwLoading}
+                        className="w-full bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] font-black uppercase py-3 px-5 rounded-xl border-2 border-[#0D0D0D] shadow-[3px_3px_0_#F2A516] hover:translate-y-[-1px] hover:shadow-[5px_5px_0_#F2A516] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                      >
+                        <KeyRound className="w-4 h-4" />
+                        {pwLoading ? "Updating..." : "Update Password"}
+                      </button>
+                    </div>
+                  </motion.form>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
             <motion.button
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8 }}
               onClick={handleLogout}
-              className="w-full mt-8 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] font-black uppercase py-4 px-6 rounded-2xl border-[3px] border-[#0D0D0D] shadow-[4px_4px_0_#F2A516] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_#F2A516] transition-all flex items-center justify-center gap-2 overflow-hidden relative group"
+              className="w-full mt-4 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] font-black uppercase py-4 px-6 rounded-2xl border-[3px] border-[#0D0D0D] shadow-[4px_4px_0_#F2A516] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_#F2A516] transition-all flex items-center justify-center gap-2 overflow-hidden relative group"
             >
               <div className="absolute inset-0 bg-white/10 translate-y-[100%] group-hover:translate-y-[0%] transition-transform duration-300"></div>
               <LogOut className="w-5 h-5 relative z-10" />

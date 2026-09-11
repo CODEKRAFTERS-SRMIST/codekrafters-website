@@ -87,7 +87,7 @@ export default function JoinPage() {
 
       <Navbar />
 
-      <main className="flex-1 px-4 sm:px-6 md:px-8 max-w-[1400px] mx-auto w-full my-6">
+      <main className="flex-1 px-4 sm:px-6 md:px-8 max-w-[1400px] mx-auto w-full my-6 pb-24">
         {isLoading ? (
           /* State 1: Loading session data */
           <div className="flex justify-center items-center py-20">
@@ -116,7 +116,7 @@ export default function JoinPage() {
               </button>
             </div>
           </div>
-        ) : session.role === "ADMIN" ? (
+        ) : (session.role === "PRESIDENT" || session.role === "DOMAIN_ADMIN") ? (
           /* State 3: Admin Session -> Admin Panel */
           <div className="py-4">
             <AdminDashboard session={session} onLogout={handleLogout} />

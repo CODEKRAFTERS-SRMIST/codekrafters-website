@@ -16,6 +16,7 @@ import {
   Download,
   Users,
   CheckCircle,
+  CheckCircle2,
   Clock,
   Star,
   ExternalLink,
@@ -28,7 +29,16 @@ import {
   Edit3,
   ChevronDown,
   Layers,
+  Settings,
+  Lock,
+  Unlock,
+  Eye,
+  EyeOff,
+  Save,
+  Calendar,
+  ArrowLeft,
 } from "lucide-react";
+import { RECRUITMENT_TIMELINE_STEPS } from "@/data/recruitmentTasks";
 
 interface AdminDashboardProps {
   session: UserSession;
@@ -40,12 +50,92 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
+  const [activeTab, setActiveTab] = useState<"APPLICATIONS" | "USERS" | "SETTINGS">("APPLICATIONS");
+  const [systemUsers, setSystemUsers] = useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
+  // Recruitment Phase & Task Gating State
+  const [currentPhase, setCurrentPhase] = useState<number>(1);
+  const [tasksVisible, setTasksVisible] = useState<boolean>(false);
+  const [savingSettings, setSavingSettings] = useState<boolean>(false);
+  const [settingsSavedToast, setSettingsSavedToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/recruitment-settings")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.settings) {
+          setCurrentPhase(Number(d.settings.current_phase) || 1);
+          setTasksVisible(Boolean(d.settings.tasks_visible));
+        }
+      })
+      .catch((e) => console.warn(e));
+  }, []);
+
+  const handleUpdateRecruitmentSettings = async (phase: number, visible: boolean) => {
+    setSavingSettings(true);
+    try {
+      const res = await fetch("/api/admin/recruitment-settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          adminId: session.id,
+          current_phase: phase,
+          tasks_visible: visible,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCurrentPhase(phase);
+        setTasksVisible(visible);
+        setSettingsSavedToast("Recruitment Phase & Task Access Updated!");
+        setTimeout(() => setSettingsSavedToast(null), 3500);
+      } else {
+        alert(data.error || "Failed to update settings");
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
   useEffect(() => {
     fetchApplications()
       .then((apps) => setApplications(apps))
       .catch((e) => console.error(e))
       .finally(() => setLoading(false));
   }, []);
+
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const res = await fetch(`/api/admin/users?userId=${session.id}`);
+      const data = await res.json();
+      if (res.ok) {
+        setSystemUsers(data.users || []);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "USERS" && session.role === "PRESIDENT") {
+      fetchUsers();
+    }
+  }, [activeTab, session.role]);
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("tab")?.toUpperCase() === "USERS" && session.role === "PRESIDENT") {
+        setActiveTab("USERS");
+      }
+    } catch (e) {}
+  }, [session.role]);
 
   // Filters State
   const [filters, setFilters] = useState<FilterOptions>({
@@ -66,6 +156,15 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
   // Filter Computation
   const filteredApplications = useMemo(() => {
     return applications.filter((app) => {
+      // Enforce Domain Admin restriction
+      if (session.role === "DOMAIN_ADMIN" && session.domain_id) {
+        const adminNorm = session.domain_id.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const matchesDomain = (d: string) => d && d.toLowerCase().replace(/[^a-z0-9]/g, "") === adminNorm;
+        if (!app.domains.some(matchesDomain) && !matchesDomain(app.primaryDomain)) {
+          return false;
+        }
+      }
+
       // Domain filter
       if (filters.domain !== "ALL") {
         if (!app.domains.includes(filters.domain) && app.primaryDomain !== filters.domain) {
@@ -101,18 +200,21 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
 
       return true;
     });
-  }, [applications, filters]);
+  }, [applications, filters, session]);
 
   // Statistics counters
   const stats = useMemo(() => {
-    const total = applications.length;
-    const underReview = applications.filter((a) => a.status === "Under Review").length;
-    const shortlisted = applications.filter((a) => a.status === "Shortlisted").length;
-    const accepted = applications.filter((a) => a.status === "Accepted").length;
-    const interviewed = applications.filter((a) => a.status === "Interview Scheduled").length;
+    const total = filteredApplications.length;
+    const applied = filteredApplications.filter((a) => a.status === "Applied").length;
+    const taskOngoing = filteredApplications.filter((a) => a.status === "Task Ongoing").length;
+    const taskCompleted = filteredApplications.filter((a) => a.status === "Task Completed").length;
+    const underReview = filteredApplications.filter((a) => a.status === "Under Review").length;
+    const shortlisted = filteredApplications.filter((a) => a.status === "Shortlisted").length;
+    const accepted = filteredApplications.filter((a) => a.status === "Accepted").length;
+    const interviewed = filteredApplications.filter((a) => a.status === "Interview Scheduled").length;
 
-    return { total, underReview, shortlisted, interviewed, accepted };
-  }, [applications]);
+    return { total, applied, taskOngoing, taskCompleted, underReview, shortlisted, interviewed, accepted };
+  }, [filteredApplications]);
 
   const openInspector = (app: Application) => {
     setSelectedApp(app);
@@ -155,6 +257,30 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
     exportApplicationsToCSV(filteredApplications);
   };
 
+  const handleRoleChange = async (userId: string, newRole: string, newDomainId?: string) => {
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          adminId: session.id,
+          targetUserId: userId,
+          role: newRole,
+          domain_id: newDomainId
+        })
+      });
+      if (res.ok) {
+        showToast("User role updated successfully");
+        fetchUsers();
+      } else {
+        const data = await res.json();
+        showToast(data.error || "Failed to update role");
+      }
+    } catch (err) {
+      showToast("Error updating user");
+    }
+  };
+
   return (
     <div className="w-full mx-auto space-y-6 relative">
       {/* Toast Notification */}
@@ -180,20 +306,30 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
           </div>
           <div>
             <div className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#0D0D0D] text-[#FFEFB4] text-[10px] font-extrabold uppercase rounded-full shadow-[2px_2px_0_#F2A516] mb-1">
-              <Sparkles className="w-3 h-3 text-[#F2A516]" /> CodeKrafters Admin Core
+              <Sparkles className="w-3 h-3 text-[#F2A516]" /> {session.role === "PRESIDENT" ? "President Dashboard" : "Domain Admin Dashboard"}
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold uppercase text-[#0D0D0D] tracking-tight">
-              Recruitment Dashboard
+              Recruitment Center
             </h1>
           </div>
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+          {activeTab === "APPLICATIONS" && (
+            <button
+              onClick={handleExportCSV}
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#F2A516] text-[#0D0D0D] font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-full border-2 border-[#0D0D0D] shadow-[3px_3px_0_#0D0D0D] hover:translate-y-[-2px] transition-all cursor-pointer"
+            >
+              <Download className="w-4 h-4" /> Export CSV ({filteredApplications.length})
+            </button>
+          )}
+
+          {/* Back to Profile */}
           <button
-            onClick={handleExportCSV}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#F2A516] text-[#0D0D0D] font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-full border-2 border-[#0D0D0D] shadow-[3px_3px_0_#0D0D0D] hover:translate-y-[-2px] transition-all cursor-pointer"
+            onClick={() => (window.location.href = "/profile")}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-[#FFF2C6] text-[#0D0D0D] text-xs font-bold hover:bg-[#F2A516] border-2 border-[#0D0D0D] shadow-[3px_3px_0_#0D0D0D] cursor-pointer hover:translate-y-[-1px] transition-all"
           >
-            <Download className="w-4 h-4" /> Export CSV ({filteredApplications.length})
+            <ArrowLeft className="w-4 h-4" /> Profile
           </button>
 
           <button
@@ -205,37 +341,252 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
         </div>
       </div>
 
-      {loading ? (
+      {session.role === "PRESIDENT" && (
+        <div className="flex flex-wrap gap-2 sm:gap-4 border-b-2 border-[#0D0D0D] pb-2">
+          <button
+            onClick={() => setActiveTab("APPLICATIONS")}
+            className={`font-extrabold text-sm sm:text-base px-4 py-2 rounded-t-xl transition-colors ${activeTab === "APPLICATIONS" ? "bg-[#0D0D0D] text-[#FFEFB4]" : "text-[#0D0D0D] hover:bg-[#0D0D0D]/10"}`}
+          >
+            Applications
+          </button>
+          <button
+            onClick={() => setActiveTab("USERS")}
+            className={`font-extrabold text-sm sm:text-base px-4 py-2 rounded-t-xl transition-colors ${activeTab === "USERS" ? "bg-[#0D0D0D] text-[#FFEFB4]" : "text-[#0D0D0D] hover:bg-[#0D0D0D]/10"}`}
+          >
+            User Management
+          </button>
+          <button
+            onClick={() => setActiveTab("SETTINGS")}
+            className={`font-extrabold text-sm sm:text-base px-4 py-2 rounded-t-xl transition-colors flex items-center gap-1.5 ${activeTab === "SETTINGS" ? "bg-[#0D0D0D] text-[#FFEFB4]" : "text-[#0D0D0D] hover:bg-[#0D0D0D]/10"}`}
+          >
+            <Settings className="w-4 h-4" /> Phase & Task Controls
+          </button>
+        </div>
+      )}
+
+      {activeTab === "USERS" ? (
+        <div className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 shadow-[8px_8px_0_#0D0D0D]">
+          <h3 className="font-extrabold text-base uppercase text-[#0D0D0D] mb-4">System Users</h3>
+          {loadingUsers ? (
+            <div className="flex justify-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D0D0D]"></div></div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-[#0D0D0D] text-[11px] font-extrabold uppercase text-[#0D0D0D] bg-[#FFF2C6]">
+                    <th className="p-3">User</th>
+                    <th className="p-3">Current Role</th>
+                    <th className="p-3">Domain (If Admin)</th>
+                    <th className="p-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y border-[#0D0D0D]/10 text-xs">
+                  {systemUsers.map(u => (
+                    <tr key={u.id}>
+                      <td className="p-3 font-bold text-[#0D0D0D]">{(u.fullName || u.full_name) || "N/A"}<br/><span className="text-[10px] font-medium text-gray-600">{u.email}</span></td>
+                      <td className="p-3">
+                        <select 
+                          value={u.role}
+                          onChange={(e) => {
+                            if (e.target.value !== "DOMAIN_ADMIN") {
+                              handleRoleChange(u.id, e.target.value, undefined);
+                            }
+                          }}
+                          className="bg-white text-black font-bold border-2 border-[#0D0D0D] rounded-lg px-2.5 py-1.5 text-xs shadow-[2px_2px_0_#0D0D0D] focus:outline-none focus:ring-2 focus:ring-[#F2A516] cursor-pointer"
+                          style={{ colorScheme: "light", color: "#000000" }}
+                        >
+                          <option value="APPLICANT" className="text-black bg-white font-medium" style={{ color: "#000000", backgroundColor: "#ffffff" }}>Applicant</option>
+                          <option value="DOMAIN_ADMIN" className="text-black bg-white font-medium" style={{ color: "#000000", backgroundColor: "#ffffff" }}>Domain Admin</option>
+                          <option value="PRESIDENT" className="text-black bg-white font-medium" style={{ color: "#000000", backgroundColor: "#ffffff" }}>President</option>
+                        </select>
+                      </td>
+                      <td className="p-3">
+                        {u.role === "DOMAIN_ADMIN" && (
+                          <select
+                            value={u.domain_id || ""}
+                            onChange={(e) => handleRoleChange(u.id, "DOMAIN_ADMIN", e.target.value)}
+                            className="bg-white text-black font-bold border-2 border-[#0D0D0D] rounded-lg px-2.5 py-1.5 text-xs shadow-[2px_2px_0_#0D0D0D] focus:outline-none focus:ring-2 focus:ring-[#F2A516] cursor-pointer"
+                            style={{ colorScheme: "light", color: "#000000" }}
+                          >
+                            <option value="" className="text-gray-500 bg-white" style={{ color: "#666666", backgroundColor: "#ffffff" }}>Select Domain...</option>
+                            {DOMAINS_LIST.map(d => (
+                              <option key={d.id} value={d.name} className="text-black bg-white font-medium" style={{ color: "#000000", backgroundColor: "#ffffff" }}>
+                                {d.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        {u.role !== "DOMAIN_ADMIN" && <span className="text-gray-500 font-bold">N/A</span>}
+                      </td>
+                      <td className="p-3 text-right">
+                        {u.role === "APPLICANT" && (
+                          <button onClick={() => {
+                            const domain = prompt("Enter domain name from: " + DOMAINS_LIST.map(d => d.name).join(", "));
+                            if (domain) handleRoleChange(u.id, "DOMAIN_ADMIN", domain);
+                          }} className="text-[10px] bg-[#0D0D0D] text-white px-2 py-1 rounded">Promote to Admin</button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      ) : activeTab === "SETTINGS" ? (
+        <div className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 sm:p-8 shadow-[8px_8px_0_#0D0D0D] space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#0D0D0D]/10 pb-4">
+            <div>
+              <h3 className="font-black text-lg uppercase text-[#0D0D0D] flex items-center gap-2">
+                <Settings className="w-5 h-5 text-[#F2A516]" /> Recruitment Phase & Task Access Manager
+              </h3>
+              <p className="text-xs font-semibold text-[#555555] mt-0.5">
+                Control the active recruitment milestone displayed on candidate dashboards and manage access to domain task briefings.
+              </p>
+            </div>
+            {settingsSavedToast && (
+              <span className="px-3 py-1 bg-emerald-100 text-emerald-900 border border-emerald-800 rounded-full text-xs font-black animate-pulse">
+                ✓ {settingsSavedToast}
+              </span>
+            )}
+          </div>
+
+          {/* Current Active Status Callout */}
+          <div className="p-4 bg-[#FFF2C6] border-2 border-[#0D0D0D] rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-[2px_2px_0_#0D0D0D]">
+            <div>
+              <span className="text-[10px] font-black uppercase text-gray-700 block">Current Active Phase</span>
+              <span className="text-sm font-black uppercase text-[#0D0D0D]">
+                Phase {currentPhase}: {RECRUITMENT_TIMELINE_STEPS.find((s) => s.phaseNumber === currentPhase)?.phase.replace(/^Phase \d+: /, "") || "Active Phase"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-extrabold text-[#0D0D0D]">Task Links:</span>
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-black border ${tasksVisible ? "bg-emerald-100 text-emerald-900 border-emerald-800" : "bg-amber-100 text-amber-900 border-amber-800"}`}>
+                {tasksVisible ? "Unlocked & Visible" : "Locked / Hidden"}
+              </span>
+            </div>
+          </div>
+
+          {/* Phase Selector Grid */}
+          <div>
+            <label className="block text-xs font-black uppercase text-[#0D0D0D] mb-3">
+              Select Active Recruitment Phase:
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {RECRUITMENT_TIMELINE_STEPS.map((step) => {
+                const isSelected = currentPhase === step.phaseNumber;
+                return (
+                  <button
+                    key={step.phaseNumber}
+                    type="button"
+                    onClick={() => {
+                      // Automatically recommend tasksVisible true when switching to Phase 2
+                      const nextVisible = step.phaseNumber === 2 ? true : false;
+                      handleUpdateRecruitmentSettings(step.phaseNumber, nextVisible);
+                    }}
+                    className={`p-4 rounded-2xl border-2 border-[#0D0D0D] text-left transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-[#F2A516] text-[#0D0D0D] shadow-[4px_4px_0_#0D0D0D] ring-2 ring-[#0D0D0D]"
+                        : "bg-white text-[#0D0D0D] hover:bg-[#FFF2C6] shadow-[2px_2px_0_#0D0D0D]"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${isSelected ? "bg-[#0D0D0D] text-[#FFEFB4]" : "bg-[#0D0D0D]/10 text-[#0D0D0D]"}`}>
+                        {step.date}
+                      </span>
+                      {isSelected && <CheckCircle className="w-4 h-4 text-[#0D0D0D]" />}
+                    </div>
+                    <h5 className="font-black text-xs uppercase mb-1">{step.phase}</h5>
+                    <p className="text-[11px] font-medium text-[#444444] leading-tight">{step.description}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Manual Task Visibility Override */}
+          <div className="p-5 bg-white border-2 border-[#0D0D0D] rounded-2xl shadow-[3px_3px_0_#0D0D0D] space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h4 className="font-black text-xs uppercase text-[#0D0D0D] flex items-center gap-1.5">
+                  {tasksVisible ? <Unlock className="w-4 h-4 text-emerald-700" /> : <Lock className="w-4 h-4 text-amber-700" />}
+                  Domain Task Briefing & Submission Link Access Override
+                </h4>
+                <p className="text-[11px] font-semibold text-gray-600 mt-0.5">
+                  Toggle whether applicants can see the &quot;View Task Briefing&quot; and &quot;Submit Task&quot; buttons, or enforce emergency hide for all users.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={savingSettings}
+                  onClick={() => handleUpdateRecruitmentSettings(currentPhase, !tasksVisible)}
+                  className={`px-4 py-2 rounded-xl border-2 border-[#0D0D0D] text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-[2px_2px_0_#0D0D0D] ${
+                    tasksVisible
+                      ? "bg-rose-100 text-rose-900 hover:bg-rose-200"
+                      : "bg-emerald-100 text-emerald-900 hover:bg-emerald-200"
+                  }`}
+                >
+                  {tasksVisible ? (
+                    <>
+                      <EyeOff className="w-4 h-4" /> Hide Tasks For All Users
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="w-4 h-4" /> Unlock Tasks For All Users
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="text-[11px] font-bold text-gray-500 bg-[#FFEFB4] p-3 rounded-xl border border-[#0D0D0D]/20">
+              💡 <strong>Expected Behavior:</strong> In Phase 1, tasks are locked so candidates focus on completing registrations. On 17 September (Phase 2), domain task links are unlocked. On 24 September (Phase 3), task submission links automatically close.
+            </div>
+          </div>
+        </div>
+      ) : loading ? (
         <div className="flex justify-center py-20">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D0D0D]"></div>
         </div>
       ) : (
         <>
           {/* KPI Stats Analytics Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
-        <div className="bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-2xl p-4 shadow-[4px_4px_0_#0D0D0D]">
-          <div className="text-xs font-extrabold text-[#333333] uppercase">Total Applications</div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-[#0D0D0D] mt-1">{stats.total}</div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-3.5">
+        <div className="bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-2xl p-3.5 shadow-[3px_3px_0_#0D0D0D]">
+          <div className="text-[11px] font-extrabold text-[#333333] uppercase">Total</div>
+          <div className="text-2xl font-extrabold text-[#0D0D0D] mt-0.5">{stats.total}</div>
         </div>
 
-        <div className="bg-blue-100 border-2 border-[#0D0D0D] rounded-2xl p-4 shadow-[4px_4px_0_#0D0D0D]">
-          <div className="text-xs font-extrabold text-blue-900 uppercase">Under Review</div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-blue-950 mt-1">{stats.underReview}</div>
+        <div className="bg-slate-100 border-2 border-[#0D0D0D] rounded-2xl p-3.5 shadow-[3px_3px_0_#0D0D0D]">
+          <div className="text-[11px] font-extrabold text-slate-800 uppercase">Applied</div>
+          <div className="text-2xl font-extrabold text-slate-900 mt-0.5">{stats.applied}</div>
         </div>
 
-        <div className="bg-purple-100 border-2 border-[#0D0D0D] rounded-2xl p-4 shadow-[4px_4px_0_#0D0D0D]">
-          <div className="text-xs font-extrabold text-purple-900 uppercase">Shortlisted</div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-purple-950 mt-1">{stats.shortlisted}</div>
+        <div className="bg-amber-100 border-2 border-[#0D0D0D] rounded-2xl p-3.5 shadow-[3px_3px_0_#0D0D0D]">
+          <div className="text-[11px] font-extrabold text-amber-900 uppercase">Task Ongoing</div>
+          <div className="text-2xl font-extrabold text-amber-950 mt-0.5">{stats.taskOngoing}</div>
         </div>
 
-        <div className="bg-emerald-100 border-2 border-[#0D0D0D] rounded-2xl p-4 shadow-[4px_4px_0_#0D0D0D]">
-          <div className="text-xs font-extrabold text-emerald-900 uppercase">Interviewed</div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-emerald-950 mt-1">{stats.interviewed}</div>
+        <div className="bg-teal-100 border-2 border-[#0D0D0D] rounded-2xl p-3.5 shadow-[3px_3px_0_#0D0D0D]">
+          <div className="text-[11px] font-extrabold text-teal-900 uppercase">Task Done</div>
+          <div className="text-2xl font-extrabold text-teal-950 mt-0.5">{stats.taskCompleted}</div>
         </div>
 
-        <div className="bg-[#F2A516] border-2 border-[#0D0D0D] rounded-2xl p-4 shadow-[4px_4px_0_#0D0D0D] col-span-2 sm:col-span-1">
-          <div className="text-xs font-extrabold text-[#0D0D0D] uppercase">Accepted Team</div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-[#0D0D0D] mt-1">{stats.accepted}</div>
+        <div className="bg-[#FFF2C6] border-2 border-[#0D0D0D] rounded-2xl p-3.5 shadow-[3px_3px_0_#0D0D0D]">
+          <div className="text-[11px] font-extrabold text-[#0D0D0D] uppercase">Under Review</div>
+          <div className="text-2xl font-extrabold text-[#0D0D0D] mt-0.5">{stats.underReview}</div>
+        </div>
+
+        <div className="bg-purple-100 border-2 border-[#0D0D0D] rounded-2xl p-3.5 shadow-[3px_3px_0_#0D0D0D]">
+          <div className="text-[11px] font-extrabold text-purple-900 uppercase">Shortlisted</div>
+          <div className="text-2xl font-extrabold text-purple-950 mt-0.5">{stats.shortlisted}</div>
+        </div>
+
+        <div className="bg-[#F2A516] border-2 border-[#0D0D0D] rounded-2xl p-3.5 shadow-[3px_3px_0_#0D0D0D] col-span-2 sm:col-span-1">
+          <div className="text-[11px] font-extrabold text-[#0D0D0D] uppercase">Accepted</div>
+          <div className="text-2xl font-extrabold text-[#0D0D0D] mt-0.5">{stats.accepted}</div>
         </div>
       </div>
 
@@ -277,11 +628,12 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
             <select
               value={filters.domain}
               onChange={(e) => setFilters({ ...filters, domain: e.target.value })}
-              className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-3 py-2 text-xs font-bold text-[#0D0D0D] focus:outline-none shadow-[2px_2px_0_#0D0D0D]"
+              className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-3 py-2 text-xs font-bold text-black focus:outline-none shadow-[2px_2px_0_#0D0D0D] cursor-pointer"
+              style={{ colorScheme: "light", color: "#000000" }}
             >
-              <option value="ALL">All Domains ({applications.length})</option>
+              <option value="ALL" className="text-black bg-white">All Domains</option>
               {DOMAINS_LIST.map((d) => (
-                <option key={d.id} value={d.name}>
+                <option key={d.id} value={d.name} className="text-black bg-white">
                   {d.name}
                 </option>
               ))}
@@ -296,11 +648,12 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
             <select
               value={filters.year}
               onChange={(e) => setFilters({ ...filters, year: e.target.value })}
-              className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-3 py-2 text-xs font-bold text-[#0D0D0D] focus:outline-none shadow-[2px_2px_0_#0D0D0D]"
+              className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-3 py-2 text-xs font-bold text-black focus:outline-none shadow-[2px_2px_0_#0D0D0D] cursor-pointer"
+              style={{ colorScheme: "light", color: "#000000" }}
             >
-              <option value="ALL">All Years</option>
+              <option value="ALL" className="text-black bg-white">All Years</option>
               {YEARS.map((y) => (
-                <option key={y} value={y}>
+                <option key={y} value={y} className="text-black bg-white">
                   {y}
                 </option>
               ))}
@@ -315,11 +668,12 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
             <select
               value={filters.department}
               onChange={(e) => setFilters({ ...filters, department: e.target.value })}
-              className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-3 py-2 text-xs font-bold text-[#0D0D0D] focus:outline-none shadow-[2px_2px_0_#0D0D0D]"
+              className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-3 py-2 text-xs font-bold text-black focus:outline-none shadow-[2px_2px_0_#0D0D0D] cursor-pointer"
+              style={{ colorScheme: "light", color: "#000000" }}
             >
-              <option value="ALL">All Departments</option>
+              <option value="ALL" className="text-black bg-white">All Departments</option>
               {DEPARTMENTS.map((dept) => (
-                <option key={dept} value={dept}>
+                <option key={dept} value={dept} className="text-black bg-white">
                   {dept}
                 </option>
               ))}
@@ -334,14 +688,18 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
             <select
               value={filters.status}
               onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-              className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-3 py-2 text-xs font-bold text-[#0D0D0D] focus:outline-none shadow-[2px_2px_0_#0D0D0D]"
+              className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl px-3 py-2 text-xs font-bold text-black focus:outline-none shadow-[2px_2px_0_#0D0D0D] cursor-pointer"
+              style={{ colorScheme: "light", color: "#000000" }}
             >
-              <option value="ALL">All Statuses</option>
-              <option value="Under Review">Under Review</option>
-              <option value="Shortlisted">Shortlisted</option>
-              <option value="Interview Scheduled">Interview Scheduled</option>
-              <option value="Accepted">Accepted</option>
-              <option value="Rejected">Rejected</option>
+              <option value="ALL" className="text-black bg-white">All Statuses</option>
+              <option value="Applied" className="text-black bg-white">Applied</option>
+              <option value="Task Ongoing" className="text-black bg-white">Task Ongoing</option>
+              <option value="Task Completed" className="text-black bg-white">Task Completed</option>
+              <option value="Under Review" className="text-black bg-white">Under Review</option>
+              <option value="Shortlisted" className="text-black bg-white">Shortlisted</option>
+              <option value="Interview Scheduled" className="text-black bg-white">Interview Scheduled</option>
+              <option value="Accepted" className="text-black bg-white">Accepted</option>
+              <option value="Rejected" className="text-black bg-white">Rejected</option>
             </select>
           </div>
         </div>
@@ -431,7 +789,8 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
 
                     <td className="p-3">
                       <span
-                        className={`px-2.5 py-1 rounded-full font-bold text-[11px] border border-[#0D0D0D] whitespace-nowrap ${app.status === "Accepted"
+                        className={`px-2.5 py-1 rounded-full font-bold text-[11px] border border-[#0D0D0D] whitespace-nowrap ${
+                          app.status === "Accepted"
                             ? "bg-[#F2A516] text-[#0D0D0D]"
                             : app.status === "Shortlisted"
                               ? "bg-purple-200 text-purple-900"
@@ -439,10 +798,16 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                                 ? "bg-emerald-200 text-emerald-900"
                                 : app.status === "Under Review"
                                   ? "bg-amber-200 text-amber-900"
-                                  : app.status === "Rejected"
-                                    ? "bg-rose-200 text-rose-900"
-                                    : "bg-blue-200 text-blue-900"
-                          }`}
+                                  : app.status === "Task Completed"
+                                    ? "bg-teal-200 text-teal-950"
+                                    : app.status === "Task Ongoing"
+                                      ? "bg-amber-100 text-amber-950"
+                                      : app.status === "Applied"
+                                        ? "bg-slate-200 text-slate-800"
+                                        : app.status === "Rejected"
+                                          ? "bg-rose-200 text-rose-900"
+                                          : "bg-blue-200 text-blue-900"
+                        }`}
                       >
                         {app.status}
                       </span>
@@ -619,6 +984,36 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                     </div>
                   )}
 
+                  {/* Task Solution Submission Card (If Candidate Submitted) */}
+                  {selectedApp.taskSubmissionUrl && (
+                    <div>
+                      <h4 className="text-sm font-black uppercase text-[#0D0D0D] mb-2 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-teal-800" /> Domain Challenge Submission
+                      </h4>
+                      <div className="bg-teal-50 border-2 border-teal-800 p-4 rounded-2xl shadow-[3px_3px_0_#0D0D0D] flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-teal-900 block">
+                            Candidate Project / Solution Repo
+                          </span>
+                          <a
+                            href={selectedApp.taskSubmissionUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-black text-blue-700 hover:underline break-all flex items-center gap-1 mt-0.5"
+                          >
+                            {selectedApp.taskSubmissionUrl}
+                            <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                          </a>
+                        </div>
+                        {selectedApp.taskSubmittedAt && (
+                          <span className="text-[10px] font-bold text-gray-600 bg-white/80 px-2.5 py-1 rounded-md border border-[#0D0D0D]/10">
+                            Submitted: {new Date(selectedApp.taskSubmittedAt).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex-grow"></div>
 
                   {/* Admin Evaluation & Status Updater Box */}
@@ -635,13 +1030,17 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                         <select
                           value={editingStatus}
                           onChange={(e) => setEditingStatus(e.target.value as ApplicationStatus)}
-                          className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl p-3 text-sm font-black text-[#0D0D0D] cursor-pointer"
+                          className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl p-3 text-sm font-black text-black cursor-pointer"
+                          style={{ colorScheme: "light", color: "#000000" }}
                         >
-                          <option value="Under Review">Under Review</option>
-                          <option value="Shortlisted">Shortlisted</option>
-                          <option value="Interview Scheduled">Interview Scheduled</option>
-                          <option value="Accepted">Accepted</option>
-                          <option value="Rejected">Rejected</option>
+                          <option value="Applied" className="text-black bg-white">Applied</option>
+                          <option value="Task Ongoing" className="text-black bg-white">Task Ongoing</option>
+                          <option value="Task Completed" className="text-black bg-white">Task Completed</option>
+                          <option value="Under Review" className="text-black bg-white">Under Review</option>
+                          <option value="Shortlisted" className="text-black bg-white">Shortlisted</option>
+                          <option value="Interview Scheduled" className="text-black bg-white">Interview Scheduled</option>
+                          <option value="Accepted" className="text-black bg-white">Accepted</option>
+                          <option value="Rejected" className="text-black bg-white">Rejected</option>
                         </select>
                       </div>
 
