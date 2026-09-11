@@ -26,13 +26,34 @@ function InfiniteScrollCol({ items, renderItem, reverse = false }: { items: Comp
 
     let rafId: number;
     let isVisible = false;
+    let isRunning = false;
     let paused = false;
     let pos = 0;
     let loopHeight = 0;
     const spd = 0.6; // px per frame
 
+    const animate = () => {
+      if (!isVisible) {
+        isRunning = false;
+        return;
+      }
+      if (!paused) {
+        pos += reverse ? -spd : spd;
+        if (!reverse && pos >= loopHeight) pos -= loopHeight;
+        if (reverse && pos <= 0) pos += loopHeight;
+        track.style.transform = `translateY(-${pos}px)`;
+      }
+      rafId = requestAnimationFrame(animate);
+    };
+
     const observer = new IntersectionObserver(
-      ([entry]) => { isVisible = entry.isIntersecting; },
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible && !isRunning) {
+          isRunning = true;
+          rafId = requestAnimationFrame(animate);
+        }
+      },
       { threshold: 0.01 }
     );
     observer.observe(wrap);
@@ -45,19 +66,11 @@ function InfiniteScrollCol({ items, renderItem, reverse = false }: { items: Comp
     // Wait one frame for layout to settle, then read height once
     rafId = requestAnimationFrame(() => {
       loopHeight = track.offsetHeight / 3;
-      // Reverse starts mid-way so it can animate upward
       if (reverse) pos = loopHeight;
-
-      const animate = () => {
-        if (isVisible && !paused) {
-          pos += reverse ? -spd : spd;
-          if (!reverse && pos >= loopHeight) pos -= loopHeight;
-          if (reverse && pos <= 0) pos += loopHeight;
-          track.style.transform = `translateY(-${pos}px)`;
-        }
-        rafId = requestAnimationFrame(animate);
-      };
-      rafId = requestAnimationFrame(animate);
+      if (isVisible) {
+        isRunning = true;
+        animate();
+      }
     });
 
     return () => {
@@ -95,13 +108,34 @@ function InfiniteScrollRow({ items, renderItem, reverse = false }: { items: Comp
 
     let rafId: number;
     let isVisible = false;
+    let isRunning = false;
     let paused = false;
     let pos = 0;
     let loopWidth = 0;
     const spd = 0.6;
 
+    const animate = () => {
+      if (!isVisible) {
+        isRunning = false;
+        return;
+      }
+      if (!paused) {
+        pos += reverse ? -spd : spd;
+        if (!reverse && pos >= loopWidth) pos -= loopWidth;
+        if (reverse && pos <= 0) pos += loopWidth;
+        track.style.transform = `translateX(-${pos}px)`;
+      }
+      rafId = requestAnimationFrame(animate);
+    };
+
     const observer = new IntersectionObserver(
-      ([entry]) => { isVisible = entry.isIntersecting; },
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible && !isRunning) {
+          isRunning = true;
+          rafId = requestAnimationFrame(animate);
+        }
+      },
       { threshold: 0.01 }
     );
     observer.observe(wrap);
@@ -114,17 +148,10 @@ function InfiniteScrollRow({ items, renderItem, reverse = false }: { items: Comp
     rafId = requestAnimationFrame(() => {
       loopWidth = track.offsetWidth / 3;
       if (reverse) pos = loopWidth;
-
-      const animate = () => {
-        if (isVisible && !paused) {
-          pos += reverse ? -spd : spd;
-          if (!reverse && pos >= loopWidth) pos -= loopWidth;
-          if (reverse && pos <= 0) pos += loopWidth;
-          track.style.transform = `translateX(-${pos}px)`;
-        }
-        rafId = requestAnimationFrame(animate);
-      };
-      rafId = requestAnimationFrame(animate);
+      if (isVisible) {
+        isRunning = true;
+        animate();
+      }
     });
 
     return () => {

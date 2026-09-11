@@ -4,10 +4,12 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "gsap";
-import {
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
 
 import { getImageKitUrl } from "@/lib/imagekit";
 
@@ -51,6 +53,8 @@ export default function Hero() {
   const [isPaused, setIsPaused] = useState(false);
   const [counters, setCounters] = useState(MILESTONES.map(() => 0));
   const codekraftersRef = useRef<HTMLHeadingElement | null>(null);
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
 
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % SLIDES.length);
@@ -59,6 +63,26 @@ export default function Hero() {
   const prevSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev - 1 + SLIDES.length) % SLIDES.length);
   }, []);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const distance = touchStartX.current - touchEndX.current;
+    if (distance > 45) {
+      nextSlide();
+    } else if (distance < -45) {
+      prevSlide();
+    }
+    touchStartX.current = 0;
+    touchEndX.current = 0;
+  };
 
   // Auto slide progression with per-slide duration
   useEffect(() => {
@@ -152,8 +176,10 @@ export default function Hero() {
 
   const active = SLIDES[currentSlide];
 
-  /* PREVIOUS BACKGROUND rotation on scroll */
+  /* PREVIOUS BACKGROUND rotation on scroll (Desktop only to prevent mobile lag) */
   useEffect(() => {
+    if (typeof window === "undefined" || window.innerWidth < 1024) return;
+
     const yellow = document.querySelector(".bg-layer-yellow");
     const black = document.querySelector(".bg-layer-black");
 
@@ -166,7 +192,8 @@ export default function Hero() {
           trigger: "#home",
           start: "top top",
           end: "bottom top",
-          scrub: 1,
+          scrub: 0.4,
+          fastScrollEnd: true,
         },
       });
 
@@ -176,7 +203,8 @@ export default function Hero() {
           trigger: "#home",
           start: "top top",
           end: "bottom top",
-          scrub: 1,
+          scrub: 0.4,
+          fastScrollEnd: true,
         },
       });
     });
@@ -187,15 +215,15 @@ export default function Hero() {
   return (
     <section
       id="home"
-      className="relative min-h-screen w-full bg-[#08080A] text-white flex flex-col items-center justify-start overflow-hidden pt-24 sm:pt-28 pb-12 px-4 sm:px-6 lg:px-8 selection:bg-[#F9B000] selection:text-black"
+      className="relative w-full min-h-0 sm:min-h-screen bg-[#08080A] text-white flex flex-col items-center justify-start overflow-hidden pt-32 sm:pt-40 pb-4 sm:pb-12 px-4 sm:px-6 lg:px-8 selection:bg-[#F9B000] selection:text-black"
     >
       {/* RESTORED PREVIOUS DYNAMIC ANGLED BACKGROUND WITH SCROLL ROTATION */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
-        <div className="bg-layer-yellow absolute top-[-18%] left-[-10%] w-[140%] h-[58%] bg-[#F9B000] rotate-[5deg] opacity-[0.15]" />
-        <div className="bg-layer-black absolute top-[32%] left-[-10%] w-[150%] h-[50%] bg-[#111111] rotate-[-6deg] opacity-[0.45]" />
+        <div className="bg-layer-yellow will-change-transform absolute top-[-18%] left-[-10%] w-[140%] h-[58%] bg-[#F9B000] rotate-[5deg] opacity-[0.15]" />
+        <div className="bg-layer-black will-change-transform absolute top-[32%] left-[-10%] w-[150%] h-[50%] bg-[#111111] rotate-[-6deg] opacity-[0.45]" />
         {/* Subtle center amber glow to keep title illuminated */}
         <div
-          className="absolute -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[350px] rounded-full blur-[130px] opacity-20"
+          className="absolute -top-24 left-1/2 -translate-x-1/2 w-[320px] sm:w-[700px] h-[200px] sm:h-[350px] rounded-full blur-[40px] sm:blur-[130px] opacity-20"
           style={{
             background:
               "radial-gradient(ellipse at center, #F9B000 0%, #E69500 50%, transparent 80%)",
@@ -243,15 +271,15 @@ export default function Hero() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="space-y-2 max-w-3xl px-2 text-center"
+          className="space-y-1 max-w-3xl px-2 text-center"
         >
-          <p className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-wider sm:tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#F9B000] via-[#FFE082] to-[#F9B000] drop-shadow-[0_0_25px_rgba(249,176,0,0.35)] uppercase py-1">
+          <p className="text-2xl sm:text-4xl md:text-5xl font-black tracking-wider sm:tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#F9B000] via-[#FFE082] to-[#F9B000] drop-shadow-[0_0_25px_rgba(249,176,0,0.35)] uppercase py-1">
             IT&apos;S MORE THAN A CLUB
           </p>
         </motion.div>
       </div>
 
-      {/* WIDESCREEN CINEMATIC IMAGE CARD */}
+      {/* WIDESCREEN CINEMATIC IMAGE CARD WITH TOUCH SWIPE */}
       <div className="relative z-10 w-full max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -259,7 +287,10 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
-          className="relative w-full rounded-3xl sm:rounded-[2.5rem] overflow-hidden border border-white/15 bg-[#0e0e12] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] aspect-[16/11] sm:aspect-[16/9] lg:aspect-[21/10]"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="relative w-full rounded-2xl sm:rounded-[2.5rem] overflow-hidden border border-white/15 bg-[#0e0e12] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] aspect-[4/4.8] sm:aspect-[16/9] lg:aspect-[21/10] touch-pan-y select-none"
         >
           {/* REAL CLUB SLIDESHOW IMAGES */}
           <AnimatePresence mode="wait">
@@ -301,7 +332,35 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* MILESTONES STATS STRIP (DESKTOP & TABLET ONLY - HIDDEN ON MOBILE AS REQUESTED) */}
+      {/* MOBILE STATS COUNTER STRIP (7 DOMAINS • 150+ MEMBERS • 10+ EVENTS) */}
+      <div className="grid sm:hidden grid-cols-3 gap-2 w-full max-w-sm mx-auto text-center mt-6 px-1">
+        <div className="flex flex-col items-center justify-center">
+          <div className="text-3xl font-black text-[#FFA500] tracking-tight">
+            {counters[0]}
+          </div>
+          <div className="text-[11px] font-bold tracking-wider text-white/80 uppercase mt-1 font-sans">
+            DOMAINS
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center">
+          <div className="text-3xl font-black text-[#FFA500] tracking-tight">
+            {counters[1]}+
+          </div>
+          <div className="text-[11px] font-bold tracking-wider text-white/80 uppercase mt-1 font-sans">
+            MEMBERS
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center">
+          <div className="text-3xl font-black text-[#FFA500] tracking-tight">
+            {counters[2]}+
+          </div>
+          <div className="text-[11px] font-bold tracking-wider text-white/80 uppercase mt-1 font-sans">
+            EVENTS
+          </div>
+        </div>
+      </div>
+
+      {/* MILESTONES STATS STRIP (TABLET & DESKTOP) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -311,14 +370,14 @@ export default function Hero() {
         {MILESTONES.map((m, idx) => (
           <div
             key={m.label}
-            className="rounded-2xl sm:rounded-3xl bg-[#0f0f12] border border-white/[0.08] hover:border-white/20 py-7 px-4 text-center transition-all duration-300 shadow-[0_10px_30px_rgba(0,0,0,0.5)] group"
+            className="rounded-2xl sm:rounded-3xl bg-[#0f0f12] border border-white/[0.08] hover:border-[#FFA500]/40 py-7 px-4 text-center transition-all duration-300 shadow-[0_10px_30px_rgba(0,0,0,0.5)] group"
           >
-            <div className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight group-hover:text-[#F9B000] transition-colors">
+            <div className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#FFA500] tracking-tight group-hover:scale-105 transition-transform">
               {m.prefix || ""}
               {counters[idx]}
               {m.suffix}
             </div>
-            <div className="text-xs sm:text-sm font-semibold tracking-wider text-white/50 uppercase mt-2.5 font-sans">
+            <div className="text-xs sm:text-sm font-semibold tracking-wider text-white/70 uppercase mt-2.5 font-sans">
               {m.label}
             </div>
           </div>

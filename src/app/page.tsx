@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/navbar"
 import Hero from "@/components/hero"
 import AboutSection from "@/components/About"
-import StoryComponent from "@/components/Story"
+import MangaStorySection from "@/components/MangaStory"
 import EventSection from "@/components/Events"
 import SponsorsComponent from "@/components/sponsor"
 import Footer from "@/components/Footer"
@@ -11,20 +11,16 @@ import DomainsSection from "@/components/Domains"
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background overflow-x-clip">
+    <main className="min-h-screen bg-background">
       <Navbar />
 
       <Hero />
 
       <AboutSection />
 
-      <div id="story" className="hidden md:block w-full">
-        <StoryComponent />
-      </div>
+      <MangaStorySection />
 
-      <div id="domains" className="w-full">
-        <DomainsSection />
-      </div>
+      <DomainsSection />
 
       <div id="events" className="w-full">
         <EventSection />
