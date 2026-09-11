@@ -4,10 +4,12 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "gsap";
-import {
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
 
 interface HeroSlide {
   id: string;
@@ -70,6 +72,8 @@ export default function Hero() {
   const [counters, setCounters] = useState(MILESTONES.map(() => 0));
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
   const codekraftersRef = useRef<HTMLHeadingElement | null>(null);
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
 
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % SLIDES.length);
@@ -78,6 +82,26 @@ export default function Hero() {
   const prevSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev - 1 + SLIDES.length) % SLIDES.length);
   }, []);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const distance = touchStartX.current - touchEndX.current;
+    if (distance > 45) {
+      nextSlide();
+    } else if (distance < -45) {
+      prevSlide();
+    }
+    touchStartX.current = 0;
+    touchEndX.current = 0;
+  };
 
   // Auto slide progression
   useEffect(() => {
@@ -186,7 +210,8 @@ export default function Hero() {
           trigger: "#home",
           start: "top top",
           end: "bottom top",
-          scrub: 1,
+          scrub: 0.4,
+          fastScrollEnd: true,
         },
       });
 
@@ -196,7 +221,8 @@ export default function Hero() {
           trigger: "#home",
           start: "top top",
           end: "bottom top",
-          scrub: 1,
+          scrub: 0.4,
+          fastScrollEnd: true,
         },
       });
     });
@@ -207,12 +233,12 @@ export default function Hero() {
   return (
     <section
       id="home"
-      className="relative min-h-screen w-full bg-[#08080A] text-white flex flex-col items-center justify-start overflow-hidden pt-24 sm:pt-28 pb-12 px-4 sm:px-6 lg:px-8 selection:bg-[#F9B000] selection:text-black"
+      className="relative w-full min-h-0 sm:min-h-screen bg-[#08080A] text-white flex flex-col items-center justify-start overflow-hidden pt-32 sm:pt-40 pb-4 sm:pb-12 px-4 sm:px-6 lg:px-8 selection:bg-[#F9B000] selection:text-black"
     >
       {/* RESTORED PREVIOUS DYNAMIC ANGLED BACKGROUND WITH SCROLL ROTATION */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
-        <div className="bg-layer-yellow absolute top-[-18%] left-[-10%] w-[140%] h-[58%] bg-[#F9B000] rotate-[5deg] opacity-[0.15]" />
-        <div className="bg-layer-black absolute top-[32%] left-[-10%] w-[150%] h-[50%] bg-[#111111] rotate-[-6deg] opacity-[0.45]" />
+        <div className="bg-layer-yellow will-change-transform absolute top-[-18%] left-[-10%] w-[140%] h-[58%] bg-[#F9B000] rotate-[5deg] opacity-[0.15]" />
+        <div className="bg-layer-black will-change-transform absolute top-[32%] left-[-10%] w-[150%] h-[50%] bg-[#111111] rotate-[-6deg] opacity-[0.45]" />
         {/* Subtle center amber glow to keep title illuminated */}
         <div
           className="absolute -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[350px] rounded-full blur-[130px] opacity-20"
@@ -263,15 +289,15 @@ export default function Hero() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="space-y-2 max-w-3xl px-2 text-center"
+          className="space-y-1 max-w-3xl px-2 text-center"
         >
-          <p className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-wider sm:tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#F9B000] via-[#FFE082] to-[#F9B000] drop-shadow-[0_0_25px_rgba(249,176,0,0.35)] uppercase py-1">
+          <p className="text-2xl sm:text-4xl md:text-5xl font-black tracking-wider sm:tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#F9B000] via-[#FFE082] to-[#F9B000] drop-shadow-[0_0_25px_rgba(249,176,0,0.35)] uppercase py-1">
             IT&apos;S MORE THAN A CLUB
           </p>
         </motion.div>
       </div>
 
-      {/* WIDESCREEN CINEMATIC IMAGE CARD */}
+      {/* WIDESCREEN CINEMATIC IMAGE CARD WITH TOUCH SWIPE */}
       <div className="relative z-10 w-full max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -279,7 +305,10 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
-          className="relative w-full rounded-3xl sm:rounded-[2.5rem] overflow-hidden border border-white/15 bg-[#0e0e12] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] aspect-[16/11] sm:aspect-[16/9] lg:aspect-[21/10]"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="relative w-full rounded-2xl sm:rounded-[2.5rem] overflow-hidden border border-white/15 bg-[#0e0e12] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/10] touch-pan-y select-none"
         >
           {/* REAL CLUB SLIDESHOW IMAGES */}
           <AnimatePresence mode="wait">
@@ -300,57 +329,20 @@ export default function Hero() {
               />
 
               {/* Cinematic Vignette Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/35 to-black/20" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-black/15 pointer-events-none" />
             </motion.div>
           </AnimatePresence>
 
-          {/* TOP RIGHT: SLIDE SELECTOR PILLS */}
-          <div className="absolute top-4 sm:top-6 right-4 sm:right-6 z-20 flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15">
-              {SLIDES.map((s, idx) => (
-                <button
-                  key={s.id}
-                  onClick={() => setCurrentSlide(idx)}
-                  className={`transition-all duration-300 rounded-full ${
-                    currentSlide === idx
-                      ? "w-6 h-2 bg-[#F9B000]"
-                      : "w-2 h-2 bg-white/30 hover:bg-white/60"
-                  }`}
-                  aria-label={`Go to slide ${idx + 1}`}
-                />
-              ))}
-              <span className="text-white/60 font-mono text-[10px] sm:text-xs ml-1.5">
-                0{currentSlide + 1} / 0{SLIDES.length}
-              </span>
-            </div>
 
-            {/* PREV / NEXT ARROWS */}
-            <div className="flex items-center gap-1">
-              <button
-                onClick={prevSlide}
-                aria-label="Previous image"
-                className="w-8 h-8 rounded-full bg-black/60 hover:bg-[#F9B000] text-white hover:text-black border border-white/15 flex items-center justify-center transition-colors backdrop-blur-md"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={nextSlide}
-                aria-label="Next image"
-                className="w-8 h-8 rounded-full bg-black/60 hover:bg-[#F9B000] text-white hover:text-black border border-white/15 flex items-center justify-center transition-colors backdrop-blur-md"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
 
           {/* BOTTOM OVERLAY: TITLE ALONE ON MOBILE (CLEAN & UNCLUTTERED) */}
-          <div className="absolute inset-x-0 bottom-0 p-4 sm:p-7 lg:p-10 z-20 flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-6">
+          <div className="absolute inset-x-0 bottom-0 p-4 sm:p-7 lg:p-10 z-20 flex flex-col sm:flex-row sm:items-end justify-between gap-1.5 sm:gap-6 pointer-events-none">
             {/* EVENT TITLE (NAME OF EVENT ALONE ON MOBILE) */}
-            <div className="space-y-1 max-w-lg">
-              <span className="hidden md:inline-block px-2.5 py-0.5 rounded-full bg-[#F9B000]/20 border border-[#F9B000]/40 text-[#F9B000] font-mono text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1">
+            <div className="space-y-0.5 sm:space-y-1 max-w-lg">
+              <span className="inline-block px-2 sm:px-2.5 py-0.5 rounded-full bg-[#F9B000]/25 border border-[#F9B000]/50 text-[#F9B000] font-mono text-[9px] sm:text-xs font-bold uppercase tracking-wider mb-0.5">
                 {active.badge}
               </span>
-              <h3 className="text-white font-bold text-sm sm:text-lg md:text-xl drop-shadow-md">
+              <h3 className="text-white font-bold text-base sm:text-xl md:text-2xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
                 {active.title}
               </h3>
             </div>
