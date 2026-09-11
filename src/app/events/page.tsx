@@ -92,7 +92,7 @@ function DynamicEventRow({
         .scroll-row {
           display: flex;
           width: max-content;     
-          animation: scrollX 30s linear infinite;
+          animation: scrollX 45s linear infinite;
         }
 
         .scroll-row.reverse {

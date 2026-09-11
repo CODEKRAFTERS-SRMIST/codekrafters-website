@@ -9,51 +9,33 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+import { getImageKitUrl } from "@/lib/imagekit";
+
 interface HeroSlide {
   id: string;
   src: string;
-  title: string;
-  subtitle: string;
-  badge: string;
-  description: string;
+  alt: string;
+  durationMs: number;
 }
 
 const SLIDES: HeroSlide[] = [
   {
     id: "core",
-    src: "/group/core.jpeg",
-    title: "Core Leadership 2025-26",
-    subtitle: "7 Specialized Engineering & Creative Tracks",
-    badge: "CORE TEAM",
-    description:
-      "The student leaders steering CodeKrafters across Web3, Cybersecurity, Full-Stack Dev, CP, Creatives, PR, and Operations.",
+    src: "https://ik.imagekit.io/ysfz8n1no/public/hero-img/core.jpeg",
+    alt: "CodeKrafters Core Team",
+    durationMs: 3000,
   },
   {
-    id: "hackathons",
-    src: "/group/group3.jpg",
-    title: "Frontier Build Stations",
-    subtitle: "EthDelhi & Arbitrum Winners",
-    badge: "HACKATHONS",
-    description:
-      "Building overnight, shipping on stage, and bagging national bounties across major Web3 and open-source hackathons.",
+    id: "group3",
+    src: "https://ik.imagekit.io/ysfz8n1no/public/hero-img/group3.jpg",
+    alt: "CodeKrafters Hackathon Team",
+    durationMs: 3000,
   },
   {
-    id: "community",
-    src: "/group/CK_group.png",
-    title: "150+ Active Krafters",
-    subtitle: "United By Code & Culture",
-    badge: "COMMUNITY",
-    description:
-      "Freshers to placement rockstars — collaborating across 7 domains to build production-ready products and open-source tools.",
-  },
-  {
-    id: "bootcamps",
-    src: "/group/group4.jpg",
-    title: "Engineering Bootcamps",
-    subtitle: "Hands-on Technical Sprints",
-    badge: "WORKSHOPS",
-    description:
-      "Peer-led technical bootcamps, zero-to-one dev workshops, and live system design tear-downs to get industry-ready.",
+    id: "img1501",
+    src: "https://ik.imagekit.io/ysfz8n1no/public/hero-img/IMG_1501.DNG",
+    alt: "CodeKrafters Launchpad Event",
+    durationMs: 1500, // Stays for less time and displayed last
   },
 ];
 
@@ -68,7 +50,6 @@ export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [counters, setCounters] = useState(MILESTONES.map(() => 0));
-  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
   const codekraftersRef = useRef<HTMLHeadingElement | null>(null);
 
   const nextSlide = useCallback(() => {
@@ -79,14 +60,13 @@ export default function Hero() {
     setCurrentSlide((prev) => (prev - 1 + SLIDES.length) % SLIDES.length);
   }, []);
 
-  // Auto slide progression
+  // Auto slide progression with per-slide duration
   useEffect(() => {
     if (isPaused) return;
-    autoPlayRef.current = setInterval(nextSlide, 5000);
-    return () => {
-      if (autoPlayRef.current) clearInterval(autoPlayRef.current);
-    };
-  }, [nextSlide, isPaused]);
+    const currentDuration = SLIDES[currentSlide]?.durationMs || 5000;
+    const timer = setTimeout(nextSlide, currentDuration);
+    return () => clearTimeout(timer);
+  }, [nextSlide, isPaused, currentSlide]);
 
   // Fast smooth counter animation
   useEffect(() => {
@@ -293,68 +273,31 @@ export default function Hero() {
             >
               <Image
                 src={active.src}
-                alt={active.title}
+                alt={active.alt}
                 fill
                 priority
                 className="object-cover object-center"
               />
-
-              {/* Cinematic Vignette Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/35 to-black/20" />
             </motion.div>
           </AnimatePresence>
 
-          {/* TOP RIGHT: SLIDE SELECTOR PILLS */}
-          <div className="absolute top-4 sm:top-6 right-4 sm:right-6 z-20 flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15">
-              {SLIDES.map((s, idx) => (
-                <button
-                  key={s.id}
-                  onClick={() => setCurrentSlide(idx)}
-                  className={`transition-all duration-300 rounded-full ${
-                    currentSlide === idx
-                      ? "w-6 h-2 bg-[#F9B000]"
-                      : "w-2 h-2 bg-white/30 hover:bg-white/60"
-                  }`}
-                  aria-label={`Go to slide ${idx + 1}`}
-                />
-              ))}
-              <span className="text-white/60 font-mono text-[10px] sm:text-xs ml-1.5">
-                0{currentSlide + 1} / 0{SLIDES.length}
-              </span>
-            </div>
+          {/* LEFT NAVIGATION BUTTON */}
+          <button
+            onClick={prevSlide}
+            aria-label="Previous image"
+            className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/50 hover:bg-[#F9B000] text-white hover:text-black border border-white/20 flex items-center justify-center transition-all duration-200 backdrop-blur-md shadow-lg active:scale-95 group"
+          >
+            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:-translate-x-0.5" />
+          </button>
 
-            {/* PREV / NEXT ARROWS */}
-            <div className="flex items-center gap-1">
-              <button
-                onClick={prevSlide}
-                aria-label="Previous image"
-                className="w-8 h-8 rounded-full bg-black/60 hover:bg-[#F9B000] text-white hover:text-black border border-white/15 flex items-center justify-center transition-colors backdrop-blur-md"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={nextSlide}
-                aria-label="Next image"
-                className="w-8 h-8 rounded-full bg-black/60 hover:bg-[#F9B000] text-white hover:text-black border border-white/15 flex items-center justify-center transition-colors backdrop-blur-md"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* BOTTOM OVERLAY: TITLE ALONE ON MOBILE (CLEAN & UNCLUTTERED) */}
-          <div className="absolute inset-x-0 bottom-0 p-4 sm:p-7 lg:p-10 z-20 flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-6">
-            {/* EVENT TITLE (NAME OF EVENT ALONE ON MOBILE) */}
-            <div className="space-y-1 max-w-lg">
-              <span className="hidden md:inline-block px-2.5 py-0.5 rounded-full bg-[#F9B000]/20 border border-[#F9B000]/40 text-[#F9B000] font-mono text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1">
-                {active.badge}
-              </span>
-              <h3 className="text-white font-bold text-sm sm:text-lg md:text-xl drop-shadow-md">
-                {active.title}
-              </h3>
-            </div>
-          </div>
+          {/* RIGHT NAVIGATION BUTTON */}
+          <button
+            onClick={nextSlide}
+            aria-label="Next image"
+            className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/50 hover:bg-[#F9B000] text-white hover:text-black border border-white/20 flex items-center justify-center transition-all duration-200 backdrop-blur-md shadow-lg active:scale-95 group"
+          >
+            <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-x-0.5" />
+          </button>
         </motion.div>
       </div>
 

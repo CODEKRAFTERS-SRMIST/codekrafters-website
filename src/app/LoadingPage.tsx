@@ -117,7 +117,7 @@ export default function LoadingPage() {
               className="relative h-full w-full"
             >
               <Image
-                src="/logo.png"
+                src="https://ik.imagekit.io/ysfz8n1no/public/logo.png"
                 alt="CodeKrafters logo"
                 fill
                 priority

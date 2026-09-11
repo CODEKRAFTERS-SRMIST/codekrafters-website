@@ -151,18 +151,18 @@ function InfiniteScrollRow({ items, renderItem, reverse = false }: { items: Comp
 const SponsorsComponent: React.FC = () => {
   const companies = useMemo<CompanyLogo[]>(
     () => [
-      { id: 1, name: "Coinex", imageUrl: "/sponsor/coin.png", alt: "Coinex Logo" },
-      { id: 2, name: "Devfolio", imageUrl: "/sponsor/devfolios.png", alt: "Devfolio Logo" },
-      { id: 3, name: "Edu Chain", imageUrl: "/sponsor/educhains.png", alt: "Edu Chain Logo" },
-      { id: 4, name: "ETHIndia", imageUrl: "/sponsor/ethin.png", alt: "ETHIndia Logo" },
-      { id: 5, name: "Kana Labs", imageUrl: "/sponsor/kanas.png", alt: "Kana Labs Logo" },
-      { id: 6, name: "Kanini", imageUrl: "/sponsor/kaninis.png", alt: "Kanini Logo" },
-      { id: 7, name: "Polygon", imageUrl: "/sponsor/polygons.png", alt: "Polygon Logo" },
-      { id: 8, name: "Qoneqt", imageUrl: "/sponsor/q.png", alt: "Qoneqt Logo" },
-      { id: 9, name: "Aptos", imageUrl: "/sponsor/aptoss.png", alt: "Aptos Logo" },
-      { id: 10, name: "ICP", imageUrl: "/sponsor/icpss.png", alt: "ICP Logo" },
-      { id: 11, name: "Risein", imageUrl: "/sponsor/riseins.png", alt: "Risein Logo" },
-      { id: 12, name: "PNB Metlife", imageUrl: "/sponsor/pnb.png", alt: "PNB Metlife Logo" },
+      { id: 1, name: "Coinex", imageUrl: "https://ik.imagekit.io/ysfz8n1no/public/sponsor/coin.png", alt: "Coinex Logo" },
+      { id: 2, name: "Devfolio", imageUrl: "https://ik.imagekit.io/ysfz8n1no/public/sponsor/devfolios.png", alt: "Devfolio Logo" },
+      { id: 3, name: "Edu Chain", imageUrl: "https://ik.imagekit.io/ysfz8n1no/public/sponsor/educhains.png", alt: "Edu Chain Logo" },
+      { id: 4, name: "ETHIndia", imageUrl: "https://ik.imagekit.io/ysfz8n1no/public/sponsor/ethin.png", alt: "ETHIndia Logo" },
+      { id: 5, name: "Kana Labs", imageUrl: "https://ik.imagekit.io/ysfz8n1no/public/sponsor/kanas.png", alt: "Kana Labs Logo" },
+      { id: 6, name: "Kanini", imageUrl: "https://ik.imagekit.io/ysfz8n1no/public/sponsor/kaninis.png", alt: "Kanini Logo" },
+      { id: 7, name: "Polygon", imageUrl: "https://ik.imagekit.io/ysfz8n1no/public/sponsor/polygons.png", alt: "Polygon Logo" },
+      { id: 8, name: "Qoneqt", imageUrl: "https://ik.imagekit.io/ysfz8n1no/public/sponsor/q.png", alt: "Qoneqt Logo" },
+      { id: 9, name: "Aptos", imageUrl: "https://ik.imagekit.io/ysfz8n1no/public/sponsor/aptoss.png", alt: "Aptos Logo" },
+      { id: 10, name: "ICP", imageUrl: "https://ik.imagekit.io/ysfz8n1no/public/sponsor/icpss.png", alt: "ICP Logo" },
+      { id: 11, name: "Risein", imageUrl: "https://ik.imagekit.io/ysfz8n1no/public/sponsor/riseins.png", alt: "Risein Logo" },
+      { id: 12, name: "PNB Metlife", imageUrl: "https://ik.imagekit.io/ysfz8n1no/public/sponsor/pnb.png", alt: "PNB Metlife Logo" },
     ],
     []
   );

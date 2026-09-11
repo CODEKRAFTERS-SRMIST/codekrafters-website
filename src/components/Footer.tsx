@@ -21,7 +21,7 @@ export default function Footer() {
           <div className="flex flex-col items-center lg:items-start">
             <div className="flex items-center gap-3 justify-center lg:justify-start">
               <Image
-                src="/logo.png"
+                src="https://ik.imagekit.io/ysfz8n1no/public/logo.png"
                 alt="CodeKrafters Logo"
                 width={36}
                 height={36}

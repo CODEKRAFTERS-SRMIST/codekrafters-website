@@ -106,7 +106,7 @@ export function Navbar() {
             }}
           >
             <Image
-              src="/ck_logo.svg"
+              src="https://ik.imagekit.io/ysfz8n1no/public/ck_logo.svg"
               alt="CK Logo"
               width={36}
               height={28}
