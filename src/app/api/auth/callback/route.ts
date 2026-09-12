@@ -60,11 +60,12 @@ export async function GET(request: Request) {
             userDomainId = newUser.domain_id;
           }
 
-          // Issue secure server session cookie
+          // Issue secure server session cookie with token version
           await setSession({
             id: userId,
             role: userRole,
             domain_id: userDomainId,
+            version: existingUser?.token_version || 1,
           });
 
           // Sync localStorage on client and redirect

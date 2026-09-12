@@ -10,5 +10,5 @@ export function getImageKitUrl(relativePath: string): string {
     return relativePath;
   }
   const cleanPath = relativePath.startsWith("/") ? relativePath : `/${relativePath}`;
-  return `${IMAGEKIT_BASE_URL}${cleanPath}`;
+  return `${IMAGEKIT_BASE_URL}${encodeURI(cleanPath)}`;
 }

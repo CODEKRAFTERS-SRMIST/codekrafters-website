@@ -1,32 +1,53 @@
 # CodeKrafters SRM
 
-> CodeKrafters is the premier student tech community at SRM Institute of Science and Technology, Ramapuram (Chennai, India). We operate across 7 technical and non-technical domains, run hackathons, workshops, and real-world student developer projects.
+> CodeKrafters is the premier student developer collective and technical society at SRM Institute of Science and Technology, Ramapuram Campus (Chennai, Tamil Nadu, India). Operating across 7 specialized engineering and creative domains, the community builds production-grade open-source software, organizes flagship hackathons, hosts technical bootcamps, and mentors next-generation software engineers.
 
-## About Us
+## Main Navigation
 
-- `Homepage -> https://codekraftersrmp.in`: Main website — overview of the club, domains, events, and team
-- `Our Team -> https://codekraftersrmp.in/team`: Meet the student leaders, domain heads, and core members
-- `Events -> https://codekraftersrmp.in/events`: Upcoming and past tech events, hackathons, and workshops
-- `Projects -> https://codekraftersrmp.in/projects`: Open-source projects and student developer work
-- `Blog -> https://codekraftersrmp.in/blog`: Technical articles and tutorials by CodeKrafters members
-- `Join Us -> https://codekraftersrmp.in/join`: Recruitment portal — apply to join the community
-- `KraftersLink -> https://codekraftersrmp.in/krafterslink`: All official social media and community links
+- [Homepage](https://codekraftersrmp.in/): Official portal featuring club overview, interactive domain showcase, initiatives, and community highlights.
+- [Our Team](https://codekraftersrmp.in/team): Executive leadership, domain heads, and core developers across all 7 tracks.
+- [Events](https://codekraftersrmp.in/events): Flagship hackathons (Launchpad series, Web3 summits), developer bootcamps, workshops, and archives.
+- [Projects](https://codekraftersrmp.in/projects): Student-built production software, open-source repositories, developer utilities, and experiments.
+- [Join Us](https://codekraftersrmp.in/join): Annual recruitment portal, practical domain tasks, and candidate evaluation pipeline.
+- [KraftersLink](https://codekraftersrmp.in/krafterslink): Aggregated official directory of social channels, Discord, GitHub, and community announcements.
+- [FAQ](https://codekraftersrmp.in/faq): Frequently asked questions about recruitment, domain tracks, hackathons, and membership.
 
-## Key Facts
+## Official Community Channels
 
+- [GitHub Organization](https://github.com/CODEKRAFTERS-SRMIST): Public codebases, student open-source repositories, and collaborative engineering projects.
+- [LinkedIn Page](https://www.linkedin.com/company/codekrafters-srm/): Professional announcements, hackathon achievements, partnership updates, and alumni network.
+- [Instagram Profile](https://www.instagram.com/codekrafterssrm/): Event photography, community recaps, workshops, and student developer highlights.
+
+## Key Facts & Institutional Affiliation
+
+- Organization Name: CodeKrafters SRM (CodeKrafters Developer Club)
 - Founded: 2022
-- Institution: SRM Institute of Science and Technology, Ramapuram Campus, Chennai, India
-- Community size: 500+ active student developers
-- Domains: Artificial Intelligence, Web Development, Cybersecurity, App Development, Design & Creatives, Content, PR & Events Management
-- Contact: codekraftersrmp@gmail.com
-- Instagram: https://www.instagram.com/codekrafterssrm/
-- LinkedIn: https://www.linkedin.com/company/codekrafters-srm/
-- GitHub: https://github.com/CODEKRAFTERS-SRMIST
+- Parent Institution: SRM Institute of Science and Technology, Ramapuram Campus
+- Address: Bharathi Salai, Ramapuram, Chennai, Tamil Nadu 600089, India
+- Coordinates: Latitude 13.0324, Longitude 80.1802
+- Active Student Members: 500+ student developers, designers, and creators
+- Events Organized: 30+ workshops, bootcamps, and hackathons
+- Hackathon Bounties Secured: ₹5,00,000+ (INR) in national and international hackathons
+- Primary Email: codekraftersrmp@gmail.com
+- Club Leadership: Sanjay Ganesh (President), Satya Lohith (Vice President)
 
-## What We Do
+## Specialized Domains
 
-CodeKrafters provides SRM students with hands-on experience in real-world tech domains. Members work on live projects, compete in hackathons, create technical content, and build a strong developer portfolio before graduation. The club bridges the gap between academic learning and industry-ready skills.
+1. Artificial Intelligence & Machine Learning (AI/ML): Focuses on deep learning architectures, Large Language Model (LLM) agents, computer vision, and neural network deployments.
+2. Full-Stack Web Development: Builds modern, high-performance web applications, scalable APIs, and distributed cloud services using Next.js, React, TypeScript, and Node.js.
+3. Cyber Security & Systems: Specializes in penetration testing, threat modeling, ethical hacking, secure architecture, and Capture The Flag (CTF) challenges.
+4. Competitive Programming (CP): Rigorous algorithmic problem solving, data structure optimization, and preparation for national and international algorithmic contests.
+5. Web3 & Decentralized Technologies: Investigates on-chain protocols, smart contracts, decentralized finance (DeFi), and blockchain integrations across Ethereum, Solana, and Aptos.
+6. Creatives & UI/UX Design: Architects user journeys, responsive interface systems, high-fidelity prototypes, brand identity, and visual design assets.
+7. Public Relations, Management & Operations: Orchestrates industry sponsorships, hackathon logistics, community partnerships, and public outreach across university networks.
 
-## Recruitment
+## Frequently Asked Questions
 
-CodeKrafters recruits annually. Applicants choose up to 2 domains, complete a technical task, and go through an interview process. All 16 SRM departments are welcome to apply.
+### What is CodeKrafters SRM?
+CodeKrafters is a student-driven tech collective at SRM Institute of Science and Technology, Ramapuram Campus, Chennai. It bridges the gap between academic theory and production software engineering through hackathons, peer mentorship, and real-world project deployments.
+
+### How can students join CodeKrafters?
+Students can apply online via the recruitment portal (https://codekraftersrmp.in/join). Applicants select their domain of interest, complete hands-on practical tasks submitted via GitHub or Figma, and participate in a technical and cultural interview.
+
+### Where is CodeKrafters located?
+CodeKrafters is based at SRM Institute of Science and Technology, Ramapuram Campus, located at Bharathi Salai, Ramapuram, Chennai, Tamil Nadu 600089, India.

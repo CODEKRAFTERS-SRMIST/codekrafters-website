@@ -25,14 +25,16 @@ export async function POST(request: Request) {
       );
     }
 
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(password, salt);
+
     const { data: existingUser } = await supabaseAdmin.from('users').select('email').eq('email', email.toLowerCase()).maybeSingle();
     
     if (existingUser) {
-      return NextResponse.json({ error: "An account with this email already exists." }, { status: 400 });
+      return NextResponse.json({ 
+        error: "Unable to complete registration. If you already have an account, please sign in." 
+      }, { status: 400 });
     }
-
-    const salt = await bcrypt.genSalt(10);
-    const password_hash = await bcrypt.hash(password, salt);
 
     // Insert new user
     const { data: newUser, error: insertError } = await supabaseAdmin
@@ -51,11 +53,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: insertError.message || "Failed to create account." }, { status: 500 });
     }
 
-    // Automatically set secure session cookie upon registration
+    // Automatically set secure session cookie upon registration with token version
     await setSession({
       id: newUser.id,
       role: newUser.role,
       domain_id: newUser.domain_id || null,
+      version: newUser.token_version || 1,
     });
 
     return NextResponse.json({

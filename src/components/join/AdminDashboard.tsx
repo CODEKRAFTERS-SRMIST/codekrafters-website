@@ -84,7 +84,6 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          adminId: session.id,
           current_phase: phase,
           tasks_visible: visible,
         }),
@@ -115,7 +114,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
   const fetchUsers = async () => {
     setLoadingUsers(true);
     try {
-      const res = await fetch(`/api/admin/users?userId=${session.id}`);
+      const res = await fetch(`/api/admin/users`);
       const data = await res.json();
       if (res.ok) {
         setSystemUsers(data.users || []);

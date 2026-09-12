@@ -22,7 +22,7 @@ function EventCard({ event, onClick }: { event: any, onClick: (event: any) => vo
 
         <img
           src={event.image_url || "/placeholder.svg"}
-          alt={event.title}
+          alt={event.title ? `${event.title} - CodeKrafters SRM Tech Event` : "CodeKrafters SRM Event"}
           loading="lazy"
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
         />

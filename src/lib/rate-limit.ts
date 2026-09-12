@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export type RateLimitAction = 'auth_ip' | 'auth_email' | 'public' | 'authenticated';
 
@@ -31,7 +31,7 @@ export async function checkRateLimit(
   }
 
   // Fetch current state from Supabase
-  const { data: record, error } = await supabase
+  const { data: record, error } = await supabaseAdmin
     .from("rate_limits")
     .select("*")
     .eq("identifier", identifier)
@@ -46,7 +46,7 @@ export async function checkRateLimit(
 
   if (!record) {
     // Create new record
-    await supabase.from("rate_limits").insert({
+    await supabaseAdmin.from("rate_limits").insert({
       identifier,
       action,
       count: 1,
@@ -67,7 +67,7 @@ export async function checkRateLimit(
 
   // If the time window has expired, reset the counter
   if (timePassed > windowMs) {
-    await supabase
+    await supabaseAdmin
       .from("rate_limits")
       .update({
         count: 1,
@@ -87,7 +87,7 @@ export async function checkRateLimit(
       const backoffMs = windowMs * Math.pow(CONFIG.AUTH_BACKOFF_MULTIPLIER, failuresOverMax);
       const newLockedUntil = new Date(now.getTime() + backoffMs);
       
-      await supabase
+      await supabaseAdmin
         .from("rate_limits")
         .update({
           count: record.count + 1,
@@ -99,7 +99,7 @@ export async function checkRateLimit(
       return { success: false, retryAfter: Math.ceil(backoffMs / 1000) };
     } else {
       // Hard lockout for the rest of the window for other routes
-      await supabase
+      await supabaseAdmin
         .from("rate_limits")
         .update({
           count: record.count + 1,
@@ -111,7 +111,7 @@ export async function checkRateLimit(
   }
 
   // Increment the counter
-  await supabase
+  await supabaseAdmin
     .from("rate_limits")
     .update({
       count: record.count + 1,
