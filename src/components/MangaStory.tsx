@@ -27,7 +27,7 @@ interface MangaPageData {
 const MANGA_PAGES: MangaPageData[] = [
   {
     pageNumber: 1,
-    baseImage: "/manga_art/Who leaves a USB lying (page1).png",
+    baseImage: "/manga_art/manga page1.png",
     bubbles: [
       {
         id: "p1-b1",
@@ -49,7 +49,7 @@ const MANGA_PAGES: MangaPageData[] = [
   },
   {
     pageNumber: 2,
-    baseImage: "/manga_art/page2.png",
+    baseImage: "/manga_art/manga page2.png",
     bubbles: [
       {
         id: "p2-b1",
@@ -79,7 +79,7 @@ const MANGA_PAGES: MangaPageData[] = [
   },
   {
     pageNumber: 3,
-    baseImage: "/manga_art/page3.png",
+    baseImage: "/manga_art/manga page 3.png",
     bubbles: [
       {
         id: "p3-b1",
@@ -107,17 +107,17 @@ const MANGA_PAGES: MangaPageData[] = [
       },
       {
         id: "p3-b4",
-        src: "/manga_art/cutouts/page3_box4.png",
+        src: "/manga_art/cutouts/page4_box4.png",
         alt: "This feels right. I'm in.",
-        left: "45.55%",
-        top: "56.81%",
-        width: "9.53%",
+        left: "45.50%",
+        top: "56.50%",
+        width: "10.50%",
       },
     ],
   },
   {
     pageNumber: 4,
-    baseImage: "/manga_art/page4_ref.jpeg",
+    baseImage: "/manga_art/manga page4.png",
     bubbles: [],
   },
 ];
@@ -143,7 +143,7 @@ export default function MangaStorySection() {
     // Execute scroll-scrub animations only on desktop viewports (>= 1024px)
     const mm = gsap.matchMedia();
 
-    mm.add("(min-width: 1024px)", () => {
+    mm.add("(min-width: 768px)", () => {
       const container = containerRef.current;
       if (!container) return;
 
@@ -167,13 +167,13 @@ export default function MangaStorySection() {
       });
 
       // Master pinned timeline:
-      // end: "+=550%" provides comfortable scroll room
+      // end: "+=380%" provides snappy, fluid progression
       // scrub: 0.8 smooths out mouse wheel notches
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: container,
           start: "top top",
-          end: "+=550%",
+          end: "+=380%",
           pin: true,
           pinSpacing: true,
           scrub: 0.8,
@@ -181,9 +181,9 @@ export default function MangaStorySection() {
           onUpdate: (self) => {
             const p = self.progress;
             let current = 1;
-            if (p >= 0.72) current = 4;
-            else if (p >= 0.46) current = 3;
-            else if (p >= 0.20) current = 2;
+            if (p >= 0.86) current = 4;
+            else if (p >= 0.52) current = 3;
+            else if (p >= 0.21) current = 2;
 
             const counter = document.getElementById("manga-page-counter");
             if (counter) counter.innerText = `PAGE ${current} / 4`;
@@ -367,10 +367,10 @@ export default function MangaStorySection() {
       );
 
       // ----------------------------------------------------
-      // PAGE 4: Generous Finale Hold (Sunset Conclusion)
-      // Long hold ensures Page 4 stays fully visible and pinned
+      // PAGE 4: Concise Finale Hold (Sunset Conclusion)
+      // Concise hold lets user exit Page 4 quickly into next section
       // ----------------------------------------------------
-      tl.to({}, { duration: 2.2 });
+      tl.to({}, { duration: 0.35 });
 
       // Refresh ScrollTrigger once DOM layout stabilizes
       const timer = setTimeout(() => {
@@ -387,7 +387,7 @@ export default function MangaStorySection() {
     <section
       id="manga-story"
       ref={containerRef}
-      className="hidden lg:block relative w-full h-screen bg-black text-white select-none overflow-hidden"
+      className="hidden md:block relative w-full h-screen bg-black text-white select-none overflow-hidden"
     >
       {/* 4 FULL-SCREEN STACKED MANGA SLIDES */}
       {MANGA_PAGES.map((page, idx) => (

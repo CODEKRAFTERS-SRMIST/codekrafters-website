@@ -1,189 +1,195 @@
-"use client";
+"use client"
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import type React from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import Image from "next/image"
+import { gsap } from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { Laptop, X } from "lucide-react"
+import { getImageKitUrl } from "@/lib/imagekit"
 
 if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger)
 }
 
-
-import { getImageKitUrl } from "@/lib/imagekit";
-
-interface HeroSlide {
-  id: string;
-  src: string;
-  alt: string;
-  durationMs: number;
+interface Milestone {
+  value: number
+  prefix?: string
+  suffix: string
+  label: string
 }
 
-const SLIDES: HeroSlide[] = [
-  {
-    id: "core",
-    src: "https://ik.imagekit.io/ysfz8n1no/public/hero-img/core.jpeg",
-    alt: "CodeKrafters Core Team",
-    durationMs: 3000,
-  },
-  {
-    id: "group3",
-    src: "https://ik.imagekit.io/ysfz8n1no/public/hero-img/group3.jpg",
-    alt: "CodeKrafters Hackathon Team",
-    durationMs: 3000,
-  },
-  {
-    id: "img1501",
-    src: "https://ik.imagekit.io/ysfz8n1no/public/hero-img/IMG_1501.DNG",
-    alt: "CodeKrafters Launchpad Event",
-    durationMs: 1500, // Stays for less time and displayed last
-  },
-];
+const Hero: React.FC = () => {
+  const imageRef = useRef<HTMLDivElement | null>(null)
+  const arrowRef = useRef<HTMLDivElement | null>(null)
+  const leftRailRef = useRef<HTMLDivElement | null>(null)
+  const codekraftersRef = useRef<HTMLHeadingElement | null>(null)
+  const milestonesRef = useRef<HTMLDivElement | null>(null)
+  const [isNoticeDismissed, setIsNoticeDismissed] = useState(false)
 
-const MILESTONES = [
-  { value: 7, suffix: "", label: "DOMAINS" },
-  { value: 150, suffix: "+", label: "MEMBERS" },
-  { value: 10, suffix: "+", label: "EVENTS" },
-  { value: 5, suffix: "L+", prefix: "₹", label: "BOUNTIES WON" },
-];
+  const taglineLines = useMemo(() => ["IT'S", "MORE THAN", "A CLUB"], [])
 
-export default function Hero() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [counters, setCounters] = useState(MILESTONES.map(() => 0));
-  const codekraftersRef = useRef<HTMLHeadingElement | null>(null);
-  const touchStartX = useRef<number>(0);
-  const touchEndX = useRef<number>(0);
+  const milestones: Milestone[] = useMemo(
+    () => [
+      { value: 7, suffix: "", label: "DOMAINS" },
+      { value: 150, suffix: "+", label: "MEMBERS" },
+      { value: 30, suffix: "+", label: "EVENTS" },
+      { value: 5, prefix: "₹", suffix: "L+", label: "BOUNTIES WON" },
+    ],
+    []
+  )
 
-  const nextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % SLIDES.length);
-  }, []);
+  const [counters, setCounters] = useState(milestones.map(() => 0))
 
-  const prevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev - 1 + SLIDES.length) % SLIDES.length);
-  }, []);
+  const splitToSpans = (text: string) =>
+    text.split("").map((ch, idx) => (
+      <span
+        key={`${text}-${idx}`}
+        className="slot-char inline-block will-change-transform"
+        style={{ display: "inline-block" }}
+      >
+        {ch === " " ? "\u00A0" : ch}
+      </span>
+    ))
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.targetTouches[0].clientX;
-  };
+  const images = [
+    getImageKitUrl("/hero-img/core.jpeg"),
+    getImageKitUrl("/hero-img/group3.jpg"),
+  ]
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-  };
+  const [index, setIndex] = useState(0)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const handleTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return;
-    const distance = touchStartX.current - touchEndX.current;
-    if (distance > 45) {
-      nextSlide();
-    } else if (distance < -45) {
-      prevSlide();
+  const startInterval = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    intervalRef.current = setInterval(() => {
+      setIndex((i) => (i + 1) % images.length)
+    }, 4000)
+  }
+
+  useEffect(() => {
+    startInterval()
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
     }
-    touchStartX.current = 0;
-    touchEndX.current = 0;
-  };
+  }, [images.length])
 
-  // Auto slide progression with per-slide duration
+  const goto = (n: number) => {
+    setIndex(((n % images.length) + images.length) % images.length)
+    startInterval()
+  }
+  const next = () => goto(index + 1)
+  const prev = () => goto(index - 1)
+
+  /* IMAGE breathing + hover tilt */
   useEffect(() => {
-    if (isPaused) return;
-    const currentDuration = SLIDES[currentSlide]?.durationMs || 5000;
-    const timer = setTimeout(nextSlide, currentDuration);
-    return () => clearTimeout(timer);
-  }, [nextSlide, isPaused, currentSlide]);
+    const img = imageRef.current
+    if (!img) return
 
-  // Fast smooth counter animation
-  useEffect(() => {
-    const duration = 1000;
-    const steps = 25;
-    const stepTime = duration / steps;
-    let step = 0;
+    const breathingTween = gsap.to(img, {
+      keyframes: [
+        { y: -6, rotate: 0.3, duration: 2.2 },
+        { y: 0, rotate: 0, duration: 2.2 },
+      ],
+      repeat: -1,
+      ease: "sine.inOut",
+    })
 
-    const timer = setInterval(() => {
-      step++;
-      const progress = Math.min(step / steps, 1);
-      const factor = 1 - Math.pow(1 - progress, 3);
-      setCounters(MILESTONES.map((m) => Math.round(m.value * factor)));
-      if (step >= steps) clearInterval(timer);
-    }, stepTime);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  // Reset all characters strictly back to original position
-  const resetChars = useCallback(() => {
-    const heading = codekraftersRef.current;
-    if (!heading) return;
-    const chars = heading.querySelectorAll(".char");
-    gsap.killTweensOf(chars);
-    gsap.to(chars, {
-      y: 0,
-      rotation: 0,
-      color: "#FFFFFF",
-      duration: 0.25,
-      stagger: 0.01,
-      ease: "power2.out",
-      overwrite: true,
-    });
-  }, []);
-
-  // CODEKRAFTERS GSAP Character Hover (Desktop only with auto-reset)
-  useEffect(() => {
-    if (typeof window === "undefined" || window.innerWidth < 768) return;
-
-    const heading = codekraftersRef.current;
-    if (!heading) return;
-
-    const chars = heading.querySelectorAll(".char");
-
-    // Initial character entrance
-    gsap.fromTo(
-      chars,
-      { y: 16, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        stagger: 0.03,
-        duration: 0.45,
+    const enter = () =>
+      gsap.to(img, {
+        scale: 1.03,
+        rotate: 0.7,
+        duration: 0.3,
         ease: "power2.out",
-      }
-    );
+      })
 
-    const enter = () => {
-      if (window.innerWidth < 768) return;
-      gsap.to(chars, {
-        y: -14,
-        rotation: gsap.utils.random(-6, 6, 1, true),
-        color: "#F9B000",
-        stagger: { each: 0.03, from: "center" },
-        ease: "back.out(2)",
-        duration: 0.35,
-        onComplete: () => {
-          // Guarantee it returns to position after animation completes
-          resetChars();
-        },
-      });
-    };
+    const leave = () =>
+      gsap.to(img, { scale: 1, rotate: 0, duration: 0.4 })
 
-    heading.addEventListener("mouseenter", enter);
-    heading.addEventListener("mouseleave", resetChars);
+    img.addEventListener("mouseenter", enter)
+    img.addEventListener("mouseleave", leave)
 
     return () => {
-      heading.removeEventListener("mouseenter", enter);
-      heading.removeEventListener("mouseleave", resetChars);
-    };
-  }, [resetChars]);
+      breathingTween.kill()
+      img.removeEventListener("mouseenter", enter)
+      img.removeEventListener("mouseleave", leave)
+    }
+  }, [])
 
-  const active = SLIDES[currentSlide];
-
-  /* PREVIOUS BACKGROUND rotation on scroll (Desktop only to prevent mobile lag) */
+  /* TAGLINE slot animation */
   useEffect(() => {
-    if (typeof window === "undefined" || window.innerWidth < 1024) return;
+    if (!leftRailRef.current) return
 
-    const yellow = document.querySelector(".bg-layer-yellow");
-    const black = document.querySelector(".bg-layer-black");
+    const ctx = gsap.context(() => {
+      const lines = gsap.utils.toArray<HTMLDivElement>(".slot-line")
 
-    if (!yellow || !black) return;
+      lines.forEach((line, lineIndex) => {
+        const chars = line.querySelectorAll<HTMLSpanElement>(".slot-char")
+
+        chars.forEach((char, charIndex) => {
+          gsap.fromTo(
+            char,
+            { yPercent: 110, rotateX: -90 },
+            {
+              yPercent: 0,
+              rotateX: 0,
+              duration: gsap.utils.random(1, 1.25),
+              ease: "back.out(3)",
+              delay: charIndex * 0.04 + lineIndex * 0.15,
+              repeatDelay: gsap.utils.random(0.7, 1.2),
+              yoyo: true,
+            },
+          )
+        })
+      })
+
+      if (arrowRef.current) {
+        gsap.to(arrowRef.current, {
+          y: 10,
+          opacity: 0.35,
+          duration: 0.9,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+        })
+      }
+    }, leftRailRef)
+
+    return () => ctx.revert()
+  }, [])
+
+  /* MILESTONE counters */
+  useEffect(() => {
+    if (!milestonesRef.current) return
+
+    const ctx = gsap.context(() => {
+      milestones.forEach((milestone, idx) => {
+        const obj = { val: 0 }
+        gsap.to(obj, {
+          val: milestone.value,
+          duration: 2,
+          delay: 0.8 + idx * 0.15,
+          ease: "power2.out",
+          onUpdate: () => {
+            setCounters((prev) => {
+              const next = [...prev]
+              next[idx] = Math.round(obj.val)
+              return next
+            })
+          },
+        })
+      })
+    }, milestonesRef)
+
+    return () => ctx.revert()
+  }, [milestones])
+
+  /* BACKGROUND rotation on scroll */
+  useEffect(() => {
+    const yellow = document.querySelector(".bg-layer-yellow")
+    const black = document.querySelector(".bg-layer-black")
+
+    if (!yellow || !black) return
 
     const ctx = gsap.context(() => {
       gsap.to(yellow, {
@@ -192,10 +198,9 @@ export default function Hero() {
           trigger: "#home",
           start: "top top",
           end: "bottom top",
-          scrub: 0.4,
-          fastScrollEnd: true,
+          scrub: 1,
         },
-      });
+      })
 
       gsap.to(black, {
         rotation: 8,
@@ -203,186 +208,212 @@ export default function Hero() {
           trigger: "#home",
           start: "top top",
           end: "bottom top",
-          scrub: 0.4,
-          fastScrollEnd: true,
+          scrub: 1,
         },
-      });
-    });
+      })
+    })
 
-    return () => ctx.revert();
-  }, []);
+    return () => ctx.revert()
+  }, [])
+
+  /* CODEKRAFTERS hover */
+  useEffect(() => {
+    const heading = codekraftersRef.current
+    if (!heading) return
+
+    const chars = heading.querySelectorAll(".char")
+
+    const enter = () =>
+      gsap.to(chars, {
+        y: -15,
+        rotation: gsap.utils.random(-10, 10, 1, true),
+        color: "#FFFFFF",
+        stagger: { each: 0.05, from: "center" },
+        ease: "back.out(2)",
+        duration: 0.4,
+      })
+
+    const leave = () =>
+      gsap.to(chars, {
+        y: 0,
+        rotation: 0,
+        color: "#F9B000",
+        stagger: { each: 0.03, from: "edges" },
+        ease: "back.in(1.5)",
+        duration: 0.5,
+      })
+
+    heading.addEventListener("mouseenter", enter)
+    heading.addEventListener("mouseleave", leave)
+
+    return () => {
+      heading.removeEventListener("mouseenter", enter)
+      heading.removeEventListener("mouseleave", leave)
+    }
+  }, [])
 
   return (
     <section
       id="home"
-      className="relative w-full min-h-0 sm:min-h-screen bg-[#08080A] text-white flex flex-col items-center justify-start overflow-hidden pt-32 sm:pt-40 pb-4 sm:pb-12 px-4 sm:px-6 lg:px-8 selection:bg-[#F9B000] selection:text-black"
+      className="w-full relative overflow-hidden"
+      style={{
+        scrollSnapAlign: "start",
+        scrollSnapStop: "always",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+      }}
     >
-      {/* RESTORED PREVIOUS DYNAMIC ANGLED BACKGROUND WITH SCROLL ROTATION */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
-        <div className="bg-layer-yellow will-change-transform absolute top-[-18%] left-[-10%] w-[140%] h-[58%] bg-[#F9B000] rotate-[5deg] opacity-[0.15]" />
-        <div className="bg-layer-black will-change-transform absolute top-[32%] left-[-10%] w-[150%] h-[50%] bg-[#111111] rotate-[-6deg] opacity-[0.45]" />
-        {/* Subtle center amber glow to keep title illuminated */}
-        <div
-          className="absolute -top-24 left-1/2 -translate-x-1/2 w-[320px] sm:w-[700px] h-[200px] sm:h-[350px] rounded-full blur-[40px] sm:blur-[130px] opacity-20"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, #F9B000 0%, #E69500 50%, transparent 80%)",
-          }}
-        />
+      {/* BACKGROUND */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="bg-layer-yellow absolute top-[-18%] left-[-10%] w-[140%] h-[58%] bg-[#F9B000] rotate-[5deg] opacity-[0.15]" />
+        <div className="bg-layer-black absolute top-[32%] left-[-10%] w-[150%] h-[50%] bg-[#111111] rotate-[-6deg] opacity-[0.45]" />
       </div>
 
-      {/* TOP HEADER SECTION */}
-      <div className="relative z-10 w-full max-w-5xl flex flex-col items-center text-center space-y-3 sm:space-y-4 mb-8 sm:mb-12">
-        {/* TOP PILL BADGE (WITHOUT SRM RAMAPURAM) */}
-        <motion.div
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.12] backdrop-blur-md shadow-sm"
+      {/* MAIN */}
+      <div className="relative flex flex-col lg:flex-row flex-1 px-6 pt-35 lg:pt-20 gap-8 items-center lg:items-start">
+        {/* LEFT */}
+        <div
+          ref={leftRailRef}
+          className="flex flex-col justify-start md:justify-center items-center lg:items-start w-full lg:w-[44%] text-center lg:text-left"
         >
-          <span className="w-2 h-2 rounded-full bg-[#F9B000] animate-pulse" />
-          <span className="text-white/80 font-mono text-[11px] sm:text-xs uppercase tracking-widest">
-            CHAPTER 2025-26 • STUDENT DEVELOPER COLLECTIVE
-          </span>
-        </motion.div>
+          <div className="max-w-[680px]">
+            {taglineLines.map((line, i) => (
+              <div
+                key={line}
+                className="slot-line font-extrabold leading-[0.88]"
+                style={{
+                  fontSize: "clamp(2.75rem, 6.8vw, 5.5rem)",
+                  color: i % 2 === 0 ? "#F9B000" : "#FFFFFF",
+                }}
+              >
+                {splitToSpans(line)}
+              </div>
+            ))}
+          </div>
 
-        {/* GIANT CLUB NAME HEADLINE (CLEAN & AUTO-RESET ON MOBILE TOUCH) */}
+          {/* MILESTONES - Desktop only (4 items) */}
+          <div
+            ref={milestonesRef}
+            className="hidden lg:grid grid-cols-4 gap-4 xl:gap-6 mt-8 max-w-[680px] w-full"
+          >
+            {milestones.map((m, i) => (
+              <div key={i} className="text-center lg:text-left">
+                <div className="text-[#F9B000] font-black text-4xl xl:text-5xl tracking-tight whitespace-nowrap">
+                  {m.prefix || ""}
+                  {counters[i]}
+                  {m.suffix}
+                </div>
+                <div className="text-white/70 tracking-wider text-[11px] xl:text-xs mt-1.5 uppercase font-semibold whitespace-nowrap">
+                  {m.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div ref={arrowRef} className="hidden lg:flex items-center gap-2 mt-8">
+            <Image src="/logo.png" alt="scroll" width={28} height={28} />
+            <span className="text-white/70 tracking-widest text-xs">
+              SCROLL DOWN
+            </span>
+          </div>
+        </div>
+
+        {/* RIGHT - Enlarged Hero Card */}
+        <div className="flex flex-col justify-center items-center lg:items-end w-full lg:w-[56%]">
+          <div
+            ref={imageRef}
+            className="relative rounded-[2rem] overflow-hidden border-[4px] border-[#F9B000] shadow-[20px_20px_0_rgba(0,0,0,0.8)] w-full max-w-[940px] lg:-ml-6 z-10"
+            style={{ height: "clamp(350px, 54vh, 640px)" }}
+          >
+            {images.map((src, i) => (
+              <div
+                key={src}
+                className="absolute inset-0 bg-cover bg-center transition-opacity duration-700"
+                style={{
+                  backgroundImage: `url('${src}')`,
+                  opacity: index === i ? 1 : 0,
+                }}
+              />
+            ))}
+
+            <button
+              onClick={prev}
+              aria-label="Previous slide"
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 rounded-full w-10 h-10 flex items-center justify-center text-white hover:bg-black/80 transition-colors text-lg"
+            >
+              ‹
+            </button>
+            <button
+              onClick={next}
+              aria-label="Next slide"
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 rounded-full w-10 h-10 flex items-center justify-center text-white hover:bg-black/80 transition-colors text-lg"
+            >
+              ›
+            </button>
+          </div>
+
+          {/* MILESTONES - Mobile/Tablet only (below image) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 lg:hidden w-full max-w-[620px]">
+            {milestones.map((m, i) => (
+              <div key={i} className="text-center">
+                <div className="text-[#F9B000] font-black text-3xl sm:text-4xl tracking-tight">
+                  {m.prefix || ""}
+                  {counters[i]}
+                  {m.suffix}
+                </div>
+                <div className="text-white/70 tracking-widest text-[11px] sm:text-xs mt-1 uppercase font-medium">
+                  {m.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* FOOTER */}
+      <div className="w-full bg-black py-6 px-6 flex flex-col items-center lg:items-end">
+        <p className="text-white/80 tracking-widest text-sm">
+          SRMIST RAMAPURAM
+        </p>
+
         <h1
           ref={codekraftersRef}
-          onClick={resetChars}
-          onTouchEnd={resetChars}
-          onMouseLeave={resetChars}
-          className="text-[clamp(2.1rem,8.2vw,8.5rem)] font-black tracking-tight leading-none text-white select-none whitespace-nowrap py-1 overflow-visible cursor-pointer"
-          style={{ letterSpacing: "-0.03em" }}
-          title="CodeKrafters"
+          className="font-black text-[#F9B000]"
+          style={{ fontSize: "clamp(2rem, 6vw, 5.5rem)" }}
         >
-          {"CODEKRAFTERS".split("").map((char, i) => (
-            <span
-              key={i}
-              className="char inline-block will-change-transform transition-colors"
-            >
-              {char}
+          {"CODEKRAFTERS".split("").map((c, i) => (
+            <span key={i} className="char inline-block">
+              {c}
             </span>
           ))}
         </h1>
-
-        {/* BIGGER BOLD TAGLINE (MUCH BIGGER FONT FOR BOTH MOBILE & DESKTOP) */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="space-y-1 max-w-3xl px-2 text-center"
-        >
-          <p className="text-2xl sm:text-4xl md:text-5xl font-black tracking-wider sm:tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#F9B000] via-[#FFE082] to-[#F9B000] drop-shadow-[0_0_25px_rgba(249,176,0,0.35)] uppercase py-1">
-            IT&apos;S MORE THAN A CLUB
-          </p>
-        </motion.div>
       </div>
 
-      {/* WIDESCREEN CINEMATIC IMAGE CARD WITH TOUCH SWIPE */}
-      <div className="relative z-10 w-full max-w-6xl">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          className="relative w-full rounded-2xl sm:rounded-[2.5rem] overflow-hidden border border-white/15 bg-[#0e0e12] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] aspect-[4/4.8] sm:aspect-[16/9] lg:aspect-[21/10] touch-pan-y select-none"
-        >
-          {/* REAL CLUB SLIDESHOW IMAGES */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={active.id}
-              initial={{ opacity: 0, scale: 1.03 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
-              className="absolute inset-0"
+      {/* LAPTOP / DESKTOP EXPERIENCE NOTIFICATION POPUP */}
+      {!isNoticeDismissed && (
+        <div className="fixed bottom-5 right-4 left-4 sm:left-auto sm:right-6 max-w-md z-50 animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className="relative flex items-center gap-3 py-3 px-4 rounded-2xl bg-[#0d0d10]/95 border border-[#F9B000]/40 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] text-white select-none">
+            <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-[#F9B000]/15 border border-[#F9B000]/30 flex items-center justify-center text-[#F9B000]">
+              <Laptop className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
+            </div>
+            <div className="flex-1 pr-1">
+              <p className="text-xs sm:text-sm font-medium text-white/90 leading-tight">
+                For the best experience, please open this website on a <span className="text-[#F9B000] font-semibold">laptop or desktop</span>.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsNoticeDismissed(true)}
+              aria-label="Dismiss notification"
+              className="flex-shrink-0 p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
             >
-              <Image
-                src={active.src}
-                alt={active.alt}
-                fill
-                priority
-                className="object-cover object-center"
-              />
-            </motion.div>
-          </AnimatePresence>
-
-          {/* LEFT NAVIGATION BUTTON */}
-          <button
-            onClick={prevSlide}
-            aria-label="Previous image"
-            className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/50 hover:bg-[#F9B000] text-white hover:text-black border border-white/20 flex items-center justify-center transition-all duration-200 backdrop-blur-md shadow-lg active:scale-95 group"
-          >
-            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:-translate-x-0.5" />
-          </button>
-
-          {/* RIGHT NAVIGATION BUTTON */}
-          <button
-            onClick={nextSlide}
-            aria-label="Next image"
-            className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/50 hover:bg-[#F9B000] text-white hover:text-black border border-white/20 flex items-center justify-center transition-all duration-200 backdrop-blur-md shadow-lg active:scale-95 group"
-          >
-            <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-x-0.5" />
-          </button>
-        </motion.div>
-      </div>
-
-      {/* MOBILE STATS COUNTER STRIP (7 DOMAINS • 150+ MEMBERS • 10+ EVENTS) */}
-      <div className="grid sm:hidden grid-cols-3 gap-2 w-full max-w-sm mx-auto text-center mt-6 px-1">
-        <div className="flex flex-col items-center justify-center">
-          <div className="text-3xl font-black text-[#FFA500] tracking-tight">
-            {counters[0]}
-          </div>
-          <div className="text-[11px] font-bold tracking-wider text-white/80 uppercase mt-1 font-sans">
-            DOMAINS
+              <X className="w-4 h-4" />
+            </button>
           </div>
         </div>
-        <div className="flex flex-col items-center justify-center">
-          <div className="text-3xl font-black text-[#FFA500] tracking-tight">
-            {counters[1]}+
-          </div>
-          <div className="text-[11px] font-bold tracking-wider text-white/80 uppercase mt-1 font-sans">
-            MEMBERS
-          </div>
-        </div>
-        <div className="flex flex-col items-center justify-center">
-          <div className="text-3xl font-black text-[#FFA500] tracking-tight">
-            {counters[2]}+
-          </div>
-          <div className="text-[11px] font-bold tracking-wider text-white/80 uppercase mt-1 font-sans">
-            EVENTS
-          </div>
-        </div>
-      </div>
-
-      {/* MILESTONES STATS STRIP (TABLET & DESKTOP) */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.3 }}
-        className="hidden sm:grid relative z-10 w-full max-w-6xl grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4 mt-8 sm:mt-12"
-      >
-        {MILESTONES.map((m, idx) => (
-          <div
-            key={m.label}
-            className="rounded-2xl sm:rounded-3xl bg-[#0f0f12] border border-white/[0.08] hover:border-[#FFA500]/40 py-7 px-4 text-center transition-all duration-300 shadow-[0_10px_30px_rgba(0,0,0,0.5)] group"
-          >
-            <div className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#FFA500] tracking-tight group-hover:scale-105 transition-transform">
-              {m.prefix || ""}
-              {counters[idx]}
-              {m.suffix}
-            </div>
-            <div className="text-xs sm:text-sm font-semibold tracking-wider text-white/70 uppercase mt-2.5 font-sans">
-              {m.label}
-            </div>
-          </div>
-        ))}
-      </motion.div>
+      )}
     </section>
-  );
+  )
 }
+
+export default Hero

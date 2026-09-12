@@ -18,7 +18,9 @@ export default function Home() {
 
       <AboutSection />
 
-      <MangaStorySection />
+      <div id="story" className="hidden md:block w-full">
+        <MangaStorySection />
+      </div>
 
       <DomainsSection />
 

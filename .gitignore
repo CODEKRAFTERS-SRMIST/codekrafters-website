@@ -40,5 +40,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-/.agents
-/.claude
+
+# package managers / locks
+bun.lockb
+
+# AI / IDE tooling & skills
+/.agents/
+/.claude/
+/.code-review-graph/
+skills-lock.json
+DESIGN.md
+
+# supabase temp files
+supabase/.temp/

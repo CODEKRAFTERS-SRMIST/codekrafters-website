@@ -54,6 +54,11 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
   const [systemUsers, setSystemUsers] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
+  // User Management filtering & search state
+  const [userRoleFilter, setUserRoleFilter] = useState<"ALL" | "DOMAIN_ADMIN" | "APPLICANT" | "EXECUTIVE">("ALL");
+  const [userDomainFilter, setUserDomainFilter] = useState<string>("ALL");
+  const [userSearchQuery, setUserSearchQuery] = useState<string>("");
+
   // Recruitment Phase & Task Gating State
   const [currentPhase, setCurrentPhase] = useState<number>(1);
   const [tasksVisible, setTasksVisible] = useState<boolean>(false);
@@ -257,6 +262,43 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
     exportApplicationsToCSV(filteredApplications);
   };
 
+  // Filtered System Users based on role, domain, and name/email search
+  const filteredUsers = useMemo(() => {
+    return systemUsers.filter((u) => {
+      // Role filter
+      if (userRoleFilter === "EXECUTIVE") {
+        if (u.role !== "PRESIDENT" && u.role !== "VICE_PRESIDENT") return false;
+      } else if (userRoleFilter !== "ALL" && u.role !== userRoleFilter) {
+        return false;
+      }
+
+      // Domain filter
+      if (userDomainFilter !== "ALL" && u.domain_id !== userDomainFilter) {
+        return false;
+      }
+
+      // Search by name and email ID
+      if (userSearchQuery.trim()) {
+        const query = userSearchQuery.toLowerCase().trim();
+        const fullName = (u.fullName || u.full_name || "").toLowerCase();
+        const email = (u.email || "").toLowerCase();
+        if (!fullName.includes(query) && !email.includes(query)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [systemUsers, userRoleFilter, userDomainFilter, userSearchQuery]);
+
+  const userCounts = useMemo(() => {
+    const total = systemUsers.length;
+    const domainAdmins = systemUsers.filter((u) => u.role === "DOMAIN_ADMIN").length;
+    const applicants = systemUsers.filter((u) => u.role === "APPLICANT").length;
+    const executive = systemUsers.filter((u) => u.role === "PRESIDENT" || u.role === "VICE_PRESIDENT").length;
+    return { total, domainAdmins, applicants, executive };
+  }, [systemUsers]);
+
   const handleRoleChange = async (userId: string, newRole: string, newDomainId?: string) => {
     setSystemUsers((prev) =>
       prev.map((u) =>
@@ -384,10 +426,159 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
       )}
 
       {activeTab === "USERS" ? (
-        <div className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 shadow-[8px_8px_0_#0D0D0D]">
-          <h3 className="font-extrabold text-base uppercase text-[#0D0D0D] mb-4">System Users</h3>
+        <div className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 shadow-[8px_8px_0_#0D0D0D] space-y-6">
+          {/* Header Row: Title & Search Bar */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-[#0D0D0D]/10 pb-4">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h3 className="font-extrabold text-base sm:text-lg uppercase text-[#0D0D0D]">System Users</h3>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-[#0D0D0D] text-[#FFEFB4]">
+                  {filteredUsers.length} of {systemUsers.length}
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-[#555555] mt-0.5">
+                Filter and manage roles, search users, and assign domain administrative permissions.
+              </p>
+            </div>
+
+            {/* Search Bar for Name and Email */}
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0D0D0D]/50 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={userSearchQuery}
+                onChange={(e) => setUserSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-10 py-2.5 bg-white text-[#0D0D0D] font-bold text-xs sm:text-sm border-2 border-[#0D0D0D] rounded-xl shadow-[3px_3px_0_#0D0D0D] placeholder-[#0D0D0D]/40 focus:outline-none focus:ring-2 focus:ring-[#F2A516]"
+              />
+              {userSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setUserSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#0D0D0D]/60 hover:text-[#0D0D0D] cursor-pointer"
+                  title="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Filters Bar: Role Pills & Domain Filter */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FFF2C6] p-3.5 rounded-2xl border-2 border-[#0D0D0D] shadow-[2px_2px_0_#0D0D0D]">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-black uppercase text-[#0D0D0D] flex items-center gap-1 mr-1">
+                <Filter className="w-3.5 h-3.5 text-[#F2A516]" /> Role:
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setUserRoleFilter("ALL")}
+                className={`px-3 py-1.5 rounded-xl border-2 border-[#0D0D0D] font-extrabold text-xs transition-all cursor-pointer ${
+                  userRoleFilter === "ALL"
+                    ? "bg-[#0D0D0D] text-[#FFEFB4] shadow-[2px_2px_0_#F2A516]"
+                    : "bg-white text-[#0D0D0D] hover:bg-white/80 shadow-[2px_2px_0_#0D0D0D]"
+                }`}
+              >
+                All ({userCounts.total})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setUserRoleFilter("DOMAIN_ADMIN")}
+                className={`px-3 py-1.5 rounded-xl border-2 border-[#0D0D0D] font-extrabold text-xs transition-all cursor-pointer ${
+                  userRoleFilter === "DOMAIN_ADMIN"
+                    ? "bg-[#0D0D0D] text-[#FFEFB4] shadow-[2px_2px_0_#F2A516]"
+                    : "bg-white text-[#0D0D0D] hover:bg-white/80 shadow-[2px_2px_0_#0D0D0D]"
+                }`}
+              >
+                Domain Admins ({userCounts.domainAdmins})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setUserRoleFilter("APPLICANT")}
+                className={`px-3 py-1.5 rounded-xl border-2 border-[#0D0D0D] font-extrabold text-xs transition-all cursor-pointer ${
+                  userRoleFilter === "APPLICANT"
+                    ? "bg-[#0D0D0D] text-[#FFEFB4] shadow-[2px_2px_0_#F2A516]"
+                    : "bg-white text-[#0D0D0D] hover:bg-white/80 shadow-[2px_2px_0_#0D0D0D]"
+                }`}
+              >
+                Applicants ({userCounts.applicants})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setUserRoleFilter("EXECUTIVE")}
+                className={`px-3 py-1.5 rounded-xl border-2 border-[#0D0D0D] font-extrabold text-xs transition-all cursor-pointer ${
+                  userRoleFilter === "EXECUTIVE"
+                    ? "bg-[#0D0D0D] text-[#FFEFB4] shadow-[2px_2px_0_#F2A516]"
+                    : "bg-white text-[#0D0D0D] hover:bg-white/80 shadow-[2px_2px_0_#0D0D0D]"
+                }`}
+              >
+                Presidents / VPs ({userCounts.executive})
+              </button>
+            </div>
+
+            {/* Domain Filter & Reset */}
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <span className="text-xs font-black uppercase text-[#0D0D0D]">Domain:</span>
+              <select
+                value={userDomainFilter}
+                onChange={(e) => setUserDomainFilter(e.target.value)}
+                className="bg-white text-black font-bold border-2 border-[#0D0D0D] rounded-xl px-3 py-1.5 text-xs shadow-[2px_2px_0_#0D0D0D] focus:outline-none focus:ring-2 focus:ring-[#F2A516] cursor-pointer"
+                style={{ colorScheme: "light", color: "#000000" }}
+              >
+                <option value="ALL">All Domains</option>
+                {DOMAINS_LIST.map((d) => (
+                  <option key={d.id} value={d.name}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+
+              {(userRoleFilter !== "ALL" || userDomainFilter !== "ALL" || userSearchQuery) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUserRoleFilter("ALL");
+                    setUserDomainFilter("ALL");
+                    setUserSearchQuery("");
+                  }}
+                  className="px-2.5 py-1.5 rounded-xl border border-dashed border-[#0D0D0D] text-[11px] font-extrabold text-[#0D0D0D] hover:bg-[#0D0D0D] hover:text-[#FFEFB4] transition-all cursor-pointer"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
+
           {loadingUsers ? (
-            <div className="flex justify-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D0D0D]"></div></div>
+            <div className="flex justify-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D0D0D]"></div>
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            /* Empty State */
+            <div className="text-center py-12 bg-white border-2 border-dashed border-[#0D0D0D]/30 rounded-2xl p-6">
+              <Users className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+              <p className="font-black text-sm text-[#0D0D0D] uppercase">No matching users found</p>
+              <p className="text-xs text-gray-600 font-medium mt-1">
+                {userSearchQuery
+                  ? `No users found matching "${userSearchQuery}" in name or email.`
+                  : "No users match your selected role or domain filter."}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setUserRoleFilter("ALL");
+                  setUserDomainFilter("ALL");
+                  setUserSearchQuery("");
+                }}
+                className="mt-4 px-4 py-2 bg-[#F2A516] text-[#0D0D0D] font-extrabold text-xs rounded-xl border-2 border-[#0D0D0D] shadow-[2px_2px_0_#0D0D0D] hover:translate-y-[-1px] transition-all cursor-pointer"
+              >
+                Clear Filters & Search
+              </button>
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -399,17 +590,21 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y border-[#0D0D0D]/10 text-xs">
-                  {systemUsers.map(u => (
-                    <tr key={u.id}>
-                      <td className="p-3 font-bold text-[#0D0D0D]">{(u.fullName || u.full_name) || "N/A"}<br/><span className="text-[10px] font-medium text-gray-600">{u.email}</span></td>
+                  {filteredUsers.map((u) => (
+                    <tr key={u.id} className="hover:bg-white/40 transition-colors">
+                      <td className="p-3 font-bold text-[#0D0D0D]">
+                        {(u.fullName || u.full_name) || "N/A"}
+                        <br />
+                        <span className="text-[10px] font-medium text-gray-600">{u.email}</span>
+                      </td>
                       <td className="p-3">
-                        <select 
+                        <select
                           value={u.role}
                           onChange={(e) => {
                             const newRole = e.target.value;
                             handleRoleChange(
-                              u.id, 
-                              newRole, 
+                              u.id,
+                              newRole,
                               newRole === "DOMAIN_ADMIN" ? (u.domain_id || "") : undefined
                             );
                           }}
@@ -431,7 +626,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                             style={{ colorScheme: "light", color: "#000000" }}
                           >
                             <option value="" className="text-gray-500 bg-white" style={{ color: "#666666", backgroundColor: "#ffffff" }}>Select Domain...</option>
-                            {DOMAINS_LIST.map(d => (
+                            {DOMAINS_LIST.map((d) => (
                               <option key={d.id} value={d.name} className="text-black bg-white font-medium" style={{ color: "#000000", backgroundColor: "#ffffff" }}>
                                 {d.name}
                               </option>
