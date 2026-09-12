@@ -31,7 +31,7 @@ export default function PresidentIntroRetro() {
                 <div className="relative w-full h-0 pb-[120%]">
                   <Image
                     src="https://ik.imagekit.io/ysfz8n1no/public/domain_pics/pres/Sanjay.jpeg" 
-                    alt="Club President"
+                    alt="Sanjay Ganesh, President of CodeKrafters SRMIST"
                     fill
                     className="object-cover rounded-xl sm:rounded-2xl saturate-90 contrast-110 brightness-95"
                   />
@@ -67,10 +67,12 @@ export default function PresidentIntroRetro() {
                   href="https://www.linkedin.com/in/sanjay-ganesh-k-barade-675b38324/" 
                   target="_blank" 
                   rel="noopener noreferrer"
+                  aria-label="Sanjay Ganesh's LinkedIn Profile"
                   className="bg-[#0D0D0D] p-2 rounded-md shadow-[2px_2px_0_#F2A516] sm:shadow-[4px_4px_0_#F2A516] hover:translate-y-[-2px] hover:shadow-[4px_4px_0_#F2A516] transition-all cursor-pointer"
                   title="Sanjay's LinkedIn"
                 >
-                  <Linkedin className="w-5 h-5 sm:w-6 sm:h-6 text-[#F2A516]" />
+                  <Linkedin className="w-5 h-5 sm:w-6 sm:h-6 text-[#F2A516]" aria-hidden="true" />
+                  <span className="sr-only">Sanjay Ganesh&apos;s LinkedIn Profile</span>
                 </a>
               </div>
 
@@ -99,7 +101,7 @@ export default function PresidentIntroRetro() {
                 <div className="relative w-full h-0 pb-[120%]">
                   <Image
                     src="https://ik.imagekit.io/ysfz8n1no/public/domain_pics/vp/Satya VP.png" 
-                    alt="Club Vice President"
+                    alt="Satya Lohith, Vice President of CodeKrafters SRMIST"
                     fill
                     className="object-cover rounded-xl sm:rounded-2xl saturate-90 contrast-110 brightness-95"
                   />
@@ -135,10 +137,12 @@ export default function PresidentIntroRetro() {
                   href="https://www.linkedin.com/in/satyalohith455" 
                   target="_blank" 
                   rel="noopener noreferrer"
+                  aria-label="Satya Lohith's LinkedIn Profile"
                   className="bg-[#0D0D0D] p-2 rounded-md shadow-[2px_2px_0_#F2A516] sm:shadow-[4px_4px_0_#F2A516] hover:translate-y-[-2px] hover:shadow-[4px_4px_0_#F2A516] transition-all cursor-pointer"
                   title="Satya's LinkedIn"
                 >
-                  <Linkedin className="w-5 h-5 sm:w-6 sm:h-6 text-[#F2A516]" />
+                  <Linkedin className="w-5 h-5 sm:w-6 sm:h-6 text-[#F2A516]" aria-hidden="true" />
+                  <span className="sr-only">Satya Lohith&apos;s LinkedIn Profile</span>
                 </a>
               </div>
 

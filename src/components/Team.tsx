@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { Instagram, Github, Linkedin } from 'lucide-react';
+import { Linkedin } from 'lucide-react';
 import { useRef, useEffect, useState } from "react";
 import { TEAM_MEMBERS, DOMAINS } from "@/data/team-data";
 
@@ -79,14 +79,14 @@ export default function TeamComponent() {
 
       {/* Title section with responsive text sizes and positioning */}
       <div className="absolute top-24 sm:top-28 right-3 sm:right-10 text-right z-20">
-        <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#0D0D0D] uppercase tracking-tight">
+        <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#0D0D0D] uppercase tracking-tight">
           Our{" "}
           <span className="text-[#F2A516] underline decoration-[#0D0D0D] decoration-2 sm:decoration-3 md:decoration-4 underline-offset-2 sm:underline-offset-4">
             Team
           </span>
-        </h1>
+        </h2>
         <p className="text-[#333333] mt-1 sm:mt-2 text-xs sm:text-sm font-medium">
-          The people behind CodeKrafters' magic 
+          The people behind CodeKrafters&apos; magic 
         </p>
       </div>
 
@@ -171,9 +171,12 @@ export default function TeamComponent() {
                           <a
                             href={member.social.linkedin}
                             target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`${member.name}'s LinkedIn Profile`}
                             className="social-btn"
                           >
-                            <Linkedin className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <Linkedin className="w-3 h-3 sm:w-4 sm:h-4" aria-hidden="true" />
+                            <span className="sr-only">{member.name}&apos;s LinkedIn Profile</span>
                           </a>
                         )}
                       </div>

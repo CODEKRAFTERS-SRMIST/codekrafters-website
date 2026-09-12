@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { ExternalLink } from "lucide-react";
@@ -11,6 +11,7 @@ export interface KrafterLinkItem {
   subtitle: string;
   description: string;
   imagePath: string;
+  fallbackImagePath?: string;
   url: string;
   category: "projects" | "tasks";
 }
@@ -21,7 +22,7 @@ export const KRAFTER_LINKS: KrafterLinkItem[] = [
     title: "Launchpad 3.0 Website",
     subtitle: "PROJECT LINK",
     description: "Official website for Launchpad 3.0 - CodeKrafters' flagship annual tech event.",
-    imagePath: "/launchpad/launchpad-003.png",
+    imagePath: "/krafterlink/launchpad.jpeg",
     url: "https://launchpad-ck.vercel.app/",
     category: "projects",
   },
@@ -30,7 +31,7 @@ export const KRAFTER_LINKS: KrafterLinkItem[] = [
     title: "Web Development Task",
     subtitle: "DEVELOPMENT TASK",
     description: "Interactive web development challenge and guidelines for Krafters.",
-    imagePath: "/ck-core.jpg",
+    imagePath: "/krafterlink/webdev.jpg",
     url: "https://launch-pad-task.vercel.app",
     category: "tasks",
   },
@@ -39,7 +40,7 @@ export const KRAFTER_LINKS: KrafterLinkItem[] = [
     title: "Web3-Den",
     subtitle: "WEB3 DOMAIN",
     description: "Showcase of our Web3 domain projects and innovations.",
-    imagePath: "/ck-core.jpg",
+    imagePath: "/krafterlink/web3den.jpg",
     url: "https://web3den.vercel.app/",
     category: "projects",
   },
@@ -75,6 +76,17 @@ function getSanitizedLinkProps(url: string) {
 }
 
 export default function KraftersLinkComponent() {
+  const [imageMap, setImageMap] = useState<Record<string, string>>({});
+
+  const handleImageError = (link: KrafterLinkItem) => {
+    if (link.fallbackImagePath && imageMap[link.id] !== link.fallbackImagePath) {
+      setImageMap((prev) => ({
+        ...prev,
+        [link.id]: link.fallbackImagePath!,
+      }));
+    }
+  };
+
   // Performance optimization: Memoize sanitized link properties
   const sanitizedLinks = useMemo(() => {
     return KRAFTER_LINKS.map((link) => ({
@@ -115,6 +127,7 @@ export default function KraftersLinkComponent() {
         <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-8 md:gap-12 w-full px-2 sm:px-4">
           {sanitizedLinks.map((link, index) => {
             const { safeUrl, isExternal } = link.linkProps;
+            const currentSrc = imageMap[link.id] || link.imagePath;
 
             return (
               <motion.div
@@ -147,10 +160,13 @@ export default function KraftersLinkComponent() {
                   {/* Circle Image Container */}
                   <div className="w-24 sm:w-28 md:w-32 lg:w-36 h-24 sm:h-28 md:h-32 lg:h-36 overflow-hidden rounded-full border-2 border-[#0D0D0D] mb-2 sm:mb-3 bg-[#FFF2C6] shadow-inner flex-shrink-0 relative flex items-center justify-center">
                     <Image
-                      src={link.imagePath}
+                      key={currentSrc}
+                      src={currentSrc}
                       alt={link.title}
                       width={140}
                       height={140}
+                      priority
+                      onError={() => handleImageError(link)}
                       className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>

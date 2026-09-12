@@ -74,7 +74,7 @@ export default function UserProfile() {
       const res = await fetch("/api/auth/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: session?.id, oldPassword: oldPw, newPassword: newPw }),
+        body: JSON.stringify({ oldPassword: oldPw, newPassword: newPw }),
       });
       const data = await res.json();
       if (res.ok) {

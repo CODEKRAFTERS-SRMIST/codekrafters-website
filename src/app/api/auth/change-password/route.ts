@@ -6,16 +6,17 @@ import bcrypt from "bcryptjs";
 export async function POST(request: Request) {
   try {
     const session = await getSession();
-    const body = await request.json();
-    const { userId, oldPassword, newPassword } = body;
-
-    if (!session || session.id !== userId) {
+    if (!session?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!userId || !oldPassword || !newPassword) {
+    const body = await request.json();
+    const { oldPassword, newPassword } = body;
+    const userId = session.id;
+
+    if (!oldPassword || !newPassword) {
       return NextResponse.json(
-        { error: "User ID, old password and new password are required." },
+        { error: "Old password and new password are required." },
         { status: 400 }
       );
     }
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
     // Fetch user
     const { data: user, error: fetchError } = await supabaseAdmin
       .from("users")
-      .select("id, password_hash")
+      .select("id, password_hash, token_version, role, domain_id")
       .eq("id", userId)
       .maybeSingle();
 
@@ -69,11 +70,12 @@ export async function POST(request: Request) {
     // Hash new password
     const salt = await bcrypt.genSalt(12);
     const newHash = await bcrypt.hash(newPassword, salt);
+    const nextVersion = (user.token_version || 1) + 1;
 
-    // Update DB
+    // Update DB with new password and incremented token_version
     const { error: updateError } = await supabaseAdmin
       .from("users")
-      .update({ password_hash: newHash })
+      .update({ password_hash: newHash, token_version: nextVersion })
       .eq("id", userId);
 
     if (updateError) {
@@ -82,6 +84,15 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    // Reissue fresh session with new version for this device
+    const { setSession } = await import("@/lib/session");
+    await setSession({
+      id: user.id,
+      role: user.role,
+      domain_id: user.domain_id,
+      version: nextVersion,
+    });
 
     return NextResponse.json({ success: true, message: "Password changed successfully." });
   } catch (err) {

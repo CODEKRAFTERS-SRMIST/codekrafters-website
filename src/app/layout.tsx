@@ -40,10 +40,10 @@ export const metadata: Metadata = {
     siteName: "CodeKrafters SRM",
     images: [
       {
-        url: "https://codekraftersrmp.in/og.jpg",
+        url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "CodeKrafters SRM — Premier Tech Community",
+        alt: "CodeKrafters SRM — Premier Student Tech Community & Developer Club",
       },
     ],
     type: "website",
@@ -51,10 +51,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "CodeKrafters — SRM's Premier Tech Community",
+    title: "CodeKrafters SRM — Premier Student Tech Community",
     description:
       "7 domains. Real projects. 500+ student developers. Join CodeKrafters at SRM Ramapuram.",
-    images: ["https://codekraftersrmp.in/og.jpg"],
+    images: ["/opengraph-image"],
     creator: "@codekrafterssrm",
   },
   robots: {
@@ -74,8 +74,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const orgSchema = {
     "@context": "https://schema.org",
-    "@type": "Organization",
+    "@type": ["EducationalOrganization", "Organization"],
     name: "CodeKrafters SRM",
+    alternateName: ["CodeKrafters", "CodeKrafters SRMIST", "CodeKrafters Ramapuram"],
     url: "https://codekraftersrmp.in/",
     logo: {
       "@type": "ImageObject",
@@ -84,12 +85,44 @@ export default function RootLayout({
       height: 200,
     },
     description:
-      "CodeKrafters is the premier student tech community at SRM Ramapuram, fostering innovation across 7 technical and non-technical domains.",
+      "CodeKrafters is the premier student tech community and developer collective at SRM Ramapuram, fostering innovation across 7 engineering and creative domains.",
     foundingDate: "2022",
-    memberOf: {
+    parentOrganization: {
       "@type": "CollegeOrUniversity",
       name: "SRM Institute of Science and Technology, Ramapuram",
+      url: "https://srmrmp.edu.in/",
+      sameAs: [
+        "https://en.wikipedia.org/wiki/SRM_Institute_of_Science_and_Technology",
+        "https://www.wikidata.org/wiki/Q1429402",
+      ],
     },
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Bharathi Salai, Ramapuram",
+      addressLocality: "Chennai",
+      addressRegion: "Tamil Nadu",
+      postalCode: "600089",
+      addressCountry: "IN",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 13.0324,
+      longitude: 80.1802,
+    },
+    leader: [
+      {
+        "@type": "Person",
+        name: "Sanjay Ganesh",
+        jobTitle: "President",
+        sameAs: "https://www.linkedin.com/in/sanjay-ganesh-k-barade-675b38324/",
+      },
+      {
+        "@type": "Person",
+        name: "Satya Lohith",
+        jobTitle: "Vice President",
+        sameAs: "https://www.linkedin.com/in/satyalohith455",
+      },
+    ],
     sameAs: [
       "https://www.instagram.com/codekrafterssrm/",
       "https://www.linkedin.com/company/codekrafters-srm/",
@@ -99,6 +132,8 @@ export default function RootLayout({
       "@type": "ContactPoint",
       email: "codekraftersrmp@gmail.com",
       contactType: "student organization",
+      areaServed: "IN",
+      availableLanguage: ["English", "Tamil", "Hindi"],
     },
   };
 
@@ -122,13 +157,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Asimovian&display=swap"
-          rel="stylesheet"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}

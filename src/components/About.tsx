@@ -138,9 +138,9 @@ export default function AboutSection() {
         <div className="flex items-center justify-between border-b border-white/[0.08] pb-3.5 sm:pb-4 mb-6 sm:mb-10">
           <div className="flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#F9B000] animate-pulse shadow-[0_0_10px_#F9B000]" />
-            <span className="font-mono text-xs sm:text-sm uppercase tracking-[0.2em] text-[#F9B000] font-bold">
+            <h2 className="font-mono text-xs sm:text-sm uppercase tracking-[0.2em] text-[#F9B000] font-bold m-0 p-0 inline">
               ABOUT CODEKRAFTERS
-            </span>
+            </h2>
           </div>
 
           <span className="font-mono text-[11px] sm:text-xs text-white/50 tracking-wider hidden sm:inline">

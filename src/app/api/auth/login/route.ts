@@ -38,29 +38,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: userError.message || "Database connection error." }, { status: 500 });
     }
 
+    const DUMMY_HASH = "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
+
     if (!user) {
+      await bcrypt.compare(password, DUMMY_HASH);
       return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
     }
 
     const storedPassword = user.password_hash || user.password;
     if (!storedPassword) {
+      await bcrypt.compare(password, DUMMY_HASH);
       return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
     }
 
     let isValid = false;
     if (storedPassword.startsWith("$2a$") || storedPassword.startsWith("$2b$") || storedPassword.startsWith("$2y$")) {
       isValid = await bcrypt.compare(password, storedPassword);
+    } else {
+      await bcrypt.compare(password, DUMMY_HASH);
     }
 
     if (!isValid) {
       return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
     }
 
-    // Set secure JWT session
+    // Set secure JWT session with token version
     await setSession({
       id: user.id,
       role: user.role,
       domain_id: user.domain_id,
+      version: user.token_version || 1,
     });
 
     return NextResponse.json({

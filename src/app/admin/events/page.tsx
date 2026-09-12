@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import React, { useState, useEffect, useMemo } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { Russo_One, Montserrat } from 'next/font/google';
 import { LoginCard } from "@/components/join/LoginCard";
 import { UserSession } from "@/types/join";
@@ -11,6 +11,7 @@ const russoOne = Russo_One({ subsets: ["latin"], weight: "400" });
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["800", "900"] });
 
 export default function AdminEventsPage() {
+  const supabase = useMemo(() => createClient(), []);
   const [session, setSession] = useState<UserSession | null>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -33,7 +34,7 @@ export default function AdminEventsPage() {
         const parsed: UserSession = JSON.parse(rawSession);
         if (parsed.role === 'PRESIDENT' || parsed.role === 'VICE_PRESIDENT' || parsed.role === 'DOMAIN_ADMIN') {
           setSession(parsed);
-          fetchEvents(parsed.id);
+          fetchEvents();
         }
       }
     } catch (e) {
@@ -61,9 +62,9 @@ export default function AdminEventsPage() {
     } catch (e) {}
   };
 
-  const fetchEvents = async (userId: string) => {
+  const fetchEvents = async () => {
     try {
-      const res = await fetch(`/api/admin/events?userId=${userId}`);
+      const res = await fetch(`/api/admin/events`);
       const data = await res.json();
       if (data.events) {
         setEvents(data.events);
@@ -76,9 +77,9 @@ export default function AdminEventsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this event?')) return;
     try {
-      const res = await fetch(`/api/admin/events?id=${id}&userId=${session?.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/events?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
-        fetchEvents(session!.id);
+        fetchEvents();
       }
     } catch (error) {
       console.error('Error deleting event:', error);
@@ -90,10 +91,10 @@ export default function AdminEventsPage() {
       const res = await fetch(`/api/admin/events`, { 
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, userId: session?.id, status })
+        body: JSON.stringify({ id, status })
       });
       if (res.ok) {
-        fetchEvents(session!.id);
+        fetchEvents();
       } else {
         const data = await res.json();
         alert(data.error);
@@ -154,7 +155,6 @@ export default function AdminEventsPage() {
         title: formData.title,
         description: formData.description,
         image_url: imageUrl,
-        userId: session?.id
       };
 
       const res = await fetch('/api/admin/events', {
@@ -166,7 +166,7 @@ export default function AdminEventsPage() {
       if (res.ok) {
         setFormData({ title: '', category: 'Club Events', description: '', image: null, existingImageUrl: '' });
         setEditingId(null);
-        fetchEvents(session!.id);
+        fetchEvents();
       } else {
         const errorData = await res.json();
         alert(`Failed to save event: ${errorData.error}`);

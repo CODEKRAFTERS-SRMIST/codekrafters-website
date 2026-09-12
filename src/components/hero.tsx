@@ -312,7 +312,7 @@ const Hero: React.FC = () => {
           </div>
 
           <div ref={arrowRef} className="hidden lg:flex items-center gap-2 mt-8">
-            <Image src="/logo.png" alt="scroll" width={28} height={28} />
+            <Image src="/logo.png" alt="CodeKrafters SRM Official Logo" width={28} height={28} />
             <span className="text-white/70 tracking-widest text-xs">
               SCROLL DOWN
             </span>
@@ -329,12 +329,20 @@ const Hero: React.FC = () => {
             {images.map((src, i) => (
               <div
                 key={src}
-                className="absolute inset-0 bg-cover bg-center transition-opacity duration-700"
-                style={{
-                  backgroundImage: `url('${src}')`,
-                  opacity: index === i ? 1 : 0,
-                }}
-              />
+                className={`absolute inset-0 transition-opacity duration-700 ${
+                  index === i ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
+              >
+                <Image
+                  src={src}
+                  alt="CodeKrafters community showcase"
+                  fill
+                  priority={i === 0}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 850px"
+                  className="object-cover"
+                />
+              </div>
             ))}
 
             <button

@@ -233,7 +233,7 @@ const SponsorsComponent: React.FC = () => {
       <div className="text-center mb-16 px-4 z-10">
         <h2 className="text-5xl md:text-7xl font-black mb-6 tracking-tight">
           <span className="text-[#0b1220]">LOVED BY</span>{" "}
-          <span className="text-[#F2B200]">SPONSORS</span>
+          <span className="text-[#995200]">SPONSORS</span>
         </h2>
         <p className="text-[#0b1220]/70 text-sm md:text-base max-w-2xl mx-auto tracking-wide">
           Creators worldwide trust our community for their innovation needs

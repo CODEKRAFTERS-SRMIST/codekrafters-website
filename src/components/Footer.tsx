@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Instagram, Linkedin } from "lucide-react";
+import { Instagram, Linkedin, Github } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -34,11 +34,15 @@ export default function Footer() {
             </div>
 
             <p className="mt-3 text-sm text-[#FFEFB4]/70 text-center lg:text-left leading-relaxed">
-              <span>A student-driven tech club</span>
+              <span>A student-driven tech community</span>
               <span className="text-[#FFEFB4]/80 mt-1">
                 {" "}at SRM Ramapuram
               </span>
             </p>
+            <address className="mt-2 not-italic text-xs text-[#FFEFB4]/60 text-center lg:text-left leading-relaxed">
+              SRM Institute of Science & Technology<br />
+              Bharathi Salai, Ramapuram, Chennai 600089
+            </address>
           </div>
         </div>
 
@@ -62,8 +66,9 @@ export default function Footer() {
           <ul className="space-y-3 text-sm">
             <li>
               <a
-                href="https://www.instagram.com/codekrafterssrm.rmp/"
+                href="https://www.instagram.com/codekrafterssrm/"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 text-white hover:text-[#F2A516]"
               >
                 <Instagram className="w-4 h-4" />
@@ -72,12 +77,24 @@ export default function Footer() {
             </li>
             <li>
               <a
-                href="https://www.linkedin.com/company/codechef-srmrmp/"
+                href="https://www.linkedin.com/company/codekrafters-srm/"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 text-white hover:text-[#F2A516]"
               >
                 <Linkedin className="w-4 h-4" />
                 LinkedIn
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://github.com/CODEKRAFTERS-SRMIST"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-white hover:text-[#F2A516]"
+              >
+                <Github className="w-4 h-4" />
+                GitHub
               </a>
             </li>
           </ul>
@@ -91,6 +108,7 @@ export default function Footer() {
           <ul className="space-y-2 text-sm text-white">
             <li><a href="https://ck-blog-platform.vercel.app/" className="hover:text-[#F2A516]">Blog</a></li>
             <li><Link href="/krafterslink" className="hover:text-[#F2A516]">KraftersLink</Link></li>
+            <li><Link href="/faq" className="hover:text-[#F2A516]">FAQ</Link></li>
           </ul>
         </div>
 

@@ -29,5 +29,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: 'https://codekraftersrmp.in/sitemap.xml',
+    host: 'https://codekraftersrmp.in',
   };
 }

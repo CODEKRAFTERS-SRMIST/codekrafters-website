@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
-import { clearSession } from "@/lib/session";
+import { getSession, clearSession, invalidateUserSessions } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST() {
   try {
+    const session = await getSession();
+    if (session?.id) {
+      await invalidateUserSessions(session.id);
+    }
+
     await clearSession();
     try {
       const supabase = await createClient();
