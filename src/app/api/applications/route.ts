@@ -80,7 +80,7 @@ export async function GET(request: Request) {
     if (error) throw error;
 
     const mappedApplications = (data || []).map((row: any) => {
-      let app = mapAppFromDB(row);
+      const app = mapAppFromDB(row);
 
       // Dynamic automatic status progression:
       // 1. If timeline in Phase 2 & tasks active, 'Applied' auto-becomes 'Task Ongoing'

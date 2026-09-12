@@ -21,11 +21,15 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'ik.imagekit.io',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
-  eslint: {
-  ignoreDuringBuilds: true,
-},
+
   async headers() {
     return [
       {

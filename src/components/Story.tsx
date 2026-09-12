@@ -73,8 +73,8 @@ function StoryComponent() {
                   endTrigger: anotherDivRef.current,
                 },
               })
-              .to(smthDivRef.current.querySelector('img[src="/story/srm-bg-png-mob.png"]'), { transform: "translateZ(2200px)" })
-              .to(smthDivRef.current.querySelector('img[src="/story/man-entering-png-mob.png"]'), { opacity: 1 })
+              .to(smthDivRef.current.querySelector('img[src="https://ik.imagekit.io/ysfz8n1no/public/story/srm-bg-png-mob.png"]'), { transform: "translateZ(2200px)" })
+              .to(smthDivRef.current.querySelector('img[src="https://ik.imagekit.io/ysfz8n1no/public/story/man-entering-png-mob.png"]'), { opacity: 1 })
               .pause();
           }
         },
@@ -259,14 +259,14 @@ function StoryComponent() {
       >
         {/* Desktop first section images */}
         <img
-          src="/story/srm-bg-cropped-png.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/srm-bg-cropped-png.png"
           alt="Your clg bruv"
           className="z-10 w-full h-full absolute hidden md:block"
           id="zoom-in"
           ref={bgLg}
         />
         <img
-          src="/story/man-entering-png.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/man-entering-png.png"
           alt="Goi Entering SRM"
           className="z-0 w-full h-full absolute opacity-0 hidden md:block"
           ref={manEnteringRef}
@@ -274,12 +274,12 @@ function StoryComponent() {
 
         {/* Mobile first section images */}
         <img
-          src="/story/srm-bg-png-mob.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/srm-bg-png-mob.png"
           alt="Your clg bruv (mobile)"
           className="z-10 w-full h-full absolute md:hidden"
         />
         <img
-          src="/story/man-entering-png-mob.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/man-entering-png-mob.png"
           alt="Goi Entering SRM (mobile)"
           className="z-0 w-full h-full absolute opacity-0 md:hidden"
           id="man-entering-mob"
@@ -303,21 +303,21 @@ function StoryComponent() {
         >
           <div className="z-20 flex items-center justify-center">
             <img
-              src="/story/comment-1-png.png"
+              src="https://ik.imagekit.io/ysfz8n1no/public/story/comment-1-png.png"
               alt=""
               className="absolute w-1/4 h-1/4 opacity-0 left-60 bottom-40"
               id="comment-1"
               ref={commentOneRef}
             />{" "}
             <img
-              src="/story/comment-2-png.png"
+              src="https://ik.imagekit.io/ysfz8n1no/public/story/comment-2-png.png"
               alt=""
               className="absolute w-1/4 h-1/4 opacity-0 left-80 bottom-50"
               id="comment-2"
               ref={commentTwoRef}
             />
             <img
-              src="/story/comment-3-png.png"
+              src="https://ik.imagekit.io/ysfz8n1no/public/story/comment-3-png.png"
               alt=""
               className="absolute w-1/4 h-1/4 opacity-0 left-10 bottom-10"
               id="comment-3"
@@ -325,7 +325,7 @@ function StoryComponent() {
             />
           </div>
           <img
-            src="/story/oat-with-man-png.png"
+            src="https://ik.imagekit.io/ysfz8n1no/public/story/oat-with-man-png.png"
             alt="Panicked Goi"
             className="z-10 w-full h-full"
           />
@@ -338,26 +338,26 @@ function StoryComponent() {
         >
           <div className="z-20 flex items-center justify-center">
             <img
-              src="/story/comment-1-png.png"
+              src="https://ik.imagekit.io/ysfz8n1no/public/story/comment-1-png.png"
               alt=""
               className="absolute w-1/4 h-1/4 opacity-0 left-5 bottom-10"
               id="comment-1-mob"
             />
             <img
-              src="/story/comment-2-png.png"
+              src="https://ik.imagekit.io/ysfz8n1no/public/story/comment-2-png.png"
               alt=""
               className="absolute w-1/4 h-1/4 opacity-0 left-15 -bottom-10"
               id="comment-2-mob"
             />
             <img
-              src="/story/comment-3-png.png"
+              src="https://ik.imagekit.io/ysfz8n1no/public/story/comment-3-png.png"
               alt=""
               className="absolute w-1/4 h-1/4 opacity-0 left-8 -bottom-25"
               id="comment-3-mob"
             />
           </div>
           <img
-            src="/story/oat-man-with-bg-png-mob.png"
+            src="https://ik.imagekit.io/ysfz8n1no/public/story/oat-man-with-bg-png-mob.png"
             alt="Panicked Goi (mobile)"
             className="z-10 w-full h-full"
           />
@@ -365,14 +365,14 @@ function StoryComponent() {
 
         {/* Desktop shocked man background */}
         <img
-          src="/story/shocked-man-bg-png.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/shocked-man-bg-png.png"
           className="h-full w-full absolute z-0 overflow-y-hidden hidden md:block"
           ref={sideLookingRef}
         />
 
         {/* Mobile shocked man background */}
         <img
-          src="/story/shocked-man-png-mob.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/shocked-man-png-mob.png"
           className="h-full w-full absolute z-0 overflow-y-hidden md:hidden"
         />
       </div>
@@ -383,20 +383,20 @@ function StoryComponent() {
       >
         {/* Desktop walking images */}
         <img
-          src="/story/oat-walking-bg-png.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/oat-walking-bg-png.png"
           alt="Goi walking"
           className="w-full h-full absolute z-10 hidden md:block"
           ref={walkingManRef}
         />
         <img
-          src="/story/ck-png.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/ck-png.png"
           alt="Goi walking"
           className="w-full h-full absolute z-0 hidden md:block"
           id="ck"
           ref={ckRef}
         />
         <img
-          src="/story/moi-png.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/moi-png.png"
           alt="Ck moi"
           className="w-full h-full absolute -z-10 hidden md:block"
           ref={moiRef}
@@ -404,20 +404,20 @@ function StoryComponent() {
 
         {/* Mobile walking images */}
         <img
-          src="/story/oat-walking-bg-png-mob.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/oat-walking-bg-png-mob.png"
           alt="Goi walking (mob)"
           className="w-full h-full absolute z-10 md:hidden"
           ref={walkingManMobRef}
         />
         <img
-          src="/story/ck-png-mob.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/ck-png-mob.png"
           alt="Goi walking (mob)"
           className="w-full h-full absolute z-0 md:hidden"
           id="ck-mob"
           ref={ckMobRef}
         />
         <img
-          src="/story/moi-png-mob.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/moi-png-mob.png"
           alt="Ck moi (mob)"
           className="w-full h-full absolute -z-10 md:hidden"
           ref={moiMobRef}
@@ -429,13 +429,13 @@ function StoryComponent() {
       >
         {/* Desktop badge section */}
         <img
-          src="/story/man-ck-badge-png.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/man-ck-badge-png.png"
           alt="Man kuthifying ck badge"
           className="z-0 w-full h-full hidden md:block"
           id="man-with-badge"
         />
         <img
-          src="/story/placement-png.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/placement-png.png"
           alt="My goi got placedd!!"
           className="absolute -z-10 w-full h-full hidden md:block"
           id="placement"
@@ -443,13 +443,13 @@ function StoryComponent() {
 
         {/* Mobile badge section */}
         <img
-          src="/story/man-ck-badge-png-mob.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/man-ck-badge-png-mob.png"
           alt="Man kuthifying ck badge (mobile)"
           className="z-0 w-full h-full md:hidden"
           id="man-with-badge-mob"
         />
         <img
-          src="/story/placement-png-mob.png"
+          src="https://ik.imagekit.io/ysfz8n1no/public/story/placement-png-mob.png"
           alt="My goi got placedd!! (mobile)"
           className="absolute -z-10 w-full h-full md:hidden"
           id="placement-mob"

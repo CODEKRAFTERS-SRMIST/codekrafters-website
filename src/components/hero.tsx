@@ -5,8 +5,19 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { Laptop, X } from "lucide-react"
+import { getImageKitUrl } from "@/lib/imagekit"
 
-gsap.registerPlugin(ScrollTrigger)
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger)
+}
+
+interface Milestone {
+  value: number
+  prefix?: string
+  suffix: string
+  label: string
+}
 
 const Hero: React.FC = () => {
   const imageRef = useRef<HTMLDivElement | null>(null)
@@ -14,14 +25,19 @@ const Hero: React.FC = () => {
   const leftRailRef = useRef<HTMLDivElement | null>(null)
   const codekraftersRef = useRef<HTMLHeadingElement | null>(null)
   const milestonesRef = useRef<HTMLDivElement | null>(null)
+  const [isNoticeDismissed, setIsNoticeDismissed] = useState(false)
 
   const taglineLines = useMemo(() => ["IT'S", "MORE THAN", "A CLUB"], [])
 
-  const milestones = [
-    { value: 7, suffix: "", label: "DOMAINS" },
-    { value: 150, suffix: "+", label: "MEMBERS" },
-    { value: 10, suffix: "+", label: "EVENTS" },
-  ]
+  const milestones: Milestone[] = useMemo(
+    () => [
+      { value: 7, suffix: "", label: "DOMAINS" },
+      { value: 150, suffix: "+", label: "MEMBERS" },
+      { value: 30, suffix: "+", label: "EVENTS" },
+      { value: 5, prefix: "₹", suffix: "L+", label: "BOUNTIES WON" },
+    ],
+    []
+  )
 
   const [counters, setCounters] = useState(milestones.map(() => 0))
 
@@ -37,9 +53,8 @@ const Hero: React.FC = () => {
     ))
 
   const images = [
-    "/hero-img/core.jpeg",
-    "/hero-img/group3.jpg",
-
+    getImageKitUrl("/hero-img/core.jpeg"),
+    getImageKitUrl("/hero-img/group3.jpg"),
   ]
 
   const [index, setIndex] = useState(0)
@@ -57,7 +72,7 @@ const Hero: React.FC = () => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [])
+  }, [images.length])
 
   const goto = (n: number) => {
     setIndex(((n % images.length) + images.length) % images.length)
@@ -71,7 +86,7 @@ const Hero: React.FC = () => {
     const img = imageRef.current
     if (!img) return
 
-    gsap.to(img, {
+    const breathingTween = gsap.to(img, {
       keyframes: [
         { y: -6, rotate: 0.3, duration: 2.2 },
         { y: 0, rotate: 0, duration: 2.2 },
@@ -95,6 +110,7 @@ const Hero: React.FC = () => {
     img.addEventListener("mouseleave", leave)
 
     return () => {
+      breathingTween.kill()
       img.removeEventListener("mouseenter", enter)
       img.removeEventListener("mouseleave", leave)
     }
@@ -152,7 +168,7 @@ const Hero: React.FC = () => {
         gsap.to(obj, {
           val: milestone.value,
           duration: 2,
-          delay: 0.8 + idx * 0.2,
+          delay: 0.8 + idx * 0.15,
           ease: "power2.out",
           onUpdate: () => {
             setCounters((prev) => {
@@ -166,7 +182,7 @@ const Hero: React.FC = () => {
     }, milestonesRef)
 
     return () => ctx.revert()
-  }, [])
+  }, [milestones])
 
   /* BACKGROUND rotation on scroll */
   useEffect(() => {
@@ -175,25 +191,29 @@ const Hero: React.FC = () => {
 
     if (!yellow || !black) return
 
-    gsap.to(yellow, {
-      rotation: -8,
-      scrollTrigger: {
-        trigger: "#home",
-        start: "top top",
-        end: "bottom top",
-        scrub: 1,
-      },
+    const ctx = gsap.context(() => {
+      gsap.to(yellow, {
+        rotation: -8,
+        scrollTrigger: {
+          trigger: "#home",
+          start: "top top",
+          end: "bottom top",
+          scrub: 1,
+        },
+      })
+
+      gsap.to(black, {
+        rotation: 8,
+        scrollTrigger: {
+          trigger: "#home",
+          start: "top top",
+          end: "bottom top",
+          scrub: 1,
+        },
+      })
     })
 
-    gsap.to(black, {
-      rotation: 8,
-      scrollTrigger: {
-        trigger: "#home",
-        start: "top top",
-        end: "bottom top",
-        scrub: 1,
-      },
-    })
+    return () => ctx.revert()
   }, [])
 
   /* CODEKRAFTERS hover */
@@ -248,20 +268,22 @@ const Hero: React.FC = () => {
       <div className="absolute inset-0 pointer-events-none">
         <div className="bg-layer-yellow absolute top-[-18%] left-[-10%] w-[140%] h-[58%] bg-[#F9B000] rotate-[5deg] opacity-[0.15]" />
         <div className="bg-layer-black absolute top-[32%] left-[-10%] w-[150%] h-[50%] bg-[#111111] rotate-[-6deg] opacity-[0.45]" />
-      </div>      {/* MAIN */}
-      <div className="relative flex flex-col lg:flex-row flex-1 px-6 pt-35 lg:pt-20 gap-8">
+      </div>
+
+      {/* MAIN */}
+      <div className="relative flex flex-col lg:flex-row flex-1 px-6 pt-35 lg:pt-20 gap-8 items-center lg:items-start">
         {/* LEFT */}
         <div
           ref={leftRailRef}
-          className="flex flex-col justify-start md:justify-center items-center lg:items-start w-full lg:w-[45%] text-center lg:text-left"
+          className="flex flex-col justify-start md:justify-center items-center lg:items-start w-full lg:w-[44%] text-center lg:text-left"
         >
-          <div className="max-w-[600px]">
+          <div className="max-w-[680px]">
             {taglineLines.map((line, i) => (
               <div
                 key={line}
-                className="slot-line font-extrabold leading-[0.86]"
+                className="slot-line font-extrabold leading-[0.88]"
                 style={{
-                  fontSize: "clamp(2rem, 6vw, 4.5rem)",
+                  fontSize: "clamp(2.75rem, 6.8vw, 5.5rem)",
                   color: i % 2 === 0 ? "#F9B000" : "#FFFFFF",
                 }}
               >
@@ -270,18 +292,19 @@ const Hero: React.FC = () => {
             ))}
           </div>
 
-          {/* MILESTONES - Desktop only */}
+          {/* MILESTONES - Desktop only (4 items) */}
           <div
             ref={milestonesRef}
-            className="hidden lg:grid grid-cols-3 gap-6 mt-10 max-w-[600px]"
+            className="hidden lg:grid grid-cols-4 gap-4 xl:gap-6 mt-8 max-w-[680px] w-full"
           >
             {milestones.map((m, i) => (
-              <div key={i} className="text-center">
-                <div className="text-[#F9B000] font-black text-6xl">
+              <div key={i} className="text-center lg:text-left">
+                <div className="text-[#F9B000] font-black text-4xl xl:text-5xl tracking-tight whitespace-nowrap">
+                  {m.prefix || ""}
                   {counters[i]}
                   {m.suffix}
                 </div>
-                <div className="text-white/70 tracking-widest text-s mt-2">
+                <div className="text-white/70 tracking-wider text-[11px] xl:text-xs mt-1.5 uppercase font-semibold whitespace-nowrap">
                   {m.label}
                 </div>
               </div>
@@ -296,12 +319,12 @@ const Hero: React.FC = () => {
           </div>
         </div>
 
-        {/* RIGHT */}
-        <div className="flex flex-col justify-center items-center lg:ml-10 w-full lg:w-[55%]">
+        {/* RIGHT - Enlarged Hero Card */}
+        <div className="flex flex-col justify-center items-center lg:items-end w-full lg:w-[56%]">
           <div
             ref={imageRef}
-            className="relative rounded-[2rem] overflow-hidden border-[4px] border-[#F9B000] shadow-[20px_20px_0_rgba(0,0,0,0.8)] w-[95%] sm:w-[95%] lg:w-[95%] max-w-[800px] lg:-ml-12 z-10"
-            style={{ height: "clamp(300px, 48vh, 580px)" }}
+            className="relative rounded-[2rem] overflow-hidden border-[4px] border-[#F9B000] shadow-[20px_20px_0_rgba(0,0,0,0.8)] w-full max-w-[940px] lg:-ml-6 z-10"
+            style={{ height: "clamp(350px, 54vh, 640px)" }}
           >
             {images.map((src, i) => (
               <div
@@ -316,27 +339,30 @@ const Hero: React.FC = () => {
 
             <button
               onClick={prev}
-              className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 rounded-full w-9 h-9 flex items-center justify-center text-white"
+              aria-label="Previous slide"
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 rounded-full w-10 h-10 flex items-center justify-center text-white hover:bg-black/80 transition-colors text-lg"
             >
               ‹
             </button>
             <button
               onClick={next}
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 rounded-full w-9 h-9 flex items-center justify-center text-white"
+              aria-label="Next slide"
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 rounded-full w-10 h-10 flex items-center justify-center text-white hover:bg-black/80 transition-colors text-lg"
             >
               ›
             </button>
           </div>
 
           {/* MILESTONES - Mobile/Tablet only (below image) */}
-          <div className="grid grid-cols-3 gap-6 mt-8 lg:hidden w-full max-w-[560px]">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 lg:hidden w-full max-w-[620px]">
             {milestones.map((m, i) => (
               <div key={i} className="text-center">
-                <div className="text-[#F9B000] font-black text-4xl sm:text-5xl">
+                <div className="text-[#F9B000] font-black text-3xl sm:text-4xl tracking-tight">
+                  {m.prefix || ""}
                   {counters[i]}
                   {m.suffix}
                 </div>
-                <div className="text-white/70 tracking-widest text-xs sm:text-sm mt-1">
+                <div className="text-white/70 tracking-widest text-[11px] sm:text-xs mt-1 uppercase font-medium">
                   {m.label}
                 </div>
               </div>
@@ -363,6 +389,29 @@ const Hero: React.FC = () => {
           ))}
         </h1>
       </div>
+
+      {/* LAPTOP / DESKTOP EXPERIENCE NOTIFICATION POPUP */}
+      {!isNoticeDismissed && (
+        <div className="fixed bottom-5 right-4 left-4 sm:left-auto sm:right-6 max-w-md z-50 animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className="relative flex items-center gap-3 py-3 px-4 rounded-2xl bg-[#0d0d10]/95 border border-[#F9B000]/40 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] text-white select-none">
+            <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-[#F9B000]/15 border border-[#F9B000]/30 flex items-center justify-center text-[#F9B000]">
+              <Laptop className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
+            </div>
+            <div className="flex-1 pr-1">
+              <p className="text-xs sm:text-sm font-medium text-white/90 leading-tight">
+                For the best experience, please open this website on a <span className="text-[#F9B000] font-semibold">laptop or desktop</span>.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsNoticeDismissed(true)}
+              aria-label="Dismiss notification"
+              className="flex-shrink-0 p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
