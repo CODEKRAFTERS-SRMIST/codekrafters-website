@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     siteName: "CodeKrafters SRM",
     images: [
       {
-        url: "/opengraph-image",
+        url: "/logo.png",
         width: 1200,
         height: 630,
         alt: "CodeKrafters SRM — Premier Student Tech Community & Developer Club",
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     title: "CodeKrafters SRM — Premier Student Tech Community",
     description:
       "7 domains. Real projects. 500+ student developers. Join CodeKrafters at SRM Ramapuram.",
-    images: ["/opengraph-image"],
+    images: ["/logo.png"],
     creator: "@codekrafterssrm",
   },
   robots: {

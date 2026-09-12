@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     siteName: "CodeKrafters SRM",
     images: [
       {
-        url: "/opengraph-image",
+        url: "/logo.png",
         width: 1200,
         height: 630,
         alt: "CodeKrafters SRM Projects",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     title: "Student Developer Projects & Open Source | CodeKrafters SRM",
     description:
       "Explore software and tools built by CodeKrafters student engineers at SRM Ramapuram.",
-    images: ["/opengraph-image"],
+    images: ["/logo.png"],
   },
 };
 

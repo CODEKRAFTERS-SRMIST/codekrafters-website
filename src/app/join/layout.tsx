@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     siteName: "CodeKrafters SRM",
     images: [
       {
-        url: "/opengraph-image",
+        url: "/logo.png",
         width: 1200,
         height: 630,
         alt: "Join CodeKrafters SRM",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     title: "Join CodeKrafters SRM | Apply for 2026 Student Recruitment",
     description:
       "Applications are open! Join CodeKrafters across 7 technical and creative domains at SRM Ramapuram.",
-    images: ["/opengraph-image"],
+    images: ["/logo.png"],
   },
 };
 
