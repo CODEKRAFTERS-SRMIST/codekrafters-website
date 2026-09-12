@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     siteName: "CodeKrafters SRM",
     images: [
       {
-        url: "/opengraph-image",
+        url: "/logo.png",
         width: 1200,
         height: 630,
         alt: "CodeKrafters SRM FAQ",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     title: "Frequently Asked Questions (FAQ) | CodeKrafters SRM",
     description:
       "Everything you need to know about CodeKrafters SRM: domains, recruitment tasks, hackathons, and events.",
-    images: ["/opengraph-image"],
+    images: ["/logo.png"],
   },
 };
 

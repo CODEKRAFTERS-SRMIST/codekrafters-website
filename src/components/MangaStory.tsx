@@ -4,7 +4,6 @@ import React, { useEffect, useRef } from "react";
 import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { getImageKitUrl } from "@/lib/imagekit";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -28,11 +27,11 @@ interface MangaPageData {
 const MANGA_PAGES: MangaPageData[] = [
   {
     pageNumber: 1,
-    baseImage: getImageKitUrl("/manga_art/manga page1.png"),
+    baseImage: "/manga_art/manga page1.png",
     bubbles: [
       {
         id: "p1-b1",
-        src: getImageKitUrl("/manga_art/cutouts/page1_box1.png"),
+        src: "/manga_art/cutouts/page1_box1.png",
         alt: "Who leaves a USB lying around?",
         left: "28.44%",
         top: "10.56%",
@@ -40,7 +39,7 @@ const MANGA_PAGES: MangaPageData[] = [
       },
       {
         id: "p1-b2",
-        src: getImageKitUrl("/manga_art/cutouts/page1_box2.png"),
+        src: "/manga_art/cutouts/page1_box2.png",
         alt: "Okay...",
         left: "16.41%",
         top: "60.42%",
@@ -50,11 +49,11 @@ const MANGA_PAGES: MangaPageData[] = [
   },
   {
     pageNumber: 2,
-    baseImage: getImageKitUrl("/manga_art/manga page2.png"),
+    baseImage: "/manga_art/manga page2.png",
     bubbles: [
       {
         id: "p2-b1",
-        src: getImageKitUrl("/manga_art/cutouts/page2_box1.png"),
+        src: "/manga_art/cutouts/page2_box1.png",
         alt: "Wait... this is actually so much",
         left: "61.25%",
         top: "10.83%",
@@ -62,7 +61,7 @@ const MANGA_PAGES: MangaPageData[] = [
       },
       {
         id: "p2-b2",
-        src: getImageKitUrl("/manga_art/cutouts/page2_box2.png"),
+        src: "/manga_art/cutouts/page2_box2.png",
         alt: "But where??",
         left: "87.73%",
         top: "16.39%",
@@ -70,7 +69,7 @@ const MANGA_PAGES: MangaPageData[] = [
       },
       {
         id: "p2-b3",
-        src: getImageKitUrl("/manga_art/cutouts/page2_box3.png"),
+        src: "/manga_art/cutouts/page2_box3.png",
         alt: "Hope!!! I've found them",
         left: "14.38%",
         top: "67.50%",
@@ -80,11 +79,11 @@ const MANGA_PAGES: MangaPageData[] = [
   },
   {
     pageNumber: 3,
-    baseImage: getImageKitUrl("/manga_art/manga page 3.png"),
+    baseImage: "/manga_art/manga page 3.png",
     bubbles: [
       {
         id: "p3-b1",
-        src: getImageKitUrl("/manga_art/cutouts/page3_box1.png"),
+        src: "/manga_art/cutouts/page3_box1.png",
         alt: "So, you guys just... learn stuff??",
         left: "11.88%",
         top: "3.89%",
@@ -92,7 +91,7 @@ const MANGA_PAGES: MangaPageData[] = [
       },
       {
         id: "p3-b2",
-        src: getImageKitUrl("/manga_art/cutouts/page3_box2.png"),
+        src: "/manga_art/cutouts/page3_box2.png",
         alt: "Nah.. we build projects, get internships, attend workshop and make friends",
         left: "58.67%",
         top: "2.08%",
@@ -100,7 +99,7 @@ const MANGA_PAGES: MangaPageData[] = [
       },
       {
         id: "p3-b3",
-        src: getImageKitUrl("/manga_art/cutouts/page3_box3.png"),
+        src: "/manga_art/cutouts/page3_box3.png",
         alt: "And a lot more....",
         left: "83.59%",
         top: "10.14%",
@@ -108,7 +107,7 @@ const MANGA_PAGES: MangaPageData[] = [
       },
       {
         id: "p3-b4",
-        src: getImageKitUrl("/manga_art/cutouts/page4_box4.png"),
+        src: "/manga_art/cutouts/page4_box4.png",
         alt: "This feels right. I'm in.",
         left: "45.50%",
         top: "56.50%",
@@ -118,7 +117,7 @@ const MANGA_PAGES: MangaPageData[] = [
   },
   {
     pageNumber: 4,
-    baseImage: getImageKitUrl("/manga_art/manga page4.png"),
+    baseImage: "/manga_art/manga page4.png",
     bubbles: [],
   },
 ];

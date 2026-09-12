@@ -1,7 +1,8 @@
 export const IMAGEKIT_BASE_URL = "https://ik.imagekit.io/ysfz8n1no/public";
 
 /**
- * Returns the full ImageKit URL for a relative public asset path.
+ * Returns the full ImageKit URL for a relative public asset path or remote image.
+ * Handles automatic encoding of spaces and special characters.
  * Example: "/hero-img/core.jpeg" -> "https://ik.imagekit.io/ysfz8n1no/public/hero-img/core.jpeg"
  */
 export function getImageKitUrl(relativePath: string): string {

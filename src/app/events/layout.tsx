@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     siteName: "CodeKrafters SRM",
     images: [
       {
-        url: "/opengraph-image",
+        url: "/logo.png",
         width: 1200,
         height: 630,
         alt: "CodeKrafters SRM Tech Events",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     title: "Tech Events & Hackathons 2026 | CodeKrafters SRM",
     description:
       "Join coding workshops, student hackathons, and developer meetups hosted by CodeKrafters SRM.",
-    images: ["/opengraph-image"],
+    images: ["/logo.png"],
   },
 };
 

@@ -329,9 +329,8 @@ const Hero: React.FC = () => {
             {images.map((src, i) => (
               <div
                 key={src}
-                className={`absolute inset-0 transition-opacity duration-700 ${
-                  index === i ? "opacity-100" : "opacity-0 pointer-events-none"
-                }`}
+                className={`absolute inset-0 transition-opacity duration-700 ${index === i ? "opacity-100" : "opacity-0 pointer-events-none"
+                  }`}
               >
                 <Image
                   src={src}
