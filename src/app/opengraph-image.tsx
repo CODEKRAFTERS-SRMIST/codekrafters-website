@@ -1,6 +1,5 @@
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
 export const alt = "CodeKrafters SRM — Premier Student Tech Community";
 export const size = {
   width: 1200,
