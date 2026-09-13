@@ -37,8 +37,11 @@ import {
   Save,
   Calendar,
   ArrowLeft,
+  Mail,
+  Send,
 } from "lucide-react";
 import { RECRUITMENT_TIMELINE_STEPS } from "@/data/recruitmentTasks";
+import { SendEmailModal, EmailModalMode } from "./SendEmailModal";
 
 interface AdminDashboardProps {
   session: UserSession;
@@ -50,7 +53,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
-  const [activeTab, setActiveTab] = useState<"APPLICATIONS" | "USERS" | "SETTINGS">("APPLICATIONS");
+  const [activeTab, setActiveTab] = useState<"APPLICATIONS" | "USERS" | "SETTINGS" | "EMAIL_CENTER">("APPLICATIONS");
   const [systemUsers, setSystemUsers] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
@@ -64,6 +67,14 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
   const [tasksVisible, setTasksVisible] = useState<boolean>(false);
   const [savingSettings, setSavingSettings] = useState<boolean>(false);
   const [settingsSavedToast, setSettingsSavedToast] = useState<string | null>(null);
+
+  // Email Modal State
+  const [emailModalOpen, setEmailModalOpen] = useState<boolean>(false);
+  const [emailModalMode, setEmailModalMode] = useState<EmailModalMode>("SHORTLIST_INDIVIDUAL");
+  const [emailTargetApp, setEmailTargetApp] = useState<Application | null>(null);
+
+  // Candidate Inspector Tab State
+  const [inspectorTab, setInspectorTab] = useState<"PROFILE" | "ANSWERS" | "TASK" | "EVALUATION">("PROFILE");
 
   useEffect(() => {
     fetch("/api/admin/recruitment-settings")
@@ -238,11 +249,12 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
     return { total, applied, taskOngoing, taskCompleted, underReview, shortlisted, interviewed, accepted };
   }, [filteredApplications]);
 
-  const openInspector = (app: Application) => {
+  const openInspector = (app: Application, tab: "PROFILE" | "ANSWERS" | "TASK" | "EVALUATION" = "PROFILE") => {
     setSelectedApp(app);
     setEditingStatus(app.status);
     setEditingNotes(app.adminNotes || "");
     setEditingRating(app.rating || 0);
+    setInspectorTab(tab);
   };
 
   const showToast = (message: string) => {
@@ -392,7 +404,20 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+        <div className="flex items-center gap-3 w-full md:w-auto justify-end flex-wrap">
+          {/* Send Emails / Email Center Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setEmailModalMode("SHORTLIST_BATCH");
+              setEmailTargetApp(null);
+              setEmailModalOpen(true);
+            }}
+            className="flex items-center gap-2 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-full border-2 border-[#0D0D0D] shadow-[3px_3px_0_#F2A516] hover:translate-y-[-2px] transition-all cursor-pointer"
+          >
+            <Mail className="w-4 h-4 text-[#F2A516]" /> Email Candidates ✉️
+          </button>
+
           {activeTab === "APPLICATIONS" && (
             <button
               onClick={handleExportCSV}
@@ -440,28 +465,39 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
         </div>
       )}
 
-      {(session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT") && (
-        <div className="flex flex-wrap gap-2 sm:gap-4 border-b-2 border-[#0D0D0D] pb-2">
-          <button
-            onClick={() => setActiveTab("APPLICATIONS")}
-            className={`font-extrabold text-sm sm:text-base px-4 py-2 rounded-t-xl transition-colors ${activeTab === "APPLICATIONS" ? "bg-[#0D0D0D] text-[#FFEFB4]" : "text-[#0D0D0D] hover:bg-[#0D0D0D]/10"}`}
-          >
-            Applications
-          </button>
+      <div className="flex overflow-x-auto whitespace-nowrap gap-2 sm:gap-4 border-b-2 border-[#0D0D0D] pb-2 custom-scrollbar">
+        <button
+          onClick={() => setActiveTab("APPLICATIONS")}
+          className={`font-extrabold text-sm sm:text-base px-4 py-2 rounded-t-xl transition-colors shrink-0 cursor-pointer ${activeTab === "APPLICATIONS" ? "bg-[#0D0D0D] text-[#FFEFB4]" : "text-[#0D0D0D] hover:bg-[#0D0D0D]/10"}`}
+        >
+          Applications ({filteredApplications.length})
+        </button>
+
+        {(session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT") && (
           <button
             onClick={() => setActiveTab("USERS")}
-            className={`font-extrabold text-sm sm:text-base px-4 py-2 rounded-t-xl transition-colors ${activeTab === "USERS" ? "bg-[#0D0D0D] text-[#FFEFB4]" : "text-[#0D0D0D] hover:bg-[#0D0D0D]/10"}`}
+            className={`font-extrabold text-sm sm:text-base px-4 py-2 rounded-t-xl transition-colors shrink-0 cursor-pointer ${activeTab === "USERS" ? "bg-[#0D0D0D] text-[#FFEFB4]" : "text-[#0D0D0D] hover:bg-[#0D0D0D]/10"}`}
           >
             User Management
           </button>
+        )}
+
+        {(session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT") && (
           <button
             onClick={() => setActiveTab("SETTINGS")}
-            className={`font-extrabold text-sm sm:text-base px-4 py-2 rounded-t-xl transition-colors flex items-center gap-1.5 ${activeTab === "SETTINGS" ? "bg-[#0D0D0D] text-[#FFEFB4]" : "text-[#0D0D0D] hover:bg-[#0D0D0D]/10"}`}
+            className={`font-extrabold text-sm sm:text-base px-4 py-2 rounded-t-xl transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer ${activeTab === "SETTINGS" ? "bg-[#0D0D0D] text-[#FFEFB4]" : "text-[#0D0D0D] hover:bg-[#0D0D0D]/10"}`}
           >
             <Settings className="w-4 h-4" /> Phase & Task Controls
           </button>
-        </div>
-      )}
+        )}
+
+        <button
+          onClick={() => setActiveTab("EMAIL_CENTER")}
+          className={`font-extrabold text-sm sm:text-base px-4 py-2 rounded-t-xl transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer ${activeTab === "EMAIL_CENTER" ? "bg-[#0D0D0D] text-[#FFEFB4]" : "text-[#0D0D0D] hover:bg-[#0D0D0D]/10"}`}
+        >
+          <Mail className="w-4 h-4 text-[#F2A516]" /> Email Center & Broadcasts
+        </button>
+      </div>
 
       {activeTab === "USERS" ? (
         <div className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 shadow-[8px_8px_0_#0D0D0D] space-y-6">
@@ -793,6 +829,234 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
               💡 <strong>Expected Behavior:</strong> In Phase 1, tasks are locked so candidates focus on completing registrations. On 17 September (Phase 2), domain task links are unlocked. On 24 September (Phase 3), task submission links automatically close.
             </div>
           </div>
+
+          {/* Broadcast Tasks Live Announcement Email Card */}
+          <div className="p-5 bg-[#FFF2C6] border-2 border-[#0D0D0D] rounded-2xl shadow-[3px_3px_0_#0D0D0D] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="p-3 bg-[#0D0D0D] text-[#FFEFB4] rounded-2xl border border-[#0D0D0D] shadow-[2px_2px_0_#F2A516] shrink-0">
+                <Mail className="w-6 h-6 text-[#F2A516]" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="font-black text-sm uppercase text-[#0D0D0D]">
+                    Broadcast &quot;Tasks Are Live&quot; Announcement Email
+                  </h4>
+                  <span className="px-2 py-0.5 bg-[#F2A516] text-[#0D0D0D] text-[10px] font-black uppercase rounded">
+                    Resend
+                  </span>
+                </div>
+                <p className="text-xs font-semibold text-gray-700 mt-1">
+                  Notify all registered applicants that domain task problem statements and submission links are officially live.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      ) : activeTab === "EMAIL_CENTER" ? (
+        <div className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 sm:p-8 shadow-[8px_8px_0_#0D0D0D] space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-[#0D0D0D]/10 pb-4">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h3 className="font-black text-xl uppercase text-[#0D0D0D] flex items-center gap-2">
+                  <Mail className="w-6 h-6 text-[#F2A516]" /> Recruitment Email Communications Center
+                </h3>
+                <span className="px-3 py-1 bg-[#F2A516] text-[#0D0D0D] text-xs font-black uppercase rounded-lg border border-[#0D0D0D] shadow-[1px_1px_0_#0D0D0D]">
+                  Resend API
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-[#444444] mt-1">
+                Dispatch automated and customized neo-brutalist emails to applicants, shortlisted interviewees, and newly accepted members.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border-2 border-[#0D0D0D] shadow-[2px_2px_0_#0D0D0D] self-start sm:self-auto">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-xs font-black text-[#0D0D0D]">
+                Sender: <span className="text-[#333333] font-bold">support@codekraftersrmp.in</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Quick Action Email Dispatch Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Card 1: Broadcast Tasks Live */}
+            <div className="bg-[#FFF2C6] border-2 border-[#0D0D0D] rounded-2xl p-5 shadow-[4px_4px_0_#0D0D0D] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] font-black uppercase bg-[#0D0D0D] text-[#FFEFB4] px-2.5 py-1 rounded-md">
+                    Phase 2 Announcement
+                  </span>
+                  <Sparkles className="w-4 h-4 text-[#F2A516]" />
+                </div>
+                <h4 className="font-black text-base uppercase text-[#0D0D0D] mb-1">
+                  Broadcast Tasks Live Notice
+                </h4>
+                <p className="text-xs font-medium text-[#444444] mb-4">
+                  Notify all registered applicants that domain task problem statements and submission links are officially live on the portal.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEmailModalMode("TASKS_LIVE_BROADCAST");
+                  setEmailTargetApp(null);
+                  setEmailModalOpen(true);
+                }}
+                className="w-full py-2.5 px-3 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] rounded-xl font-black text-xs uppercase tracking-wider shadow-[2px_2px_0_#F2A516] flex items-center justify-center gap-1.5 cursor-pointer hover:translate-y-[-1px] transition-all"
+              >
+                <Send className="w-3.5 h-3.5 text-[#F2A516]" /> Compose Task Announcement ➔
+              </button>
+            </div>
+
+            {/* Card 2: Shortlist & Interview Batch */}
+            <div className="bg-purple-100 border-2 border-[#0D0D0D] rounded-2xl p-5 shadow-[4px_4px_0_#0D0D0D] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] font-black uppercase bg-purple-900 text-purple-100 px-2.5 py-1 rounded-md">
+                    {stats.shortlisted} Shortlisted
+                  </span>
+                  <Calendar className="w-4 h-4 text-purple-900" />
+                </div>
+                <h4 className="font-black text-base uppercase text-[#0D0D0D] mb-1">
+                  Email Shortlisted Candidates
+                </h4>
+                <p className="text-xs font-medium text-[#444444] mb-4">
+                  Send interview invitations with Google Meet link, date, time slot, and round guidelines to all shortlisted applicants.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEmailModalMode("SHORTLIST_BATCH");
+                  setEmailTargetApp(null);
+                  setEmailModalOpen(true);
+                }}
+                className="w-full py-2.5 px-3 bg-purple-900 text-white hover:bg-purple-950 rounded-xl font-black text-xs uppercase tracking-wider shadow-[2px_2px_0_#0D0D0D] flex items-center justify-center gap-1.5 cursor-pointer hover:translate-y-[-1px] transition-all"
+              >
+                <Mail className="w-3.5 h-3.5 text-purple-300" /> Send Shortlist Invites ({stats.shortlisted}) ➔
+              </button>
+            </div>
+
+            {/* Card 3: Custom Announcement / Offer */}
+            <div className="bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-2xl p-5 shadow-[4px_4px_0_#0D0D0D] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] font-black uppercase bg-[#F2A516] text-[#0D0D0D] px-2.5 py-1 rounded-md border border-[#0D0D0D]">
+                    {stats.accepted} Accepted Members
+                  </span>
+                  <CheckCircle className="w-4 h-4 text-[#0D0D0D]" />
+                </div>
+                <h4 className="font-black text-base uppercase text-[#0D0D0D] mb-1">
+                  Official Selection Offers
+                </h4>
+                <p className="text-xs font-medium text-[#444444] mb-4">
+                  Send official membership acceptance letters with onboarding links strictly to accepted candidates ({stats.accepted} accepted).
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEmailModalMode("SELECTION_OFFER");
+                  setEmailTargetApp(null);
+                  setEmailModalOpen(true);
+                }}
+                className="w-full py-2.5 px-3 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] rounded-xl font-black text-xs uppercase tracking-wider shadow-[2px_2px_0_#F2A516] flex items-center justify-center gap-1.5 cursor-pointer hover:translate-y-[-1px] transition-all"
+              >
+                <Send className="w-3.5 h-3.5 text-[#F2A516]" /> Send Acceptance Offers ({stats.accepted}) ➔
+              </button>
+            </div>
+          </div>
+
+          {/* Email Templates Gallery & Live Preview Launcher */}
+          <div className="p-5 bg-white border-2 border-[#0D0D0D] rounded-2xl shadow-[4px_4px_0_#0D0D0D] space-y-4">
+            <div className="flex items-center justify-between border-b border-[#0D0D0D]/10 pb-3">
+              <h4 className="font-black text-sm uppercase text-[#0D0D0D] flex items-center gap-2">
+                <Eye className="w-4 h-4 text-[#F2A516]" /> Configured Email Templates (Neo-Brutalist Theme)
+              </h4>
+              <span className="text-xs font-bold text-gray-500">
+                Templates styled with CodeKrafters gold & dark aesthetic
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="p-3.5 bg-[#FFF2C6] rounded-xl border border-[#0D0D0D] flex flex-col justify-between">
+                <div>
+                  <h5 className="font-black text-xs uppercase text-[#0D0D0D] mb-1">1. Shortlist & Interview</h5>
+                  <p className="text-[11px] text-gray-600 mb-3">Interview slot, calendar time, Google Meet link & instructions.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmailModalMode("SHORTLIST_BATCH");
+                    setEmailTargetApp(null);
+                    setEmailModalOpen(true);
+                  }}
+                  className="px-2.5 py-1.5 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] text-[11px] font-black rounded-lg uppercase cursor-pointer"
+                >
+                  Preview Template
+                </button>
+              </div>
+
+              <div className="p-3.5 bg-[#FFF2C6] rounded-xl border border-[#0D0D0D] flex flex-col justify-between">
+                <div>
+                  <h5 className="font-black text-xs uppercase text-[#0D0D0D] mb-1">2. Domain Tasks Live</h5>
+                  <p className="text-[11px] text-gray-600 mb-3">Announcement that domain problem statements and portals are open.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmailModalMode("TASKS_LIVE_BROADCAST");
+                    setEmailTargetApp(null);
+                    setEmailModalOpen(true);
+                  }}
+                  className="px-2.5 py-1.5 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] text-[11px] font-black rounded-lg uppercase cursor-pointer"
+                >
+                  Preview Template
+                </button>
+              </div>
+
+              <div className="p-3.5 bg-[#FFF2C6] rounded-xl border border-[#0D0D0D] flex flex-col justify-between">
+                <div>
+                  <h5 className="font-black text-xs uppercase text-[#0D0D0D] mb-1">3. Selection Offer Letter</h5>
+                  <p className="text-[11px] text-gray-600 mb-3">Formal club acceptance congratulations, welcome pack, onboarding link.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmailModalMode("SELECTION_OFFER");
+                    setEmailTargetApp(null);
+                    setEmailModalOpen(true);
+                  }}
+                  className="px-2.5 py-1.5 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] text-[11px] font-black rounded-lg uppercase cursor-pointer"
+                >
+                  Preview Template
+                </button>
+              </div>
+
+              <div className="p-3.5 bg-[#FFF2C6] rounded-xl border border-[#0D0D0D] flex flex-col justify-between">
+                <div>
+                  <h5 className="font-black text-xs uppercase text-[#0D0D0D] mb-1">4. Custom Broadcast</h5>
+                  <p className="text-[11px] text-gray-600 mb-3">General domain communications, deadlines, and direct updates.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmailModalMode("CUSTOM_UPDATE");
+                    setEmailTargetApp(null);
+                    setEmailModalOpen(true);
+                  }}
+                  className="px-2.5 py-1.5 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] text-[11px] font-black rounded-lg uppercase cursor-pointer"
+                >
+                  Preview Template
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       ) : loading ? (
         <div className="flex justify-center py-20">
@@ -955,13 +1219,28 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
 
       {/* Submissions Table / Cards */}
       <div className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 shadow-[8px_8px_0_#0D0D0D]">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-extrabold text-base uppercase text-[#0D0D0D]">
-            Applicant Submissions ({filteredApplications.length})
-          </h3>
-          <span className="text-xs font-bold text-[#333333]">
-            Click any candidate row to open inspector & score
-          </span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 className="font-extrabold text-base uppercase text-[#0D0D0D]">
+              Applicant Submissions ({filteredApplications.length})
+            </h3>
+            <span className="text-xs font-bold text-[#333333]">
+              Click any candidate row to open inspector & score
+            </span>
+          </div>
+
+          {/* Batch Email to Shortlisted Action (Always Visible) */}
+          <button
+            type="button"
+            onClick={() => {
+              setEmailModalMode("SHORTLIST_BATCH");
+              setEmailTargetApp(null);
+              setEmailModalOpen(true);
+            }}
+            className="px-4 py-2 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] border-2 border-[#0D0D0D] rounded-xl font-black text-xs uppercase shadow-[2px_2px_0_#F2A516] flex items-center gap-1.5 cursor-pointer hover:translate-y-[-1px] transition-all self-start sm:self-auto"
+          >
+            <Mail className="w-3.5 h-3.5 text-[#F2A516]" /> Email Shortlisted Candidates ({stats.shortlisted}) ➔
+          </button>
         </div>
 
         {filteredApplications.length === 0 ? (
@@ -1062,15 +1341,35 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                     </td>
 
                     <td className="p-3 text-right">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openInspector(app);
-                        }}
-                        className="p-2 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] rounded-xl border border-[#0D0D0D] font-bold text-[11px] shadow-[2px_2px_0_#F2A516]"
-                      >
-                        Inspect
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEmailModalMode(
+                              app.status === "Accepted"
+                                ? "SELECTION_OFFER"
+                                : "SHORTLIST_INDIVIDUAL"
+                            );
+                            setEmailTargetApp(app);
+                            setEmailModalOpen(true);
+                          }}
+                          className="px-2.5 py-1.5 bg-[#F2A516] text-[#0D0D0D] hover:bg-[#F2A516]/90 rounded-xl border border-[#0D0D0D] font-black text-[11px] shadow-[2px_2px_0_#0D0D0D] flex items-center gap-1 cursor-pointer whitespace-nowrap hover:translate-y-[-1px] transition-all"
+                          title="Send Email / Interview Invite"
+                        >
+                          <Mail className="w-3.5 h-3.5" /> Email
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openInspector(app);
+                          }}
+                          className="p-1.5 px-3 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] rounded-xl border border-[#0D0D0D] font-bold text-[11px] shadow-[2px_2px_0_#F2A516] cursor-pointer hover:translate-y-[-1px] transition-all"
+                        >
+                          Inspect
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1083,193 +1382,345 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
       {/* Candidate Inspector Modal Drawer */}
       <AnimatePresence>
         {selectedApp && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:p-10 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 lg:p-8 bg-black/60 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 sm:p-10 max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-[12px_12px_0_#0D0D0D] relative"
+              className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-5 sm:p-8 max-w-5xl w-full max-h-[92vh] flex flex-col shadow-[12px_12px_0_#0D0D0D] relative overflow-hidden"
             >
-              {/* Close Button */}
-              <button
-                onClick={() => setSelectedApp(null)}
-                className="absolute top-6 right-6 p-2 rounded-full bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] cursor-pointer shadow-[2px_2px_0_#F2A516] z-10"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Left Column: Candidate Info */}
-                <div className="space-y-8">
-                  {/* Modal Header */}
-                  <div className="border-b-2 border-[#0D0D0D]/10 pb-6 pr-12">
-                    <h2 className="text-3xl sm:text-4xl font-black uppercase text-[#0D0D0D] tracking-tight">
-                      {selectedApp.fullName}
-                    </h2>
-                    <div className="flex flex-wrap items-center gap-3 mt-2">
-                      <p className="text-sm text-[#333333] font-bold bg-white px-3 py-1 rounded-lg border-2 border-[#0D0D0D]">
-                        {selectedApp.email}
-                      </p>
-                      <p className="text-sm text-[#333333] font-bold bg-white px-3 py-1 rounded-lg border-2 border-[#0D0D0D]">
-                        {selectedApp.phone}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Academic & Domain info */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 bg-white border-2 border-[#0D0D0D] rounded-2xl shadow-[3px_3px_0_#0D0D0D]">
-                      <span className="font-extrabold uppercase text-[10px] text-[#F2A516] tracking-wider block mb-1">
-                        Academic Details
-                      </span>
-                      <div className="font-black text-[#0D0D0D] text-lg leading-tight">
-                        {selectedApp.year} <br />
-                        <span className="text-sm font-bold text-[#333333]">{selectedApp.department}</span>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-white border-2 border-[#0D0D0D] rounded-2xl shadow-[3px_3px_0_#0D0D0D]">
-                      <span className="font-extrabold uppercase text-[10px] text-[#F2A516] tracking-wider block mb-2">
-                        Applied Domains
-                      </span>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedApp.domains.map((d) => (
-                          <span
-                            key={d}
-                            className="bg-[#0D0D0D] text-[#FFEFB4] px-3 py-1 rounded-lg text-[11px] font-extrabold border border-[#0D0D0D]"
-                          >
-                            {d}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Work Links & Portfolios */}
+              {/* Sticky Top Header Bar */}
+              <div className="border-b-2 border-[#0D0D0D] pb-4 mb-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  {/* Left: Name & Contact Badges */}
                   <div>
-                    <h4 className="text-sm font-black uppercase text-[#0D0D0D] mb-3 flex items-center gap-2">
-                      <ExternalLink className="w-5 h-5 text-[#F2A516]" /> Portfolios & External Links
-                    </h4>
-                    
-                    {!(safeUrl(selectedApp.githubUrl) || safeUrl(selectedApp.linkedinUrl) || safeUrl(selectedApp.portfolioUrl) || safeUrl(selectedApp.resumeUrl)) ? (
-                      <p className="text-sm text-gray-500 font-bold italic bg-white p-4 rounded-xl border border-dashed border-gray-300">
-                        No external links or portfolios provided.
-                      </p>
-                    ) : (
-                      <div className="flex flex-wrap gap-3">
-                        {safeUrl(selectedApp.githubUrl) && (
-                          <a
-                            href={safeUrl(selectedApp.githubUrl)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 px-4 py-2.5 bg-white text-[#0D0D0D] hover:bg-[#F2A516] rounded-xl border-2 border-[#0D0D0D] font-bold shadow-[3px_3px_0_#0D0D0D] transition-colors"
-                          >
-                            <Github className="w-4 h-4" /> GitHub
-                          </a>
-                        )}
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-2xl sm:text-3xl font-black uppercase text-[#0D0D0D] tracking-tight">
+                        {selectedApp.fullName}
+                      </h2>
+                      <span
+                        className={`px-3 py-1 rounded-full font-black text-xs border border-[#0D0D0D] whitespace-nowrap ${
+                          selectedApp.status === "Accepted"
+                            ? "bg-[#F2A516] text-[#0D0D0D]"
+                            : selectedApp.status === "Shortlisted"
+                            ? "bg-purple-200 text-purple-900"
+                            : selectedApp.status === "Interview Scheduled"
+                            ? "bg-emerald-200 text-emerald-900"
+                            : selectedApp.status === "Under Review"
+                            ? "bg-amber-200 text-amber-900"
+                            : selectedApp.status === "Task Completed"
+                            ? "bg-teal-200 text-teal-950"
+                            : selectedApp.status === "Task Ongoing"
+                            ? "bg-amber-100 text-amber-950"
+                            : selectedApp.status === "Applied"
+                            ? "bg-slate-200 text-slate-800"
+                            : selectedApp.status === "Rejected"
+                            ? "bg-rose-200 text-rose-900"
+                            : "bg-blue-200 text-blue-900"
+                        }`}
+                      >
+                        {selectedApp.status}
+                      </span>
+                    </div>
 
-                        {safeUrl(selectedApp.linkedinUrl) && (
-                          <a
-                            href={safeUrl(selectedApp.linkedinUrl)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 px-4 py-2.5 bg-white text-[#0D0D0D] hover:bg-[#F2A516] rounded-xl border-2 border-[#0D0D0D] font-bold shadow-[3px_3px_0_#0D0D0D] transition-colors"
-                          >
-                            <Linkedin className="w-4 h-4" /> LinkedIn
-                          </a>
-                        )}
-
-                        {safeUrl(selectedApp.portfolioUrl) && (
-                          <a
-                            href={safeUrl(selectedApp.portfolioUrl)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 px-4 py-2.5 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] rounded-xl border-2 border-[#0D0D0D] font-bold shadow-[3px_3px_0_#F2A516] transition-colors"
-                          >
-                            Portfolio / Web <ExternalLink className="w-4 h-4" />
-                          </a>
-                        )}
-
-                        {safeUrl(selectedApp.resumeUrl) && (
-                          <a
-                            href={safeUrl(selectedApp.resumeUrl)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 px-4 py-2.5 bg-white text-[#0D0D0D] hover:bg-[#F2A516] rounded-xl border-2 border-[#0D0D0D] font-bold shadow-[3px_3px_0_#0D0D0D] transition-colors"
-                          >
-                            <FileText className="w-4 h-4" /> Resume Document
-                          </a>
-                        )}
+                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                      <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-[#0D0D0D]">
+                        <span className="text-xs font-bold text-[#333333]">📧 {selectedApp.email}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEmailModalMode(
+                              selectedApp.status === "Accepted"
+                                ? "SELECTION_OFFER"
+                                : "SHORTLIST_INDIVIDUAL"
+                            );
+                            setEmailTargetApp(selectedApp);
+                            setEmailModalOpen(true);
+                          }}
+                          className="ml-1 px-2 py-0.5 bg-[#F2A516] text-[#0D0D0D] hover:bg-[#0D0D0D] hover:text-[#FFEFB4] rounded text-[10px] font-black border border-[#0D0D0D] transition-colors cursor-pointer"
+                          title="Direct Email Candidate"
+                        >
+                          ✉️ Email
+                        </button>
                       </div>
-                    )}
+                      <span className="text-xs font-bold text-[#333333] bg-white px-2.5 py-1 rounded-lg border border-[#0D0D0D]">
+                        📞 {selectedApp.phone}
+                      </span>
+                      <span className="text-xs font-black bg-[#0D0D0D] text-[#FFEFB4] px-2.5 py-1 rounded-lg">
+                        {selectedApp.year} • {selectedApp.primaryDomain}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Right: Quick Action Buttons (Always Visible at Top!) */}
+                  <div className="flex items-center gap-2.5 self-start md:self-center">
+                    {/* Send Email Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEmailModalMode(
+                          selectedApp.status === "Accepted"
+                            ? "SELECTION_OFFER"
+                            : "SHORTLIST_INDIVIDUAL"
+                        );
+                        setEmailTargetApp(selectedApp);
+                        setEmailModalOpen(true);
+                      }}
+                      className="px-4 py-2.5 bg-[#F2A516] text-[#0D0D0D] hover:bg-[#F2A516]/90 border-2 border-[#0D0D0D] rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider shadow-[3px_3px_0_#0D0D0D] flex items-center gap-1.5 cursor-pointer hover:translate-y-[-1px] transition-all"
+                    >
+                      <Mail className="w-4 h-4" />
+                      {selectedApp.status === "Accepted"
+                        ? "Send Offer Letter"
+                        : "Send Shortlist / Interview Invite"}
+                    </button>
+
+                    {/* Save Changes Button */}
+                    <button
+                      type="button"
+                      onClick={handleSaveInspector}
+                      disabled={savingStatus}
+                      className="px-4 py-2.5 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] border-2 border-[#0D0D0D] rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider shadow-[3px_3px_0_#F2A516] flex items-center gap-1.5 cursor-pointer hover:translate-y-[-1px] transition-all"
+                    >
+                      <Save className="w-4 h-4" />
+                      {savingStatus ? "Saving..." : "Save Status"}
+                    </button>
+
+                    {/* Close Modal Button */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedApp(null)}
+                      className="p-2 rounded-xl bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] border border-[#0D0D0D] cursor-pointer shadow-[2px_2px_0_#F2A516]"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
 
-                {/* Right Column: Text Answers & Admin Panel */}
-                <div className="space-y-8 flex flex-col h-full">
-                  {/* Why Join Statement */}
-                  <div>
-                    <h4 className="text-sm font-black uppercase text-[#0D0D0D] mb-2">
-                      Why Join CodeKrafters?
-                    </h4>
-                    <div className="bg-white border-2 border-[#0D0D0D] p-5 rounded-2xl shadow-[4px_4px_0_#0D0D0D]">
-                      <p className="text-sm font-medium text-[#111] leading-relaxed whitespace-pre-wrap">
-                        {selectedApp.whyJoin}
-                      </p>
+                {/* Sub-Tabs Navigation Bar with Styled Horizontal Scroll */}
+                <div className="flex overflow-x-auto whitespace-nowrap gap-2 mt-4 pt-2 border-t border-[#0D0D0D]/10 pb-1.5 custom-scrollbar">
+                  <button
+                    type="button"
+                    onClick={() => setInspectorTab("PROFILE")}
+                    className={`px-4 py-2 rounded-xl font-black text-xs uppercase flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
+                      inspectorTab === "PROFILE"
+                        ? "bg-[#0D0D0D] text-[#FFEFB4] shadow-[2px_2px_0_#F2A516]"
+                        : "bg-white text-[#0D0D0D] hover:bg-[#FFF2C6] border border-[#0D0D0D]/30"
+                    }`}
+                  >
+                    <FileText className="w-3.5 h-3.5" /> 1. Profile & Portfolios
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setInspectorTab("ANSWERS")}
+                    className={`px-4 py-2 rounded-xl font-black text-xs uppercase flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
+                      inspectorTab === "ANSWERS"
+                        ? "bg-[#0D0D0D] text-[#FFEFB4] shadow-[2px_2px_0_#F2A516]"
+                        : "bg-white text-[#0D0D0D] hover:bg-[#FFF2C6] border border-[#0D0D0D]/30"
+                    }`}
+                  >
+                    <Edit3 className="w-3.5 h-3.5" /> 2. Written Answers (Why Join & Projects)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setInspectorTab("TASK")}
+                    className={`px-4 py-2 rounded-xl font-black text-xs uppercase flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
+                      inspectorTab === "TASK"
+                        ? "bg-[#0D0D0D] text-[#FFEFB4] shadow-[2px_2px_0_#F2A516]"
+                        : "bg-white text-[#0D0D0D] hover:bg-[#FFF2C6] border border-[#0D0D0D]/30"
+                    }`}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" /> 3. Domain Task Solution
+                    {selectedApp.taskSubmissionUrl && (
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block ml-0.5"></span>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setInspectorTab("EVALUATION")}
+                    className={`px-4 py-2 rounded-xl font-black text-xs uppercase flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
+                      inspectorTab === "EVALUATION"
+                        ? "bg-[#0D0D0D] text-[#FFEFB4] shadow-[2px_2px_0_#F2A516]"
+                        : "bg-white text-[#0D0D0D] hover:bg-[#FFF2C6] border border-[#0D0D0D]/30"
+                    }`}
+                  >
+                    <Star className="w-3.5 h-3.5 text-[#F2A516]" /> 4. Evaluation & Notes
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrollable Tab Content Container */}
+              <div className="overflow-y-auto max-h-[60vh] pr-2 space-y-6 custom-scrollbar">
+                {/* TAB 1: Profile & Portfolios */}
+                {inspectorTab === "PROFILE" && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4 bg-white border-2 border-[#0D0D0D] rounded-2xl shadow-[3px_3px_0_#0D0D0D]">
+                        <span className="font-extrabold uppercase text-[10px] text-[#F2A516] tracking-wider block mb-1">
+                          Academic Details
+                        </span>
+                        <div className="font-black text-[#0D0D0D] text-lg leading-tight">
+                          {selectedApp.year} <br />
+                          <span className="text-sm font-bold text-[#333333]">{selectedApp.department}</span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-white border-2 border-[#0D0D0D] rounded-2xl shadow-[3px_3px_0_#0D0D0D]">
+                        <span className="font-extrabold uppercase text-[10px] text-[#F2A516] tracking-wider block mb-2">
+                          Applied Domains
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedApp.domains.map((d) => (
+                            <span
+                              key={d}
+                              className="bg-[#0D0D0D] text-[#FFEFB4] px-3 py-1 rounded-lg text-[11px] font-extrabold border border-[#0D0D0D]"
+                            >
+                              {d}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Portfolios & Links */}
+                    <div className="p-5 bg-white border-2 border-[#0D0D0D] rounded-2xl shadow-[3px_3px_0_#0D0D0D]">
+                      <h4 className="text-xs font-black uppercase text-[#0D0D0D] mb-3 flex items-center gap-2">
+                        <ExternalLink className="w-4 h-4 text-[#F2A516]" /> Portfolios & External Links
+                      </h4>
+                      {!(safeUrl(selectedApp.githubUrl) || safeUrl(selectedApp.linkedinUrl) || safeUrl(selectedApp.portfolioUrl) || safeUrl(selectedApp.resumeUrl)) ? (
+                        <p className="text-xs text-gray-500 font-bold italic bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300">
+                          No external links or portfolios provided.
+                        </p>
+                      ) : (
+                        <div className="flex flex-wrap gap-3">
+                          {safeUrl(selectedApp.githubUrl) && (
+                            <a
+                              href={safeUrl(selectedApp.githubUrl)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-4 py-2 bg-white text-[#0D0D0D] hover:bg-[#F2A516] rounded-xl border-2 border-[#0D0D0D] font-bold text-xs shadow-[2px_2px_0_#0D0D0D] transition-colors"
+                            >
+                              <Github className="w-4 h-4" /> GitHub
+                            </a>
+                          )}
+
+                          {safeUrl(selectedApp.linkedinUrl) && (
+                            <a
+                              href={safeUrl(selectedApp.linkedinUrl)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-4 py-2 bg-white text-[#0D0D0D] hover:bg-[#F2A516] rounded-xl border-2 border-[#0D0D0D] font-bold text-xs shadow-[2px_2px_0_#0D0D0D] transition-colors"
+                            >
+                              <Linkedin className="w-4 h-4" /> LinkedIn
+                            </a>
+                          )}
+
+                          {safeUrl(selectedApp.portfolioUrl) && (
+                            <a
+                              href={safeUrl(selectedApp.portfolioUrl)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-4 py-2 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] rounded-xl border-2 border-[#0D0D0D] font-bold text-xs shadow-[2px_2px_0_#F2A516] transition-colors"
+                            >
+                              Portfolio / Web <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+
+                          {safeUrl(selectedApp.resumeUrl) && (
+                            <a
+                              href={safeUrl(selectedApp.resumeUrl)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-4 py-2 bg-white text-[#0D0D0D] hover:bg-[#F2A516] rounded-xl border-2 border-[#0D0D0D] font-bold text-xs shadow-[2px_2px_0_#0D0D0D] transition-colors"
+                            >
+                              <FileText className="w-4 h-4" /> Resume Document
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
+                )}
 
-                  {/* Past Experience */}
-                  {selectedApp.pastExperience && (
-                    <div>
-                      <h4 className="text-sm font-black uppercase text-[#0D0D0D] mb-2">
-                        Past Projects & Experience
+                {/* TAB 2: Written Answers (Why Join & Projects) with Clean Scroll */}
+                {inspectorTab === "ANSWERS" && (
+                  <div className="space-y-6">
+                    {/* Why Join */}
+                    <div className="bg-white border-2 border-[#0D0D0D] p-5 sm:p-6 rounded-2xl shadow-[4px_4px_0_#0D0D0D]">
+                      <h4 className="text-xs font-black uppercase text-[#0D0D0D] mb-3 flex items-center gap-2 border-b border-[#0D0D0D]/10 pb-2">
+                        <Sparkles className="w-4 h-4 text-[#F2A516]" /> Why Join CodeKrafters?
                       </h4>
-                      <div className="bg-white border-2 border-[#0D0D0D] p-5 rounded-2xl shadow-[4px_4px_0_#0D0D0D]">
+                      <div className="max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                         <p className="text-sm font-medium text-[#111] leading-relaxed whitespace-pre-wrap">
-                          {selectedApp.pastExperience}
+                          {selectedApp.whyJoin}
                         </p>
                       </div>
                     </div>
-                  )}
 
-                  {/* Task Solution Submission Card (If Candidate Submitted) */}
-                  {selectedApp.taskSubmissionUrl && (
-                    <div>
-                      <h4 className="text-sm font-black uppercase text-[#0D0D0D] mb-2 flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-teal-800" /> Domain Challenge Submission
+                    {/* Past Experience */}
+                    <div className="bg-white border-2 border-[#0D0D0D] p-5 sm:p-6 rounded-2xl shadow-[4px_4px_0_#0D0D0D]">
+                      <h4 className="text-xs font-black uppercase text-[#0D0D0D] mb-3 flex items-center gap-2 border-b border-[#0D0D0D]/10 pb-2">
+                        <Edit3 className="w-4 h-4 text-[#F2A516]" /> Past Projects & Experience
                       </h4>
-                      <div className="bg-teal-50 border-2 border-teal-800 p-4 rounded-2xl shadow-[3px_3px_0_#0D0D0D] flex flex-wrap items-center justify-between gap-3">
+                      <div className="max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                        {selectedApp.pastExperience ? (
+                          <p className="text-sm font-medium text-[#111] leading-relaxed whitespace-pre-wrap">
+                            {selectedApp.pastExperience}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-gray-400 italic">No past experience description provided.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 3: Domain Task Solution */}
+                {inspectorTab === "TASK" && (
+                  <div className="space-y-6">
+                    {selectedApp.taskSubmissionUrl ? (
+                      <div className="bg-teal-50 border-2 border-teal-800 p-6 rounded-2xl shadow-[4px_4px_0_#0D0D0D] space-y-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-teal-800/20 pb-3">
+                          <h4 className="text-sm font-black uppercase text-teal-950 flex items-center gap-2">
+                            <CheckCircle2 className="w-5 h-5 text-teal-700" /> Domain Challenge Repository / Solution
+                          </h4>
+                          {selectedApp.taskSubmittedAt && (
+                            <span className="text-xs font-bold text-teal-900 bg-white px-3 py-1 rounded-lg border border-teal-800">
+                              Submitted: {new Date(selectedApp.taskSubmittedAt).toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+
                         <div>
-                          <span className="text-[10px] font-black uppercase text-teal-900 block">
-                            Candidate Project / Solution Repo
+                          <span className="text-[11px] font-black uppercase text-teal-900 block mb-1">
+                            Live Project / GitHub URL:
                           </span>
                           <a
                             href={selectedApp.taskSubmissionUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs font-black text-blue-700 hover:underline break-all flex items-center gap-1 mt-0.5"
+                            className="text-sm font-black text-blue-700 hover:underline break-all inline-flex items-center gap-1.5 bg-white p-3 rounded-xl border border-teal-800 w-full"
                           >
                             {selectedApp.taskSubmissionUrl}
-                            <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                            <ExternalLink className="w-4 h-4 shrink-0" />
                           </a>
                         </div>
-                        {selectedApp.taskSubmittedAt && (
-                          <span className="text-[10px] font-bold text-gray-600 bg-white/80 px-2.5 py-1 rounded-md border border-[#0D0D0D]/10">
-                            Submitted: {new Date(selectedApp.taskSubmittedAt).toLocaleDateString()}
-                          </span>
-                        )}
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="bg-[#FFF2C6] border-2 border-dashed border-[#0D0D0D]/40 p-8 rounded-2xl text-center">
+                        <CheckCircle2 className="w-10 h-10 text-[#0D0D0D]/40 mx-auto mb-2" />
+                        <h4 className="font-extrabold text-[#0D0D0D] uppercase text-sm">No Task Solution Submitted Yet</h4>
+                        <p className="text-xs text-gray-600 mt-1">Candidate has not submitted a repository link for this recruitment challenge.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                  <div className="flex-grow"></div>
-
-                  {/* Admin Evaluation & Status Updater Box */}
-                  <div className="bg-[#FFF2C6] border-3 border-[#0D0D0D] p-6 sm:p-8 rounded-3xl space-y-6 shadow-[6px_6px_0_#0D0D0D]">
-                    <h4 className="text-base font-black uppercase flex items-center gap-2 border-b-2 border-[#0D0D0D]/10 pb-4 text-[#0D0D0D]">
-                      <Edit3 className="w-5 h-5 text-[#F2A516]" /> Admin Evaluation Panel
-                    </h4>
-
+                {/* TAB 4: Evaluation & Scoring */}
+                {inspectorTab === "EVALUATION" && (
+                  <div className="bg-[#FFF2C6] border-3 border-[#0D0D0D] p-6 rounded-2xl space-y-6 shadow-[4px_4px_0_#0D0D0D]">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-xs font-extrabold uppercase mb-2 text-[#0D0D0D]">
@@ -1305,10 +1756,11 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                               className="cursor-pointer hover:scale-110 transition-transform"
                             >
                               <Star
-                                className={`w-8 h-8 ${star <= editingRating
+                                className={`w-8 h-8 ${
+                                  star <= editingRating
                                     ? "fill-[#F2A516] text-[#F2A516]"
                                     : "text-gray-400"
-                                  }`}
+                                }`}
                               />
                             </button>
                           ))}
@@ -1329,15 +1781,37 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                       />
                     </div>
 
-                    <button
-                      onClick={handleSaveInspector}
-                      disabled={savingStatus}
-                      className="w-full bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] py-4 rounded-xl font-black text-sm uppercase tracking-wider shadow-[4px_4px_0_#F2A516] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_#F2A516] transition-all cursor-pointer"
-                    >
-                      {savingStatus ? "Saving Changes..." : "Save Evaluation"}
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-[#0D0D0D]/10">
+                      <button
+                        type="button"
+                        onClick={handleSaveInspector}
+                        disabled={savingStatus}
+                        className="flex-1 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] py-3.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider shadow-[3px_3px_0_#F2A516] hover:translate-y-[-1px] transition-all cursor-pointer text-center"
+                      >
+                        {savingStatus ? "Saving Changes..." : "Save Evaluation Changes"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmailModalMode(
+                            editingStatus === "Accepted"
+                              ? "SELECTION_OFFER"
+                              : "SHORTLIST_INDIVIDUAL"
+                          );
+                          setEmailTargetApp(selectedApp);
+                          setEmailModalOpen(true);
+                        }}
+                        className="px-5 py-3.5 bg-[#F2A516] text-[#0D0D0D] hover:bg-[#F2A516]/90 border-2 border-[#0D0D0D] rounded-xl font-black text-xs uppercase tracking-wider shadow-[3px_3px_0_#0D0D0D] flex items-center justify-center gap-2 cursor-pointer hover:translate-y-[-1px] transition-all whitespace-nowrap"
+                      >
+                        <Mail className="w-4 h-4" />
+                        {editingStatus === "Accepted"
+                          ? "Send Offer Email"
+                          : "Send Shortlist / Interview Email"}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </motion.div>
           </div>
@@ -1345,6 +1819,32 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
       </AnimatePresence>
         </>
       )}
+
+      {/* Send Email Modal Drawer */}
+      <SendEmailModal
+        isOpen={emailModalOpen}
+        onClose={() => {
+          setEmailModalOpen(false);
+          setEmailTargetApp(null);
+        }}
+        mode={emailModalMode}
+        candidate={emailTargetApp}
+        targetDomain={
+          session.role === "DOMAIN_ADMIN" && session.domain_id
+            ? session.domain_id
+            : filters.domain !== "ALL"
+            ? filters.domain
+            : "ALL"
+        }
+        batchCount={
+          emailModalMode === "SHORTLIST_BATCH"
+            ? stats.shortlisted
+            : emailModalMode === "SELECTION_OFFER"
+            ? stats.accepted
+            : stats.total
+        }
+        onSuccess={(msg) => showToast(msg)}
+      />
     </div>
   );
 }

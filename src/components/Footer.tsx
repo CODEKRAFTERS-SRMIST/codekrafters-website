@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Instagram, Linkedin, Github } from "lucide-react";
+import { Instagram, Linkedin, Github, Mail } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -43,6 +43,18 @@ export default function Footer() {
               SRM Institute of Science & Technology<br />
               Bharathi Salai, Ramapuram, Chennai 600089
             </address>
+
+            {/* Help & Queries Contact */}
+            <div className="mt-4 flex items-center gap-2 text-xs text-[#FFEFB4]/80 bg-[#1A1A1A] px-3 py-1.5 rounded-lg border border-[#FFEFB4]/20">
+              <Mail className="w-3.5 h-3.5 text-[#F2A516] shrink-0" />
+              <span>Queries:</span>
+              <a
+                href="mailto:support@codekraftersrmp.in"
+                className="text-[#F2A516] hover:underline font-medium"
+              >
+                support@codekraftersrmp.in
+              </a>
+            </div>
           </div>
         </div>
 
@@ -100,15 +112,23 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Resources */}
+        {/* Resources & Support */}
         <div className="lg:col-span-2 flex flex-col items-center lg:items-start">
           <h3 className="text-[#F2A516] text-sm mb-4 font-normal">
-            Resources
+            Resources & Help
           </h3>
           <ul className="space-y-2 text-sm text-white">
             <li><a href="https://ck-blog-platform.vercel.app/" className="hover:text-[#F2A516]">Blog</a></li>
             <li><Link href="/krafterslink" className="hover:text-[#F2A516]">KraftersLink</Link></li>
             <li><Link href="/faq" className="hover:text-[#F2A516]">FAQ</Link></li>
+            <li>
+              <a
+                href="mailto:support@codekraftersrmp.in"
+                className="text-[#F2A516] hover:underline flex items-center gap-1 mt-1 text-xs font-semibold"
+              >
+                <Mail className="w-3 h-3" /> Get Support
+              </a>
+            </li>
           </ul>
         </div>
 
@@ -133,10 +153,21 @@ export default function Footer() {
       </div>
 
       {/* Bottom */}
-      <div className="mt-5 pt-6 border-t border-[#FFEFB4]/20 text-center text-xs text-[#FFEFB4]/60">
-        © {new Date().getFullYear()}{" "}
-        <span className="text-white">Code</span>
-        <span className="text-[#F2A516]">Krafters</span>
+      <div className="mt-5 pt-6 border-t border-[#FFEFB4]/20 text-center text-xs text-[#FFEFB4]/60 flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto">
+        <div>
+          © {new Date().getFullYear()}{" "}
+          <span className="text-white">Code</span>
+          <span className="text-[#F2A516]">Krafters</span>. All rights reserved.
+        </div>
+        <div>
+          Support & Inquiries:{" "}
+          <a
+            href="mailto:support@codekraftersrmp.in"
+            className="text-[#F2A516] hover:underline"
+          >
+            support@codekraftersrmp.in
+          </a>
+        </div>
       </div>
     </footer>
   );

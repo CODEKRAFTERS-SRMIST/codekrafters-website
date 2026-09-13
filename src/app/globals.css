@@ -123,3 +123,31 @@
   --color-secondary: #fcb315;
   --color-primary-foreground: #ffffff;
 }
+
+/* Neo-Brutalist Custom Scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #ffefb4;
+  border-radius: 4px;
+  border: 1px solid #0d0d0d;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #0d0d0d;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #f2a516;
+}
+
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #0d0d0d #ffefb4;
+}
+
