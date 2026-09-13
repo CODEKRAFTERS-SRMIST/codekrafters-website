@@ -104,11 +104,26 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
     }
   };
 
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const loadApplications = async () => {
+    setLoading(true);
+    try {
+      const apps = await fetchApplications();
+      setApplications(apps);
+      setAuthError(null);
+    } catch (e: any) {
+      console.error("fetchApplications error:", e);
+      if (e?.message?.toLowerCase().includes("unauthorized") || e?.message?.toLowerCase().includes("forbidden") || e?.message?.toLowerCase().includes("401") || e?.message?.toLowerCase().includes("403")) {
+        setAuthError("Server session expired or unauthorized. Please re-login to refresh credentials.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchApplications()
-      .then((apps) => setApplications(apps))
-      .catch((e) => console.error(e))
-      .finally(() => setLoading(false));
+    loadApplications();
   }, []);
 
   const fetchUsers = async () => {
@@ -118,6 +133,9 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
       const data = await res.json();
       if (res.ok) {
         setSystemUsers(data.users || []);
+        setAuthError(null);
+      } else if (res.status === 401 || res.status === 403) {
+        setAuthError("Server session expired or unauthorized. Please re-login to refresh credentials.");
       }
     } catch (e) {
       console.error(e);
@@ -400,6 +418,27 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
           </button>
         </div>
       </div>
+
+      {authError && (
+        <div className="bg-amber-100 border-3 border-amber-600 rounded-2xl p-4 shadow-[4px_4px_0_#0D0D0D] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">⚠️</span>
+            <div>
+              <h4 className="font-black text-xs sm:text-sm uppercase text-amber-950">Session Expired or Unauthorized</h4>
+              <p className="text-xs font-bold text-amber-900 mt-0.5">{authError}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              onLogout();
+              window.location.href = "/login?redirect=/join&reauth=true";
+            }}
+            className="px-4 py-2 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] border-2 border-[#0D0D0D] rounded-xl font-black text-xs uppercase shadow-[2px_2px_0_#F2A516] cursor-pointer whitespace-nowrap"
+          >
+            Re-Login Now ➔
+          </button>
+        </div>
+      )}
 
       {(session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT") && (
         <div className="flex flex-wrap gap-2 sm:gap-4 border-b-2 border-[#0D0D0D] pb-2">
