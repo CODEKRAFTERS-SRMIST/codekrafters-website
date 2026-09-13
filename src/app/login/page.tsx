@@ -10,10 +10,17 @@ export default function LoginPage() {
 
   useEffect(() => {
     try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const isReauth = searchParams.get("reauth") === "true" || searchParams.get("force") === "true";
+      if (isReauth) {
+        localStorage.removeItem("codekrafters_user_session");
+        window.dispatchEvent(new Event("auth_change"));
+        return;
+      }
+
       const rawSession = localStorage.getItem("codekrafters_user_session");
       if (rawSession) {
         // If already logged in, redirect them
-        const searchParams = new URLSearchParams(window.location.search);
         const redirect = searchParams.get("redirect");
         window.location.href = redirect || "/profile";
       }

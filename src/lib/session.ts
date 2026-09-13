@@ -2,13 +2,17 @@ import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { supabaseAdmin } from './supabase/admin';
 
-const secretKey = process.env.JWT_SECRET_KEY || (process.env.SUPABASE_SERVICE_ROLE_KEY ? process.env.SUPABASE_SERVICE_ROLE_KEY.slice(0, 32) : 'codekrafters_dev_fallback_secret_key_do_not_use_in_prod');
-
-if (!process.env.JWT_SECRET_KEY && process.env.NODE_ENV === 'production') {
-  console.warn('[SECURITY WARNING] JWT_SECRET_KEY is not defined in environment variables.');
+function getSecretKey(): Uint8Array {
+  const secret = process.env.JWT_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('[FATAL] JWT_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY must be defined in production environment variables.');
+    }
+    // Local development only fallback
+    return new TextEncoder().encode('codekrafters_local_development_secret_do_not_use_in_production');
+  }
+  return new TextEncoder().encode(secret.slice(0, 32));
 }
-
-const encodedKey = new TextEncoder().encode(secretKey);
 
 export type SessionPayload = {
   id: string;
@@ -19,32 +23,29 @@ export type SessionPayload = {
 };
 
 export async function encrypt(payload: SessionPayload) {
+  const key = getSecretKey();
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
-    .sign(encodedKey);
+    .sign(key);
 }
 
 export async function decrypt(session: string | undefined = '') {
   if (!session) return null;
   try {
-    const { payload } = await jwtVerify(session, encodedKey, {
+    const key = getSecretKey();
+    const { payload } = await jwtVerify(session, key, {
       algorithms: ['HS256'],
     });
-    return payload as SessionPayload;
-  } catch {
-    // Graceful fallback for active sessions created prior to secret key migration
-    try {
-      const legacyKey = new TextEncoder().encode('default_secret_key_please_change_in_production');
-      const { payload } = await jwtVerify(session, legacyKey, {
-        algorithms: ['HS256'],
-      });
+    if (payload && payload.id) {
       return payload as SessionPayload;
-    } catch {
-      return null;
     }
+  } catch {
+    // Session token invalid or expired
+    return null;
   }
+  return null;
 }
 
 export async function setSession(payload: SessionPayload) {
