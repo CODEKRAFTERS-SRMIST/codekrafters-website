@@ -304,21 +304,21 @@ function StoryComponent() {
           <div className="z-20 flex items-center justify-center">
             <img
               src="https://ik.imagekit.io/ysfz8n1no/public/story/comment-1-png.png"
-              alt=""
+              alt="Community reaction bubble: confusion and excitement"
               className="absolute w-1/4 h-1/4 opacity-0 left-60 bottom-40"
               id="comment-1"
               ref={commentOneRef}
             />{" "}
             <img
               src="https://ik.imagekit.io/ysfz8n1no/public/story/comment-2-png.png"
-              alt=""
+              alt="Community reaction bubble: where to start"
               className="absolute w-1/4 h-1/4 opacity-0 left-80 bottom-50"
               id="comment-2"
               ref={commentTwoRef}
             />
             <img
               src="https://ik.imagekit.io/ysfz8n1no/public/story/comment-3-png.png"
-              alt=""
+              alt="Community reaction bubble: discover CodeKrafters"
               className="absolute w-1/4 h-1/4 opacity-0 left-10 bottom-10"
               id="comment-3"
               ref={commentThreeRef}
@@ -326,7 +326,7 @@ function StoryComponent() {
           </div>
           <img
             src="https://ik.imagekit.io/ysfz8n1no/public/story/oat-with-man-png.png"
-            alt="Panicked Goi"
+            alt="Panicked student illustration"
             className="z-10 w-full h-full"
           />
         </div>
@@ -339,26 +339,26 @@ function StoryComponent() {
           <div className="z-20 flex items-center justify-center">
             <img
               src="https://ik.imagekit.io/ysfz8n1no/public/story/comment-1-png.png"
-              alt=""
+              alt="Community reaction bubble: confusion and excitement (mobile)"
               className="absolute w-1/4 h-1/4 opacity-0 left-5 bottom-10"
               id="comment-1-mob"
             />
             <img
               src="https://ik.imagekit.io/ysfz8n1no/public/story/comment-2-png.png"
-              alt=""
+              alt="Community reaction bubble: where to start (mobile)"
               className="absolute w-1/4 h-1/4 opacity-0 left-15 -bottom-10"
               id="comment-2-mob"
             />
             <img
               src="https://ik.imagekit.io/ysfz8n1no/public/story/comment-3-png.png"
-              alt=""
+              alt="Community reaction bubble: discover CodeKrafters (mobile)"
               className="absolute w-1/4 h-1/4 opacity-0 left-8 -bottom-25"
               id="comment-3-mob"
             />
           </div>
           <img
             src="https://ik.imagekit.io/ysfz8n1no/public/story/oat-man-with-bg-png-mob.png"
-            alt="Panicked Goi (mobile)"
+            alt="Panicked student illustration (mobile)"
             className="z-10 w-full h-full"
           />
         </div>

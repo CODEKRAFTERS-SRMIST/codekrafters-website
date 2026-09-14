@@ -2,8 +2,19 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { getLiveRecruitmentSettings, saveLiveRecruitmentSettings } from "@/lib/recruitment-settings";
 import { getSession } from "@/lib/session";
+import { getIpFromRequest, checkRateLimit } from "@/lib/rate-limit";
+import { recruitmentSettingsPatchSchema } from "@/lib/validations";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const ip = getIpFromRequest(request);
+  const ipLimit = await checkRateLimit(ip, "public");
+  if (!ipLimit.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please slow down." },
+      { status: 429, headers: { "Retry-After": String(ipLimit.retryAfter || 60) } }
+    );
+  }
+
   const settings = await getLiveRecruitmentSettings();
   return NextResponse.json({
     success: true,
@@ -13,13 +24,27 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
+    const ip = getIpFromRequest(request);
+    const ipLimit = await checkRateLimit(ip, "authenticated");
+    if (!ipLimit.success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down." },
+        { status: 429, headers: { "Retry-After": String(ipLimit.retryAfter || 60) } }
+      );
+    }
+
     const session = await getSession();
-    if (!session || (session.role !== "PRESIDENT" && session.role !== "VICE_PRESIDENT" && session.role !== "DOMAIN_ADMIN")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    if (!session || (session.role !== "PRESIDENT" && session.role !== "VICE_PRESIDENT")) {
+      return NextResponse.json({ error: "Unauthorized: Global administrative access required" }, { status: 403 });
     }
 
     const body = await request.json();
-    const { current_phase, tasks_visible } = body;
+    const parsed = recruitmentSettingsPatchSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation Error", details: parsed.error.format() }, { status: 400 });
+    }
+
+    const { current_phase, tasks_visible } = parsed.data;
 
     const currentSettings = await getLiveRecruitmentSettings();
     const newPhase = typeof current_phase === "number" ? current_phase : currentSettings.current_phase;

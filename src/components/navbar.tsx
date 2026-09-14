@@ -24,20 +24,26 @@ export function Navbar() {
   const [hoveredLink, setHoveredLink] = useState<string | null>(null);
   const [session, setSession] = useState<UserSession | null>(null);
 
-  const updateSession = () => {
+  const updateSession = async () => {
     try {
-      const raw = localStorage.getItem("codekrafters_user_session");
-      if (raw) setSession(JSON.parse(raw));
-      else setSession(null);
-    } catch (e) {}
+      const res = await fetch("/api/auth/me");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          setSession(data.user);
+          return;
+        }
+      }
+      setSession(null);
+    } catch {
+      setSession(null);
+    }
   };
 
   useEffect(() => {
     updateSession();
-    window.addEventListener("storage", updateSession);
     window.addEventListener("auth_change", updateSession);
     return () => {
-      window.removeEventListener("storage", updateSession);
       window.removeEventListener("auth_change", updateSession);
     };
   }, []);

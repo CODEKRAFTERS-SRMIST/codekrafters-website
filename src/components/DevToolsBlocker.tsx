@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-export function DevToolsBlocker() {
+export default function DevToolsBlocker() {
   useEffect(() => {
     // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
     const handleKeyDown = (e: KeyboardEvent) => {

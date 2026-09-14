@@ -65,6 +65,8 @@ export async function POST(request: Request) {
     // Set secure JWT session with token version
     await setSession({
       id: user.id,
+      email: user.email,
+      fullName: user.full_name || user.fullName || user.email.split("@")[0],
       role: user.role,
       domain_id: user.domain_id,
       version: user.token_version || 1,

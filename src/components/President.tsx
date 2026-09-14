@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useRef, useEffect, useState } from "react";
 import { Linkedin } from "lucide-react";
+import { getImageKitUrl } from "@/lib/imagekit";
 
 export default function PresidentIntroRetro() {
 
@@ -30,7 +31,7 @@ export default function PresidentIntroRetro() {
               <div className="rounded-xl sm:rounded-2xl overflow-hidden border-2 sm:border-3 border-[#0D0D0D] bg-[#FFF6D0] shadow-[4px_4px_0_#0D0D0D] sm:shadow-[8px_8px_0_#0D0D0D] transition-all duration-500 group-hover:translate-y-[-4px] group-hover:shadow-[6px_6px_0_#0D0D0D] sm:group-hover:shadow-[12px_12px_0_#0D0D0D] w-[85%] sm:w-[320px] md:w-[360px] lg:w-[400px]">
                 <div className="relative w-full h-0 pb-[120%]">
                   <Image
-                    src="https://ik.imagekit.io/ysfz8n1no/public/domain_pics/pres/Sanjay.jpeg" 
+                    src={getImageKitUrl("/domain_pics/pres/Sanjay.jpeg")}
                     alt="Sanjay Ganesh, President of CodeKrafters SRMIST"
                     fill
                     className="object-cover rounded-xl sm:rounded-2xl saturate-90 contrast-110 brightness-95"
@@ -100,7 +101,7 @@ export default function PresidentIntroRetro() {
               <div className="rounded-xl sm:rounded-2xl overflow-hidden border-2 sm:border-3 border-[#0D0D0D] bg-[#FFF6D0] shadow-[4px_4px_0_#0D0D0D] sm:shadow-[8px_8px_0_#0D0D0D] transition-all duration-500 group-hover:translate-y-[-4px] group-hover:shadow-[6px_6px_0_#0D0D0D] sm:group-hover:shadow-[12px_12px_0_#0D0D0D] w-[85%] sm:w-[320px] md:w-[360px] lg:w-[400px]">
                 <div className="relative w-full h-0 pb-[120%]">
                   <Image
-                    src="https://ik.imagekit.io/ysfz8n1no/public/domain_pics/vp/Satya VP.png" 
+                    src={getImageKitUrl("/domain_pics/vp/Satya VP.png")} 
                     alt="Satya Lohith, Vice President of CodeKrafters SRMIST"
                     fill
                     className="object-cover rounded-xl sm:rounded-2xl saturate-90 contrast-110 brightness-95"

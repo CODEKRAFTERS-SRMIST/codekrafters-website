@@ -57,6 +57,7 @@ export interface ApplicantFormData {
   resumeUrl: string;
   whyJoin: string;
   pastExperience: string;
+  website_hp?: string;
 }
 
 export interface FilterOptions {

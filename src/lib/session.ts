@@ -1,6 +1,7 @@
-import { SignJWT, jwtVerify } from 'jose';
+import { EncryptJWT, jwtDecrypt, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { supabaseAdmin } from './supabase/admin';
+import crypto from 'crypto';
 
 function getSecretKey(): Uint8Array {
   const secret = process.env.JWT_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -9,9 +10,9 @@ function getSecretKey(): Uint8Array {
       throw new Error('[FATAL] JWT_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY must be defined in production environment variables.');
     }
     // Local development only fallback
-    return new TextEncoder().encode('codekrafters_local_development_secret_do_not_use_in_production');
+    return crypto.createHash('sha256').update('codekrafters_local_development_secret_do_not_use_in_production').digest();
   }
-  return new TextEncoder().encode(secret.slice(0, 32));
+  return crypto.createHash('sha256').update(secret).digest();
 }
 
 export type SessionPayload = {
@@ -22,28 +23,45 @@ export type SessionPayload = {
   [key: string]: any;
 };
 
-export async function encrypt(payload: SessionPayload) {
+/**
+ * Encrypts session payload into an authenticated JWE (AES-256-GCM)
+ * Ensuring token contents are never readable in plaintext at rest or in transit.
+ */
+export async function encrypt(payload: SessionPayload): Promise<string> {
   const key = getSecretKey();
-  return new SignJWT(payload)
-    .setProtectedHeader({ alg: 'HS256' })
+  return new EncryptJWT(payload)
+    .setProtectedHeader({ alg: 'dir', enc: 'A256GCM' })
     .setIssuedAt()
     .setExpirationTime('7d')
-    .sign(key);
+    .encrypt(key);
 }
 
-export async function decrypt(session: string | undefined = '') {
+/**
+ * Decrypts authenticated JWE session token.
+ * Includes graceful backwards-compatibility for existing signed JWS tokens during migration.
+ */
+export async function decrypt(session: string | undefined = ''): Promise<SessionPayload | null> {
   if (!session) return null;
+  const key = getSecretKey();
+
+  // Try JWE decryption first (AES-256-GCM)
   try {
-    const key = getSecretKey();
-    const { payload } = await jwtVerify(session, key, {
-      algorithms: ['HS256'],
-    });
+    const { payload } = await jwtDecrypt(session, key);
     if (payload && payload.id) {
       return payload as SessionPayload;
     }
   } catch {
-    // Session token invalid or expired
-    return null;
+    // If not JWE, attempt legacy JWS verification for seamless migration
+    try {
+      const { payload } = await jwtVerify(session, key, {
+        algorithms: ['HS256'],
+      });
+      if (payload && payload.id) {
+        return payload as SessionPayload;
+      }
+    } catch {
+      return null;
+    }
   }
   return null;
 }

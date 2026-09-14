@@ -1,37 +1,50 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { getSession } from "@/lib/session";
+import { getIpFromRequest, checkRateLimit } from "@/lib/rate-limit";
+import { changePasswordSchema } from "@/lib/validations";
 import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
   try {
+    const ip = getIpFromRequest(request);
+    const ipLimit = await checkRateLimit(ip, "auth_strict");
+    if (!ipLimit.success) {
+      return NextResponse.json(
+        { error: "Too many password update attempts. Please try again later.", retryAfter: ipLimit.retryAfter },
+        { status: 429, headers: { "Retry-After": String(ipLimit.retryAfter || 60) } }
+      );
+    }
+
     const session = await getSession();
     if (!session?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const userLimit = await checkRateLimit(session.id, "auth_strict");
+    if (!userLimit.success) {
+      return NextResponse.json(
+        { error: "Too many password update attempts for this account. Please try again later.", retryAfter: userLimit.retryAfter },
+        { status: 429, headers: { "Retry-After": String(userLimit.retryAfter || 60) } }
+      );
+    }
+
     const body = await request.json();
-    const { oldPassword, newPassword } = body;
+    const parsed = changePasswordSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Validation Error", details: parsed.error.format() },
+        { status: 400 }
+      );
+    }
+    
+    const { oldPassword, newPassword } = parsed.data;
     const userId = session.id;
-
-    if (!oldPassword || !newPassword) {
-      return NextResponse.json(
-        { error: "Old password and new password are required." },
-        { status: 400 }
-      );
-    }
-
-    if (newPassword.length < 6) {
-      return NextResponse.json(
-        { error: "New password must be at least 6 characters." },
-        { status: 400 }
-      );
-    }
 
     // Fetch user
     const { data: user, error: fetchError } = await supabaseAdmin
       .from("users")
-      .select("id, password_hash, token_version, role, domain_id")
+      .select("id, password_hash, token_version, role, domain_id, email, full_name")
       .eq("id", userId)
       .maybeSingle();
 
@@ -47,7 +60,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify old password
+    // Verify old password strictly using bcrypt (never allow plaintext comparisons)
     let isValid = false;
     if (
       storedHash.startsWith("$2a$") ||
@@ -56,8 +69,8 @@ export async function POST(request: Request) {
     ) {
       isValid = await bcrypt.compare(oldPassword, storedHash);
     } else {
-      // Plain-text legacy
-      isValid = storedHash === oldPassword;
+      // Reject any non-bcrypt / unhashed / OAuth placeholder values
+      isValid = false;
     }
 
     if (!isValid) {
@@ -89,6 +102,8 @@ export async function POST(request: Request) {
     const { setSession } = await import("@/lib/session");
     await setSession({
       id: user.id,
+      email: user.email,
+      fullName: user.full_name || (user.email ? user.email.split("@")[0] : "User"),
       role: user.role,
       domain_id: user.domain_id,
       version: nextVersion,

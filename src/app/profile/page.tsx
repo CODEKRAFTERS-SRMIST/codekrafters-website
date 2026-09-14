@@ -36,20 +36,25 @@ export default function UserProfile() {
   const [pwMsg, setPwMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
-    const rawSession = localStorage.getItem("codekrafters_user_session");
-    if (rawSession) {
-      setSession(JSON.parse(rawSession));
-      setIsLoading(false);
-    } else {
-      window.location.href = "/login?redirect=/profile";
-    }
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.authenticated && data.user) {
+          setSession(data.user);
+          setIsLoading(false);
+        } else {
+          window.location.href = "/login?redirect=/profile";
+        }
+      })
+      .catch(() => {
+        window.location.href = "/login?redirect=/profile";
+      });
   }, []);
 
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch (e) {}
-    localStorage.removeItem("codekrafters_user_session");
     window.dispatchEvent(new Event("auth_change"));
     window.location.href = "/";
   };

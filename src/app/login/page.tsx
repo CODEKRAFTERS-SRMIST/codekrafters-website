@@ -9,29 +9,20 @@ export default function LoginPage() {
   const [session, setSession] = useState<UserSession | null>(null);
 
   useEffect(() => {
-    try {
-      const searchParams = new URLSearchParams(window.location.search);
-      const isReauth = searchParams.get("reauth") === "true" || searchParams.get("force") === "true";
-      if (isReauth) {
-        localStorage.removeItem("codekrafters_user_session");
-        window.dispatchEvent(new Event("auth_change"));
-        return;
-      }
-
-      const rawSession = localStorage.getItem("codekrafters_user_session");
-      if (rawSession) {
-        // If already logged in, redirect them
-        const redirect = searchParams.get("redirect");
-        window.location.href = redirect || "/profile";
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.authenticated && data.user) {
+          const searchParams = new URLSearchParams(window.location.search);
+          const redirect = searchParams.get("redirect");
+          window.location.href = redirect || "/profile";
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handleLoginSuccess = (newSession: UserSession) => {
     try {
-      localStorage.setItem("codekrafters_user_session", JSON.stringify(newSession));
       window.dispatchEvent(new Event("auth_change"));
       
       const searchParams = new URLSearchParams(window.location.search);

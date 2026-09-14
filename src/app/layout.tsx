@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import AppShell from "./AppShell";
-import { DevToolsBlocker } from "@/components/DevToolsBlocker";
+import DevToolsBlocker from "@/components/DevToolsBlocker";
+import CookieConsent from "@/components/CookieConsent";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://codekraftersrmp.in"),
@@ -169,6 +170,7 @@ export default function RootLayout({
       <body className="antialiased bg-black text-white dark">
         <DevToolsBlocker />
         <AppShell>{children}</AppShell>
+        <CookieConsent />
       </body>
     </html>
   );

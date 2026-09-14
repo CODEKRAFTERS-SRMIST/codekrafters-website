@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Instagram, Linkedin, Github, Mail } from "lucide-react";
+import { getImageKitUrl } from "@/lib/imagekit";
 
 export default function Footer() {
   return (
@@ -21,7 +22,7 @@ export default function Footer() {
           <div className="flex flex-col items-center lg:items-start">
             <div className="flex items-center gap-3 justify-center lg:justify-start">
               <Image
-                src="https://ik.imagekit.io/ysfz8n1no/public/logo.png"
+                src={getImageKitUrl("/logo.png")}
                 alt="CodeKrafters Logo"
                 width={36}
                 height={36}
@@ -81,6 +82,7 @@ export default function Footer() {
                 href="https://www.instagram.com/codekrafterssrm/"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="CodeKrafters on Instagram (opens in new tab)"
                 className="flex items-center gap-2 text-white hover:text-[#F2A516]"
               >
                 <Instagram className="w-4 h-4" />
@@ -92,6 +94,7 @@ export default function Footer() {
                 href="https://www.linkedin.com/company/codekrafters-srm/"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="CodeKrafters on LinkedIn (opens in new tab)"
                 className="flex items-center gap-2 text-white hover:text-[#F2A516]"
               >
                 <Linkedin className="w-4 h-4" />
@@ -103,6 +106,7 @@ export default function Footer() {
                 href="https://github.com/CODEKRAFTERS-SRMIST"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="CodeKrafters on GitHub (opens in new tab)"
                 className="flex items-center gap-2 text-white hover:text-[#F2A516]"
               >
                 <Github className="w-4 h-4" />
@@ -121,6 +125,8 @@ export default function Footer() {
             <li><a href="https://ck-blog-platform.vercel.app/" className="hover:text-[#F2A516]">Blog</a></li>
             <li><Link href="/krafterslink" className="hover:text-[#F2A516]">KraftersLink</Link></li>
             <li><Link href="/faq" className="hover:text-[#F2A516]">FAQ</Link></li>
+            <li><Link href="/privacy" className="hover:text-[#F2A516]">Privacy Policy</Link></li>
+            <li><Link href="/terms" className="hover:text-[#F2A516]">Terms of Service</Link></li>
             <li>
               <a
                 href="mailto:support@codekraftersrmp.in"
@@ -153,14 +159,21 @@ export default function Footer() {
       </div>
 
       {/* Bottom */}
-      <div className="mt-5 pt-6 border-t border-[#FFEFB4]/20 text-center text-xs text-[#FFEFB4]/60 flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto">
+      <div className="mt-5 pt-6 border-t border-[#FFEFB4]/20 text-center text-xs text-[#FFEFB4]/60 flex flex-col sm:flex-row items-center justify-between gap-3 max-w-7xl mx-auto">
         <div>
           © {new Date().getFullYear()}{" "}
           <span className="text-white">Code</span>
           <span className="text-[#F2A516]">Krafters</span>. All rights reserved.
         </div>
-        <div>
-          Support & Inquiries:{" "}
+        <div className="flex items-center gap-4">
+          <Link href="/privacy" className="hover:text-[#F2A516] transition-colors">
+            Privacy
+          </Link>
+          <span>•</span>
+          <Link href="/terms" className="hover:text-[#F2A516] transition-colors">
+            Terms
+          </Link>
+          <span>•</span>
           <a
             href="mailto:support@codekraftersrmp.in"
             className="text-[#F2A516] hover:underline"

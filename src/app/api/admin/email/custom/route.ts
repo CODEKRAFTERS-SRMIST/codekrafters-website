@@ -10,11 +10,11 @@ import {
 export async function POST(request: Request) {
   try {
     const ip = getIpFromRequest(request);
-    const rateLimit = await checkRateLimit(ip, "authenticated");
-    if (!rateLimit.success) {
+    const ipLimit = await checkRateLimit(ip, "email_service");
+    if (!ipLimit.success) {
       return NextResponse.json(
-        { error: "Too many email requests. Please try again in a few moments." },
-        { status: 429, headers: { "Retry-After": String(rateLimit.retryAfter || 60) } }
+        { error: "Too many email requests. Please wait before sending again.", retryAfter: ipLimit.retryAfter },
+        { status: 429, headers: { "Retry-After": String(ipLimit.retryAfter || 60) } }
       );
     }
 
@@ -26,6 +26,14 @@ export async function POST(request: Request) {
         session.role !== "DOMAIN_ADMIN")
     ) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    const adminLimit = await checkRateLimit(session.id, "email_service");
+    if (!adminLimit.success) {
+      return NextResponse.json(
+        { error: "Email broadcast limit reached. Please wait before sending more emails.", retryAfter: adminLimit.retryAfter },
+        { status: 429, headers: { "Retry-After": String(adminLimit.retryAfter || 60) } }
+      );
     }
 
     const body = await request.json().catch(() => ({}));
@@ -149,6 +157,32 @@ export async function POST(request: Request) {
           );
         }
       }
+    } else if (session.role === "DOMAIN_ADMIN" && session.domain_id) {
+      // Domain admin must specify an application or an email belonging to their domain
+      if (!candidateEmail) {
+        return NextResponse.json({ error: "Application ID or candidate email is required." }, { status: 400 });
+      }
+      const { data: appData } = await supabaseAdmin
+        .from("applications")
+        .select("*")
+        .ilike("email", candidateEmail.trim())
+        .maybeSingle();
+
+      if (!appData) {
+        return NextResponse.json({ error: "Forbidden: Recipient is not a registered candidate in your domain." }, { status: 403 });
+      }
+
+      const adminNorm = session.domain_id.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const matchesDomain = (d: string) => d && d.toLowerCase().replace(/[^a-z0-9]/g, "") === adminNorm;
+      const belongs = (appData.domains && appData.domains.some(matchesDomain)) || matchesDomain(appData.primary_domain);
+
+      if (!belongs) {
+        return NextResponse.json({ error: "Forbidden: Candidate is outside your assigned domain." }, { status: 403 });
+      }
+
+      targetEmail = appData.email;
+      targetName = candidateName || appData.full_name;
+      targetDomain = domain || appData.primary_domain;
     }
 
     if (!targetEmail) {

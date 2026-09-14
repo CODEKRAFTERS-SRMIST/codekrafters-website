@@ -2,8 +2,16 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { setSession } from "@/lib/session";
+import { getIpFromRequest, checkRateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
+  const ip = getIpFromRequest(request);
+  const ipLimit = await checkRateLimit(ip, "auth_ip");
+  if (!ipLimit.success) {
+    const { origin } = new URL(request.url);
+    return NextResponse.redirect(`${origin}/login?error=too_many_attempts`);
+  }
+
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const redirect = searchParams.get("redirect") || "/profile";
@@ -37,13 +45,16 @@ export async function GET(request: Request) {
             userDomainId = existingUser.domain_id;
             fullName = existingUser.full_name || fullName;
           } else {
+            // Generate cryptographically locked, non-guessable hash for OAuth users
+            const lockedHash = `$2a$10$OAUTH.GOOGLE.LOCKED.${Buffer.from(crypto.randomUUID()).toString("base64url")}`;
+            
             // Insert new applicant into users table
             const { data: newUser, error: insertError } = await supabaseAdmin
               .from("users")
               .insert([
                 {
                   email,
-                  password_hash: "OAUTH_GOOGLE",
+                  password_hash: lockedHash,
                   full_name: fullName,
                   role: "APPLICANT",
                 },
@@ -68,36 +79,8 @@ export async function GET(request: Request) {
             version: existingUser?.token_version || 1,
           });
 
-          // Sync localStorage on client and redirect
-          const sessionPayload = JSON.stringify({
-            id: userId,
-            email,
-            role: userRole,
-            domain_id: userDomainId,
-            fullName,
-          });
-
-          return new Response(
-            `<!DOCTYPE html>
-<html>
-  <head><title>Signing in...</title></head>
-  <body style="background:#FFEFB4;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
-    <script>
-      try {
-        localStorage.setItem("codekrafters_user_session", JSON.stringify(${sessionPayload}));
-        window.dispatchEvent(new Event("auth_change"));
-      } catch(e) {}
-      window.location.href = ${JSON.stringify(redirect)};
-    </script>
-    <p style="font-weight:bold;color:#0D0D0D;">Authenticating with CodeKrafters...</p>
-  </body>
-</html>`,
-            {
-              headers: {
-                "Content-Type": "text/html",
-              },
-            }
-          );
+          // Clean HTTP redirect relying on secure HTTP-only session cookie
+          return NextResponse.redirect(new URL(redirect, request.url));
         }
       } else {
         console.error("OAuth code exchange error:", error);

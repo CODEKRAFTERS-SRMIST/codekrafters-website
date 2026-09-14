@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { getImageKitUrl } from "@/lib/imagekit";
 
 const scanLines = Array.from({ length: 10 }, (_, index) => ({
   id: `scan-line-${index}`,
@@ -117,7 +118,7 @@ export default function LoadingPage() {
               className="relative h-full w-full"
             >
               <Image
-                src="https://ik.imagekit.io/ysfz8n1no/public/logo.png"
+                src={getImageKitUrl("/logo.png")}
                 alt="CodeKrafters logo"
                 fill
                 priority
