@@ -17,19 +17,20 @@ export default function JoinPage() {
 
   // Check saved session on mount
   useEffect(() => {
-    try {
-      const rawSession = localStorage.getItem("codekrafters_user_session");
-      if (rawSession) {
-        const parsed: UserSession = JSON.parse(rawSession);
-        setSession(parsed);
-        findUserApplication(parsed.id, parsed.email);
-      } else {
-        // Stop loading state if no session
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.authenticated && data.user) {
+          setSession(data.user);
+          findUserApplication(data.user.id, data.user.email);
+        } else {
+          setIsLoading(false);
+        }
+      })
+      .catch((e) => {
+        console.error(e);
         setIsLoading(false);
-      }
-    } catch (e) {
-      console.error(e);
-    }
+      });
   }, []);
 
   const findUserApplication = async (userId: string, email: string) => {
@@ -46,8 +47,6 @@ export default function JoinPage() {
     setIsLoading(false);
   };
 
-
-
   const handleLogout = async () => {
     setSession(null);
     setUserApp(null);
@@ -55,10 +54,7 @@ export default function JoinPage() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch (e) {}
-    try {
-      localStorage.removeItem("codekrafters_user_session");
-      window.dispatchEvent(new Event("auth_change"));
-    } catch (e) {}
+    window.dispatchEvent(new Event("auth_change"));
   };
 
   const handleApplicationSubmitted = (app: Application) => {

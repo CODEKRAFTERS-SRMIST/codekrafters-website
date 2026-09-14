@@ -1,9 +1,20 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { getSession } from "@/lib/session";
+import { getIpFromRequest, checkRateLimit } from "@/lib/rate-limit";
+import { userRolePatchSchema } from "@/lib/validations";
 
 export async function GET(request: Request) {
   try {
+    const ip = getIpFromRequest(request);
+    const ipLimit = await checkRateLimit(ip, "authenticated");
+    if (!ipLimit.success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down." },
+        { status: 429, headers: { "Retry-After": String(ipLimit.retryAfter || 60) } }
+      );
+    }
+
     const session = await getSession();
     if (!session || (session.role !== "PRESIDENT" && session.role !== "VICE_PRESIDENT")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
@@ -33,16 +44,31 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
+    const ip = getIpFromRequest(request);
+    const ipLimit = await checkRateLimit(ip, "authenticated");
+    if (!ipLimit.success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down." },
+        { status: 429, headers: { "Retry-After": String(ipLimit.retryAfter || 60) } }
+      );
+    }
+
     const session = await getSession();
     if (!session || (session.role !== "PRESIDENT" && session.role !== "VICE_PRESIDENT")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const body = await request.json();
-    const { targetUserId, role, domain_id } = body;
+    const parsed = userRolePatchSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation Error", details: parsed.error.format() }, { status: 400 });
+    }
 
-    if (!targetUserId || !role) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const { targetUserId, role, domain_id } = parsed.data;
+
+    // Only current PRESIDENT can assign the PRESIDENT role
+    if (role === "PRESIDENT" && session.role !== "PRESIDENT") {
+      return NextResponse.json({ error: "Forbidden: Only the President can promote another user to President" }, { status: 403 });
     }
 
     const { data, error } = await supabaseAdmin
@@ -52,6 +78,10 @@ export async function PATCH(request: Request) {
       .select().single();
 
     if (error) return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
+
+    // Invalidate target user's active session to force re-authentication with new privileges
+    const { invalidateUserSessions } = await import("@/lib/session");
+    await invalidateUserSessions(targetUserId);
 
     return NextResponse.json({ success: true, user: data });
   } catch (error) {

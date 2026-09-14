@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { getImageKitUrl } from "@/lib/imagekit";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -24,14 +25,16 @@ interface MangaPageData {
   bubbles: BubbleData[];
 }
 
+const MANGA_TRANSFORM = "tr=f-auto,q-80";
+
 const MANGA_PAGES: MangaPageData[] = [
   {
     pageNumber: 1,
-    baseImage: "/manga_art/manga page1.png",
+    baseImage: getImageKitUrl("/manga_art/manga_page1.png", MANGA_TRANSFORM),
     bubbles: [
       {
         id: "p1-b1",
-        src: "/manga_art/cutouts/page1_box1.png",
+        src: getImageKitUrl("/manga_art/cutouts/page1_box1.png", MANGA_TRANSFORM),
         alt: "Who leaves a USB lying around?",
         left: "28.44%",
         top: "10.56%",
@@ -39,7 +42,7 @@ const MANGA_PAGES: MangaPageData[] = [
       },
       {
         id: "p1-b2",
-        src: "/manga_art/cutouts/page1_box2.png",
+        src: getImageKitUrl("/manga_art/cutouts/page1_box2.png", MANGA_TRANSFORM),
         alt: "Okay...",
         left: "16.41%",
         top: "60.42%",
@@ -49,11 +52,11 @@ const MANGA_PAGES: MangaPageData[] = [
   },
   {
     pageNumber: 2,
-    baseImage: "/manga_art/manga page2.png",
+    baseImage: getImageKitUrl("/manga_art/manga_page2.png", MANGA_TRANSFORM),
     bubbles: [
       {
         id: "p2-b1",
-        src: "/manga_art/cutouts/page2_box1.png",
+        src: getImageKitUrl("/manga_art/cutouts/page2_box1.png", MANGA_TRANSFORM),
         alt: "Wait... this is actually so much",
         left: "61.25%",
         top: "10.83%",
@@ -61,7 +64,7 @@ const MANGA_PAGES: MangaPageData[] = [
       },
       {
         id: "p2-b2",
-        src: "/manga_art/cutouts/page2_box2.png",
+        src: getImageKitUrl("/manga_art/cutouts/page2_box2.png", MANGA_TRANSFORM),
         alt: "But where??",
         left: "87.73%",
         top: "16.39%",
@@ -69,7 +72,7 @@ const MANGA_PAGES: MangaPageData[] = [
       },
       {
         id: "p2-b3",
-        src: "/manga_art/cutouts/page2_box3.png",
+        src: getImageKitUrl("/manga_art/cutouts/page2_box3.png", MANGA_TRANSFORM),
         alt: "Hope!!! I've found them",
         left: "14.38%",
         top: "67.50%",
@@ -79,11 +82,11 @@ const MANGA_PAGES: MangaPageData[] = [
   },
   {
     pageNumber: 3,
-    baseImage: "/manga_art/manga page 3.png",
+    baseImage: getImageKitUrl("/manga_art/manga_page3.png", MANGA_TRANSFORM),
     bubbles: [
       {
         id: "p3-b1",
-        src: "/manga_art/cutouts/page3_box1.png",
+        src: getImageKitUrl("/manga_art/cutouts/page3_box1.png", MANGA_TRANSFORM),
         alt: "So, you guys just... learn stuff??",
         left: "11.88%",
         top: "3.89%",
@@ -91,7 +94,7 @@ const MANGA_PAGES: MangaPageData[] = [
       },
       {
         id: "p3-b2",
-        src: "/manga_art/cutouts/page3_box2.png",
+        src: getImageKitUrl("/manga_art/cutouts/page3_box2.png", MANGA_TRANSFORM),
         alt: "Nah.. we build projects, get internships, attend workshop and make friends",
         left: "58.67%",
         top: "2.08%",
@@ -99,7 +102,7 @@ const MANGA_PAGES: MangaPageData[] = [
       },
       {
         id: "p3-b3",
-        src: "/manga_art/cutouts/page3_box3.png",
+        src: getImageKitUrl("/manga_art/cutouts/page3_box3.png", MANGA_TRANSFORM),
         alt: "And a lot more....",
         left: "83.59%",
         top: "10.14%",
@@ -107,7 +110,7 @@ const MANGA_PAGES: MangaPageData[] = [
       },
       {
         id: "p3-b4",
-        src: "/manga_art/cutouts/page4_box4.png",
+        src: getImageKitUrl("/manga_art/cutouts/page4_box4.png", MANGA_TRANSFORM),
         alt: "This feels right. I'm in.",
         left: "45.50%",
         top: "56.50%",
@@ -117,7 +120,7 @@ const MANGA_PAGES: MangaPageData[] = [
   },
   {
     pageNumber: 4,
-    baseImage: "/manga_art/manga page4.png",
+    baseImage: getImageKitUrl("/manga_art/manga_page4.png", MANGA_TRANSFORM),
     bubbles: [],
   },
 ];

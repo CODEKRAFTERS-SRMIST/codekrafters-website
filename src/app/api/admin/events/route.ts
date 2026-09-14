@@ -1,8 +1,19 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { getSession } from "@/lib/session";
+import { getIpFromRequest, checkRateLimit } from "@/lib/rate-limit";
+import { eventPostSchema, eventPutSchema, eventPatchSchema } from "@/lib/validations";
+
 export async function GET(request: Request) {
   try {
+    const ip = getIpFromRequest(request);
+    const ipLimit = await checkRateLimit(ip, "public");
+    if (!ipLimit.success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down." },
+        { status: 429, headers: { "Retry-After": String(ipLimit.retryAfter || 60) } }
+      );
+    }
     const session = await getSession();
     
     let query = supabaseAdmin
@@ -35,17 +46,27 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const ip = getIpFromRequest(request);
+    const ipLimit = await checkRateLimit(ip, "authenticated");
+    if (!ipLimit.success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down." },
+        { status: 429, headers: { "Retry-After": String(ipLimit.retryAfter || 60) } }
+      );
+    }
+
     const session = await getSession();
     if (!session || session.role === "APPLICANT") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
-    const { category, title, description, image_url } = body;
-
-    if (!category || !title || !image_url) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const parsed = eventPostSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation Error", details: parsed.error.format() }, { status: 400 });
     }
+
+    const { category, title, description, image_url } = parsed.data;
 
     let status = 'PENDING';
     
@@ -64,7 +85,15 @@ export async function POST(request: Request) {
     const { data, error } = await supabaseAdmin
       .from("event_postings")
       .insert([
-        { category, title, description, image_url, status, created_by_id: session.id, approved_by_id: (session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT") ? session.id : null }
+        { 
+          category, 
+          title, 
+          description: description || "", 
+          image_url, 
+          status, 
+          created_by_id: session.id, 
+          approved_by_id: (session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT") ? session.id : null 
+        }
       ])
       .select()
       .single();
@@ -89,15 +118,41 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { id, category, title, description, image_url } = body;
+    const parsed = eventPutSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation Error", details: parsed.error.format() }, { status: 400 });
+    }
 
-    if (!id || !category || !title || !image_url) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const { id, category, title, description, image_url } = parsed.data;
+
+    // Verify existing event ownership
+    const { data: existingEvent, error: fetchErr } = await supabaseAdmin
+      .from("event_postings")
+      .select("id, created_by_id, status")
+      .eq("id", id)
+      .single();
+
+    if (fetchErr || !existingEvent) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    const isGlobalAdmin = session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT";
+
+    // Domain admins can strictly only modify events they created
+    if (!isGlobalAdmin && existingEvent.created_by_id !== session.id) {
+      return NextResponse.json({ error: "Forbidden: You cannot edit events created by other users" }, { status: 403 });
+    }
+
+    const updates: any = { category, title, description: description || "", image_url };
+    // If domain admin edits an event, reset to PENDING for re-approval
+    if (!isGlobalAdmin) {
+      updates.status = "PENDING";
+      updates.approved_by_id = null;
     }
 
     const { data, error } = await supabaseAdmin
       .from("event_postings")
-      .update({ category, title, description, image_url })
+      .update(updates)
       .eq("id", id)
       .select()
       .single();
@@ -122,11 +177,12 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { id, status } = body;
-
-    if (!id || !status) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const parsed = eventPatchSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Validation Error", details: parsed.error.format() }, { status: 400 });
     }
+
+    const { id, status } = parsed.data;
 
     const { data, error } = await supabaseAdmin
       .from("event_postings")
@@ -158,6 +214,24 @@ export async function DELETE(request: Request) {
 
     if (!id) {
       return NextResponse.json({ error: "Missing event ID" }, { status: 400 });
+    }
+
+    // Verify existing event ownership
+    const { data: existingEvent, error: fetchErr } = await supabaseAdmin
+      .from("event_postings")
+      .select("id, created_by_id")
+      .eq("id", id)
+      .single();
+
+    if (fetchErr || !existingEvent) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    const isGlobalAdmin = session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT";
+
+    // Domain admins can strictly only delete events they created
+    if (!isGlobalAdmin && existingEvent.created_by_id !== session.id) {
+      return NextResponse.json({ error: "Forbidden: You cannot delete events created by other users" }, { status: 403 });
     }
 
     const { error } = await supabaseAdmin

@@ -28,26 +28,26 @@ export default function AdminEventsPage() {
   });
 
   useEffect(() => {
-    try {
-      const rawSession = localStorage.getItem("codekrafters_user_session");
-      if (rawSession) {
-        const parsed: UserSession = JSON.parse(rawSession);
-        if (parsed.role === 'PRESIDENT' || parsed.role === 'VICE_PRESIDENT' || parsed.role === 'DOMAIN_ADMIN') {
-          setSession(parsed);
-          fetchEvents();
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.authenticated && data.user) {
+          const parsed: UserSession = data.user;
+          if (parsed.role === 'PRESIDENT' || parsed.role === 'VICE_PRESIDENT' || parsed.role === 'DOMAIN_ADMIN') {
+            setSession(parsed);
+            fetchEvents();
+          }
         }
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    setIsLoading(false);
+      })
+      .catch((e) => {
+        console.error(e);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   const handleLoginSuccess = (newSession: UserSession) => {
-    try {
-      localStorage.setItem("codekrafters_user_session", JSON.stringify(newSession));
-    } catch (e) {}
-
     window.location.href = "/admin/events";
   };
 
@@ -56,10 +56,7 @@ export default function AdminEventsPage() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch (e) {}
-    try {
-      localStorage.removeItem("codekrafters_user_session");
-      window.dispatchEvent(new Event("auth_change"));
-    } catch (e) {}
+    window.dispatchEvent(new Event("auth_change"));
   };
 
   const fetchEvents = async () => {

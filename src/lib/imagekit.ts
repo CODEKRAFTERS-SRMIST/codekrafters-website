@@ -2,14 +2,20 @@ export const IMAGEKIT_BASE_URL = "https://ik.imagekit.io/ysfz8n1no/public";
 
 /**
  * Returns the full ImageKit URL for a relative public asset path or remote image.
- * Handles automatic encoding of spaces and special characters.
- * Example: "/hero-img/core.jpeg" -> "https://ik.imagekit.io/ysfz8n1no/public/hero-img/core.jpeg"
+ * Supports transformation query parameters for optimal format (WebP/AVIF), resizing, and compression.
+ * Example: getImageKitUrl("/manga_art/manga_page1.png", "tr=f-auto,q-80,w-1600")
  */
-export function getImageKitUrl(relativePath: string): string {
+export function getImageKitUrl(relativePath: string, transform?: string): string {
   if (!relativePath) return "";
-  if (relativePath.startsWith("http://") || relativePath.startsWith("https://")) {
-    return relativePath;
+  let url = relativePath;
+  if (!relativePath.startsWith("http://") && !relativePath.startsWith("https://")) {
+    const cleanPath = relativePath.startsWith("/") ? relativePath : `/${relativePath}`;
+    url = `${IMAGEKIT_BASE_URL}${encodeURI(cleanPath)}`;
   }
-  const cleanPath = relativePath.startsWith("/") ? relativePath : `/${relativePath}`;
-  return `${IMAGEKIT_BASE_URL}${encodeURI(cleanPath)}`;
+  
+  if (transform) {
+    const separator = url.includes("?") ? "&" : "?";
+    return `${url}${separator}${transform}`;
+  }
+  return url;
 }

@@ -22,7 +22,7 @@ export async function getLiveRecruitmentSettings() {
         updated_at: data.updated_at || new Date().toISOString(),
       };
     }
-  } catch (e) {
+  } catch {
     // fallback to memorySettings
   }
   return memorySettings;

@@ -16,6 +16,7 @@ export function LoginCard({ onLoginSuccess, defaultIsSignUp = false }: LoginCard
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [error, setError] = useState("");
@@ -34,6 +35,12 @@ export function LoginCard({ onLoginSuccess, defaultIsSignUp = false }: LoginCard
 
   const handleGoogleSignIn = async () => {
     setError("");
+
+    if (!agreedToTerms) {
+      setError("Please check the box to agree to the Terms of Service and Privacy Policy before continuing with Google.");
+      return;
+    }
+
     setOauthLoading(true);
 
     try {
@@ -59,6 +66,11 @@ export function LoginCard({ onLoginSuccess, defaultIsSignUp = false }: LoginCard
     e.preventDefault();
     setError("");
 
+    if (!agreedToTerms) {
+      setError("You must agree to the Terms of Service and Privacy Policy to proceed.");
+      return;
+    }
+
     if (!email || !email.includes("@")) {
       setError("Please enter a valid email address.");
       return;
@@ -81,7 +93,12 @@ export function LoginCard({ onLoginSuccess, defaultIsSignUp = false }: LoginCard
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, fullName: isSignUp ? fullName : undefined }),
+        body: JSON.stringify({ 
+          email, 
+          password, 
+          fullName: isSignUp ? fullName : undefined,
+          agreedToTerms: true,
+        }),
       });
 
       const data = await res.json();
@@ -245,6 +262,42 @@ export function LoginCard({ onLoginSuccess, defaultIsSignUp = false }: LoginCard
             </div>
           </div>
 
+          {/* Mandatory Terms & Privacy Checkbox */}
+          <div className="flex items-start gap-2.5 pt-1.5 pb-1">
+            <input
+              id="auth-terms-checkbox"
+              type="checkbox"
+              required
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-2 border-[#0D0D0D] text-[#F2A516] focus:ring-[#F2A516] accent-[#F2A516] cursor-pointer shrink-0"
+            />
+            <label
+              htmlFor="auth-terms-checkbox"
+              className="text-xs font-bold text-[#0D0D0D] leading-snug cursor-pointer select-none"
+            >
+              I agree to the{" "}
+              <a
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#F2A516] underline hover:text-[#0D0D0D] font-extrabold"
+              >
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#F2A516] underline hover:text-[#0D0D0D] font-extrabold"
+              >
+                Privacy Policy
+              </a>
+              .
+            </label>
+          </div>
+
           {error && (
             <div className="bg-red-100 border-2 border-red-500 text-red-800 text-xs font-bold p-3 rounded-xl shadow-[2px_2px_0_#0D0D0D]">
               {error}
@@ -254,7 +307,7 @@ export function LoginCard({ onLoginSuccess, defaultIsSignUp = false }: LoginCard
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading || oauthLoading}
+            disabled={loading || oauthLoading || !agreedToTerms}
             className="w-full mt-3 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] border-2 border-[#0D0D0D] py-3.5 px-6 rounded-full font-black text-base uppercase tracking-wider flex items-center justify-center gap-2 shadow-[4px_4px_0_#F2A516] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_#F2A516] transition-all duration-200 disabled:opacity-50 cursor-pointer"
           >
             {loading ? (

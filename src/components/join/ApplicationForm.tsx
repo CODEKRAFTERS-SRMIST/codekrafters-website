@@ -211,6 +211,20 @@ export function ApplicationForm({
         )}
 
         <form onSubmit={handleSubmit}>
+          {/* Honeypot field for bot mitigation - hidden from humans */}
+          <div className="hidden" aria-hidden="true" style={{ display: "none" }}>
+            <label htmlFor="website_hp">Leave this empty</label>
+            <input
+              id="website_hp"
+              name="website_hp"
+              type="text"
+              value={formData.website_hp || ""}
+              onChange={(e) => setFormData({ ...formData, website_hp: e.target.value })}
+              tabIndex={-1}
+              autoComplete="off"
+            />
+          </div>
+
           <AnimatePresence mode="wait">
             {/* STEP 1: Personal & Academic Details */}
             {step === 1 && (

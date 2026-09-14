@@ -5,8 +5,9 @@ import { checkRateLimit, getIpFromRequest } from "@/lib/rate-limit";
 import { applicationPostSchema, applicationPatchSchema } from "@/lib/validations";
 import { getLiveRecruitmentSettings } from "@/lib/recruitment-settings";
 import { getSession } from "@/lib/session";
+import { encryptField, decryptField } from "@/lib/encryption";
 
-// Helper to convert snake_case DB row to camelCase frontend type
+// Helper to convert snake_case DB row to camelCase frontend type with transparent decryption
 function mapAppFromDB(row: any): Application {
   let taskSubUrl = row.task_submission_url;
   if (!taskSubUrl && row.admin_notes && row.admin_notes.includes("[Task Submission:")) {
@@ -19,7 +20,7 @@ function mapAppFromDB(row: any): Application {
     userId: row.user_id,
     fullName: row.full_name,
     email: row.email,
-    phone: row.phone,
+    phone: decryptField(row.phone),
     department: row.department,
     year: row.year,
     domains: row.domains,
@@ -31,7 +32,7 @@ function mapAppFromDB(row: any): Application {
     whyJoin: row.why_join,
     pastExperience: row.past_experience,
     status: row.status,
-    adminNotes: row.admin_notes,
+    adminNotes: decryptField(row.admin_notes),
     rating: row.rating,
     taskSubmissionUrl: taskSubUrl,
     taskSubmittedAt: row.task_submitted_at,
@@ -53,42 +54,59 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  let userId = searchParams.get("userId");
-  let email = searchParams.get("email");
-
-  if (session.role !== "PRESIDENT" && session.role !== "VICE_PRESIDENT" && session.role !== "DOMAIN_ADMIN") {
-    // Regular users can only query their own data
-    userId = session.id;
-    email = null; // Ignore email search for regular users
-  }
+  const requestedUserId = searchParams.get("userId");
+  const requestedEmail = searchParams.get("email");
 
   try {
     const settings = await getLiveRecruitmentSettings();
     let query = supabaseAdmin.from("applications").select("*").order("submitted_at", { ascending: false });
 
-    if (userId || email) {
-      if (userId && email) {
-        query = query.or(`user_id.eq.${userId},email.ilike.${email}`);
-      } else if (userId) {
-        query = query.eq("user_id", userId);
-      } else {
-        query = query.ilike("email", email!);
+    if (session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT") {
+      // Global admins can query any user/email or all
+      if (requestedUserId || requestedEmail) {
+        if (requestedUserId && requestedEmail) {
+          query = query.or(`user_id.eq.${requestedUserId},email.ilike.${requestedEmail}`);
+        } else if (requestedUserId) {
+          query = query.eq("user_id", requestedUserId);
+        } else {
+          query = query.ilike("email", requestedEmail!);
+        }
       }
+    } else if (session.role === "DOMAIN_ADMIN" && session.domain_id) {
+      // Domain admin: can query their own application or candidates for their assigned domain
+      if (requestedUserId && requestedUserId === session.id) {
+        query = query.eq("user_id", session.id);
+      }
+      // Domain filtering will be enforced on the results to ensure strict domain isolation
+    } else {
+      // Regular applicants can strictly ONLY view their own application
+      query = query.eq("user_id", session.id);
     }
 
     const { data, error } = await query;
     if (error) throw error;
 
-    const mappedApplications = (data || []).map((row: any) => {
+    let rows = data || [];
+
+    // Enforce domain isolation for DOMAIN_ADMIN
+    if (session.role === "DOMAIN_ADMIN" && session.domain_id) {
+      const adminNorm = session.domain_id.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const matchesDomain = (d: string) => d && d.toLowerCase().replace(/[^a-z0-9]/g, "") === adminNorm;
+
+      rows = rows.filter((r: any) => {
+        // Allow seeing own application or applicants within their domain
+        if (r.user_id === session.id) return true;
+        return (r.domains && r.domains.some(matchesDomain)) || matchesDomain(r.primary_domain);
+      });
+    }
+
+    const mappedApplications = rows.map((row: any) => {
       const app = mapAppFromDB(row);
 
       // Dynamic automatic status progression:
-      // 1. If timeline in Phase 2 & tasks active, 'Applied' auto-becomes 'Task Ongoing'
       if (app.status === "Applied" && (settings.current_phase >= 2 || settings.tasks_visible)) {
         app.status = "Task Ongoing";
-      }
-      // 2. If deadline passed (Phase 3+) and was 'Task Ongoing', auto-becomes 'Task Completed'
-      else if (app.status === "Task Ongoing" && settings.current_phase >= 3) {
+      } else if (app.status === "Task Ongoing" && settings.current_phase >= 3) {
         app.status = "Task Completed";
       }
 
@@ -104,9 +122,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const ip = getIpFromRequest(request);
-  const limit = await checkRateLimit(ip, 'public');
-  if (!limit.success) {
-    return NextResponse.json({ error: "Too Many Requests" }, { status: 429, headers: { 'Retry-After': String(limit.retryAfter || 60) } });
+  const ipLimit = await checkRateLimit(ip, 'auth_strict');
+  if (!ipLimit.success) {
+    return NextResponse.json({ error: "Too Many Requests. Please wait before submitting again." }, { status: 429, headers: { 'Retry-After': String(ipLimit.retryAfter || 60) } });
   }
 
   try {
@@ -115,19 +133,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const userLimit = await checkRateLimit(session.id, 'auth_strict');
+    if (!userLimit.success) {
+      return NextResponse.json({ error: "Submission rate limit reached for your account." }, { status: 429, headers: { 'Retry-After': String(userLimit.retryAfter || 60) } });
+    }
+
+    // Verify authenticated user from database
+    const { data: authUser, error: userError } = await supabaseAdmin
+      .from("users")
+      .select("id, email")
+      .eq("id", session.id)
+      .single();
+
+    if (userError || !authUser) {
+      return NextResponse.json({ error: "Unauthorized: User account not found" }, { status: 401 });
+    }
+
     const body = await request.json();
-    
+
     const parsed = applicationPostSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: "Validation Error", details: parsed.error.format() }, { status: 400 });
     }
-    
+
     const validatedData = parsed.data;
-    
-    // Force the userId to be the authenticated user's ID
-    validatedData.userId = session.id;
-    
-    // Check if exists
+
+    // Server enforces the verified user ID and verified account email
+    validatedData.userId = authUser.id;
+    validatedData.email = authUser.email;
+
+    // Check if application exists for this user
     const { data: existing } = await supabaseAdmin
       .from("applications")
       .select("id")
@@ -135,12 +170,12 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (existing) {
-      // Update instead
+      // Update existing application
       const { data, error } = await supabaseAdmin
         .from("applications")
         .update({
           full_name: validatedData.fullName,
-          phone: validatedData.phone,
+          phone: encryptField(validatedData.phone),
           department: validatedData.department,
           year: validatedData.year,
           primary_domain: validatedData.primaryDomain,
@@ -166,7 +201,7 @@ export async function POST(request: Request) {
         user_id: validatedData.userId,
         full_name: validatedData.fullName,
         email: validatedData.email,
-        phone: validatedData.phone,
+        phone: encryptField(validatedData.phone),
         department: validatedData.department,
         year: validatedData.year,
         primary_domain: validatedData.primaryDomain,
@@ -204,32 +239,52 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    
+
     const parsed = applicationPatchSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: "Validation Error", details: parsed.error.format() }, { status: 400 });
     }
-    
+
     const { id, status, adminNotes, rating, taskSubmissionUrl } = parsed.data;
 
-    const isAdmin = session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT" || session.role === "DOMAIN_ADMIN";
-    
-    // Non-admins cannot update admin fields
-    if (!isAdmin && (status !== undefined || adminNotes !== undefined || rating !== undefined)) {
+    const isGlobalAdmin = session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT";
+    const isDomainAdmin = session.role === "DOMAIN_ADMIN";
+
+    // Non-admins cannot update administrative evaluation fields
+    if (!isGlobalAdmin && !isDomainAdmin && (status !== undefined || adminNotes !== undefined || rating !== undefined)) {
       return NextResponse.json({ error: "Forbidden: Admin only fields" }, { status: 403 });
     }
 
-    // Non-admins must own the application they are modifying (e.g. submitting task)
-    if (!isAdmin) {
-      const { data: app } = await supabaseAdmin.from("applications").select("user_id").eq("id", id).single();
-      if (!app || app.user_id !== session.id) {
-        return NextResponse.json({ error: "Forbidden: Not your application" }, { status: 403 });
+    // Fetch target application to verify ownership and domain authorization
+    const { data: targetApp, error: fetchErr } = await supabaseAdmin
+      .from("applications")
+      .select("user_id, primary_domain, domains")
+      .eq("id", id)
+      .single();
+
+    if (fetchErr || !targetApp) {
+      return NextResponse.json({ error: "Application not found" }, { status: 404 });
+    }
+
+    // Domain Admins can only evaluate candidates within their assigned domain
+    if (isDomainAdmin) {
+      const adminNorm = (session.domain_id || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const matchesDomain = (d: string) => d && d.toLowerCase().replace(/[^a-z0-9]/g, "") === adminNorm;
+      const belongs = (targetApp.domains && targetApp.domains.some(matchesDomain)) || matchesDomain(targetApp.primary_domain);
+
+      if (!belongs && targetApp.user_id !== session.id) {
+        return NextResponse.json({ error: "Forbidden: Candidate is outside your assigned domain" }, { status: 403 });
       }
+    }
+
+    // Regular applicants must own the application they are updating (e.g. submitting a task)
+    if (!isGlobalAdmin && !isDomainAdmin && targetApp.user_id !== session.id) {
+      return NextResponse.json({ error: "Forbidden: Not your application" }, { status: 403 });
     }
 
     const updates: any = { updated_at: new Date().toISOString() };
     if (status !== undefined) updates.status = status;
-    if (adminNotes !== undefined) updates.admin_notes = adminNotes;
+    if (adminNotes !== undefined) updates.admin_notes = encryptField(adminNotes);
     if (rating !== undefined) updates.rating = rating;
     if (taskSubmissionUrl !== undefined) {
       updates.task_submission_url = taskSubmissionUrl;
@@ -255,7 +310,7 @@ export async function PATCH(request: Request) {
         delete updates.task_submission_url;
         delete updates.task_submitted_at;
         const currentNotes = adminNotes || "";
-        updates.admin_notes = `${currentNotes}\n[Task Submission: ${taskSubmissionUrl}]`.trim();
+        updates.admin_notes = encryptField(`${currentNotes}\n[Task Submission: ${taskSubmissionUrl}]`.trim());
 
         const { data: retryData, error: retryError } = await supabaseAdmin
           .from("applications")
