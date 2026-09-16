@@ -102,8 +102,8 @@ export const recruitmentSettingsPatchSchema = z
 
 export const userRolePatchSchema = z
   .object({
-    targetUserId: z.string().uuid("Invalid target user ID"),
+    targetUserId: z.string().min(1, "Target user ID is required"),
     role: z.enum(["APPLICANT", "DOMAIN_ADMIN", "VICE_PRESIDENT", "PRESIDENT"]),
-    domain_id: z.string().max(100).nullable().optional(),
-  })
-  .strict();
+    domain_id: z.string().max(100).nullable().optional().or(z.literal("")),
+    adminId: z.string().optional(),
+  });

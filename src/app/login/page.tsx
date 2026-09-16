@@ -1,40 +1,79 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { LoginCard } from "@/components/join/LoginCard";
 import { UserSession } from "@/types/join";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [session, setSession] = useState<UserSession | null>(null);
 
+  const getTargetUrl = (user: { role?: string }) => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirect = searchParams.get("redirect");
+      if (redirect && !redirect.startsWith("/login") && !redirect.startsWith("/signup")) {
+        return redirect;
+      }
+    } catch {}
+
+    if (user.role === "PRESIDENT" || user.role === "VICE_PRESIDENT" || user.role === "DOMAIN_ADMIN") {
+      return "/join";
+    }
+    return "/profile";
+  };
+
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => res.json())
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const isReauth = searchParams.get("reauth") === "true" || searchParams.get("force") === "true";
+      if (isReauth) {
+        localStorage.removeItem("codekrafters_user_session");
+        window.dispatchEvent(new Event("auth_change"));
+        return;
+      }
+
+      const rawSession = localStorage.getItem("codekrafters_user_session");
+      if (rawSession) {
+        try {
+          const parsed = JSON.parse(rawSession);
+          if (parsed?.id) {
+            const target = getTargetUrl(parsed);
+            router.replace(target);
+            return;
+          }
+        } catch {}
+      }
+    } catch (e) {}
+
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((res) => {
+        if (!res.ok) return null;
+        return res.json();
+      })
       .then((data) => {
-        if (data.authenticated && data.user) {
-          const searchParams = new URLSearchParams(window.location.search);
-          const redirect = searchParams.get("redirect");
-          window.location.href = redirect || "/profile";
+        if (data && data.authenticated && data.user) {
+          try {
+            localStorage.setItem("codekrafters_user_session", JSON.stringify(data.user));
+          } catch {}
+          const target = getTargetUrl(data.user);
+          router.replace(target);
         }
       })
       .catch(() => {});
-  }, []);
+  }, [router]);
 
   const handleLoginSuccess = (newSession: UserSession) => {
     try {
+      localStorage.setItem("codekrafters_user_session", JSON.stringify(newSession));
       window.dispatchEvent(new Event("auth_change"));
-      
-      const searchParams = new URLSearchParams(window.location.search);
-      const redirect = searchParams.get("redirect");
-
-      // Navigate based on role and redirect param
-      if (newSession.role === "PRESIDENT" || newSession.role === "VICE_PRESIDENT" || newSession.role === "DOMAIN_ADMIN") {
-        window.location.href = redirect || "/join"; 
-      } else {
-        window.location.href = redirect || "/profile";
-      }
-    } catch (e) {}
+      const target = getTargetUrl(newSession);
+      router.replace(target);
+    } catch (e) {
+      router.replace("/profile");
+    }
   };
 
   return (

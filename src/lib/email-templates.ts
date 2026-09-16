@@ -50,7 +50,8 @@ export interface CustomBroadcastEmailProps extends BaseTemplateProps {
 }
 
 export const DEFAULT_SUPPORT_EMAIL = "support@codekraftersrmp.in";
-export const DEFAULT_PORTAL_URL = "https://codekrafters.in/profile";
+export const DEFAULT_WEBSITE_URL = "https://codekraftersrmp.in";
+export const DEFAULT_PORTAL_URL = "https://codekraftersrmp.in/profile";
 
 /**
  * Escapes HTML characters to prevent HTML injection in email clients
@@ -252,7 +253,7 @@ export function renderBaseEmailLayout({
           CodeKrafters — Tech & Innovation Community
         </p>
         <p style="color: rgba(255, 239, 180, 0.7); margin-bottom: 12px; font-size: 11px;">
-          SRM Institute of Science & Technology, Ramapuram, Chennai 600089
+          SRM Institute of Science & Technology, Ramapuram, Chennai 600089 • <a href="${DEFAULT_WEBSITE_URL}" target="_blank" style="color: #F2A516; text-decoration: underline;">codekraftersrmp.in</a>
         </p>
         <p style="color: rgba(255, 239, 180, 0.9); margin-bottom: 0;">
           Need help or have questions? Email us directly at <a href="mailto:${supportEmail}">${supportEmail}</a>

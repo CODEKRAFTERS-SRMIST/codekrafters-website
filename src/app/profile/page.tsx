@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Russo_One } from "next/font/google";
 import { UserSession } from "@/types/join";
 import {
@@ -22,6 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const russoOne = Russo_One({ subsets: ["latin"], weight: "400" });
 
 export default function UserProfile() {
+  const router = useRouter();
   const [session, setSession] = useState<UserSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -36,27 +38,54 @@ export default function UserProfile() {
   const [pwMsg, setPwMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => res.json())
+    let hasLocalSession = false;
+    try {
+      const rawSession = localStorage.getItem("codekrafters_user_session");
+      if (rawSession) {
+        const parsed = JSON.parse(rawSession);
+        if (parsed?.id) {
+          setSession(parsed);
+          setIsLoading(false);
+          hasLocalSession = true;
+        }
+      }
+    } catch (e) {}
+
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((res) => {
+        if (!res.ok) return null;
+        return res.json();
+      })
       .then((data) => {
-        if (data.authenticated && data.user) {
+        if (data && data.authenticated && data.user) {
           setSession(data.user);
           setIsLoading(false);
-        } else {
-          window.location.href = "/login?redirect=/profile";
+          try {
+            localStorage.setItem("codekrafters_user_session", JSON.stringify(data.user));
+          } catch {}
+        } else if (!hasLocalSession) {
+          try {
+            localStorage.removeItem("codekrafters_user_session");
+          } catch {}
+          router.replace("/login?redirect=/profile");
         }
       })
       .catch(() => {
-        window.location.href = "/login?redirect=/profile";
+        if (!hasLocalSession) {
+          router.replace("/login?redirect=/profile");
+        }
       });
-  }, []);
+  }, [router]);
 
   const handleLogout = async () => {
+    try {
+      localStorage.removeItem("codekrafters_user_session");
+    } catch (e) {}
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch (e) {}
     window.dispatchEvent(new Event("auth_change"));
-    window.location.href = "/";
+    router.replace("/");
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {

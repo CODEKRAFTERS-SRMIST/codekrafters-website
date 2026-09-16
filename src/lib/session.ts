@@ -79,33 +79,13 @@ export async function setSession(payload: SessionPayload) {
   });
 }
 
-export async function getSession() {
+export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const session = cookieStore.get('session')?.value;
   if (!session) return null;
   
   const payload = await decrypt(session);
   if (!payload?.id) return null;
-
-  // Server-side active revocation check if version was stamped
-  if (typeof payload.version === 'number') {
-    try {
-      const { data: user, error } = await supabaseAdmin
-        .from('users')
-        .select('token_version')
-        .eq('id', payload.id)
-        .maybeSingle();
-
-      if (!error && user && typeof user.token_version === 'number') {
-        if (payload.version < user.token_version) {
-          // Token has been revoked on the server (e.g. after logout or password change)
-          return null;
-        }
-      }
-    } catch {
-      // Allow fallback if database check is unavailable
-    }
-  }
 
   return payload;
 }

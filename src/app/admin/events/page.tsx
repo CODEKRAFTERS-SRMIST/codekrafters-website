@@ -28,10 +28,13 @@ export default function AdminEventsPage() {
   });
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => res.json())
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((res) => {
+        if (!res.ok) return null;
+        return res.json();
+      })
       .then((data) => {
-        if (data.authenticated && data.user) {
+        if (data && data.authenticated && data.user) {
           const parsed: UserSession = data.user;
           if (parsed.role === 'PRESIDENT' || parsed.role === 'VICE_PRESIDENT' || parsed.role === 'DOMAIN_ADMIN') {
             setSession(parsed);
