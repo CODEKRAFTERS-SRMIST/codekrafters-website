@@ -552,6 +552,9 @@ export const DOMAIN_TASKS_DATA: Record<string, DomainTaskDetail> = {
             title: "Task 1: Bad Design Surgery",
             desc: "Transform a deliberately poorly designed poster into a professional and visually compelling design without redesigning it from scratch. Retain the original concept, event/message, and core visual elements while improving the overall visual communication.",
             requirements: [
+              "Base Canva Project Link: https://canva.link/m8kh6ixeajn6l97",
+              "How to duplicate & edit: Open the link above, go to 'File' in the top-left menu, and click 'Make a copy' to create your own editable project copy.",
+              "Edit the copied project in Canva or rebuild/enhance in your preferred tool (Figma, Photoshop, Illustrator).",
               "Improve typography and font pairing",
               "Establish clear visual hierarchy",
               "Improve spacing, alignment, scale, and composition",
@@ -560,7 +563,7 @@ export const DOMAIN_TASKS_DATA: Record<string, DomainTaskDetail> = {
               "Create a clear emotional tone and overall vibe",
               "Do not completely redesign the original concept",
               "Do not remove or replace the core visual elements",
-              "Do not use a pre-made template",
+              "Do not use a generic pre-made template",
               "Include a short explanation of the major design decisions",
             ],
           },
