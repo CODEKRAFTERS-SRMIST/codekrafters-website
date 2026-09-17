@@ -351,10 +351,9 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          adminId: session.id,
           targetUserId: userId,
           role: newRole,
-          domain_id: newRole === "DOMAIN_ADMIN" ? newDomainId : null,
+          domain_id: newRole === "DOMAIN_ADMIN" ? (newDomainId || null) : null,
         }),
       });
       if (res.ok) {

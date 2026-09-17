@@ -2,11 +2,23 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { supabaseAdmin } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  Pragma: "no-cache",
+  Expires: "0",
+};
+
 export async function GET(request: Request) {
   try {
     const session = await getSession();
     if (!session?.id) {
-      return NextResponse.json({ authenticated: false, user: null }, { status: 401 });
+      return NextResponse.json(
+        { authenticated: false, user: null },
+        { status: 401, headers: NO_CACHE_HEADERS }
+      );
     }
 
     // Default values from cryptographically verified JWE cookie
@@ -32,18 +44,24 @@ export async function GET(request: Request) {
       // Gracefully preserve the authenticated session from the verified cookie
     }
 
-    return NextResponse.json({
-      authenticated: true,
-      user: {
-        id: session.id,
-        email: email,
-        fullName: fullName,
-        role: role,
-        domain_id: domainId,
+    return NextResponse.json(
+      {
+        authenticated: true,
+        user: {
+          id: session.id,
+          email: email,
+          fullName: fullName,
+          role: role,
+          domain_id: domainId,
+        },
       },
-    });
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error) {
     console.error("Auth session check error:", error);
-    return NextResponse.json({ authenticated: false, user: null }, { status: 500 });
+    return NextResponse.json(
+      { authenticated: false, user: null },
+      { status: 500, headers: NO_CACHE_HEADERS }
+    );
   }
 }

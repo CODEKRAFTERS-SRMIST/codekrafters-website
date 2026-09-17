@@ -26,17 +26,30 @@ export function Navbar() {
 
   const updateSession = async () => {
     try {
-      const res = await fetch("/api/auth/me");
+      const rawSession = localStorage.getItem("codekrafters_user_session");
+      if (rawSession) {
+        const parsed = JSON.parse(rawSession);
+        if (parsed?.id) {
+          setSession(parsed);
+        }
+      }
+    } catch {}
+
+    try {
+      const res = await fetch("/api/auth/me", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         if (data.authenticated && data.user) {
           setSession(data.user);
+          try {
+            localStorage.setItem("codekrafters_user_session", JSON.stringify(data.user));
+          } catch {}
           return;
         }
       }
       setSession(null);
     } catch {
-      setSession(null);
+      // Keep existing local session if fetch fails temporarily
     }
   };
 

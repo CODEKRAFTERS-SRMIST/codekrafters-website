@@ -64,7 +64,7 @@ export function SendEmailModal({
   const [meetingLink, setMeetingLink] = useState("https://meet.google.com/xyz-codekrafters");
   const [venue, setVenue] = useState("Google Meet (Online)");
   const [deadline, setDeadline] = useState("24 September (11:59 PM)");
-  const [onboardingLink, setOnboardingLink] = useState("https://codekrafters.in/profile");
+  const [onboardingLink, setOnboardingLink] = useState("https://codekraftersrmp.in/profile");
 
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -563,7 +563,7 @@ export function SendEmailModal({
                     type="text"
                     value={onboardingLink}
                     onChange={(e) => setOnboardingLink(e.target.value)}
-                    placeholder="https://codekrafters.in/profile"
+                    placeholder="https://codekraftersrmp.in/profile"
                     className="w-full bg-[#FFEFB4] text-[#0D0D0D] font-bold text-xs sm:text-sm border-2 border-[#0D0D0D] rounded-xl px-4 py-2.5 shadow-[2px_2px_0_#0D0D0D]"
                   />
                 </div>

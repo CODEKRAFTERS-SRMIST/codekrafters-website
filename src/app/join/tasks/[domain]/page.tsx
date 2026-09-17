@@ -244,7 +244,8 @@ export default function DomainTaskPage({ params }: TaskPageProps) {
             {task.tracks && task.tracks.length > 0 && (
               <section className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 sm:p-8 shadow-[8px_8px_0_#0D0D0D] mb-8">
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0D0D0D] flex items-center gap-2 mb-4 pb-3 border-b-2 border-[#0D0D0D]/10">
-                  <Sparkles className="w-6 h-6 text-[#F2A516]" /> 2. Available Tracks & Specifications
+                  <Sparkles className="w-6 h-6 text-[#F2A516]" />{" "}
+                  {task.tracks.length === 1 ? "2. Task Challenge & Specifications" : "2. Available Tracks & Specifications"}
                 </h2>
                 <div className="space-y-6">
                   {task.tracks.map((track, i) => (
@@ -256,14 +257,58 @@ export default function DomainTaskPage({ params }: TaskPageProps) {
                         {track.title}
                       </h3>
                       <p className="text-xs font-bold text-[#444444] mb-3">{track.desc}</p>
-                      <div className="space-y-1.5">
-                        {track.requirements.map((req, rIdx) => (
-                          <div key={rIdx} className="flex items-start gap-2 text-xs font-semibold text-[#0D0D0D]">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
-                            <span>{req}</span>
-                          </div>
-                        ))}
-                      </div>
+                      
+                      {track.requirements && track.requirements.length > 0 && (
+                        <div className="space-y-1.5 mb-3">
+                          {track.requirements.map((req, rIdx) => (
+                            <div key={rIdx} className="flex items-start gap-2 text-xs font-semibold text-[#0D0D0D]">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                              <span>{req}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {track.tasks && track.tasks.length > 0 && (
+                        <div className="space-y-4 mt-3">
+                          {track.tasks.map((t, tIdx) => (
+                            <div key={tIdx} className="p-4 bg-[#FFEFB4] border border-[#0D0D0D] rounded-xl">
+                              <h4 className="text-sm font-black uppercase text-[#0D0D0D] mb-1">{t.title}</h4>
+                              <p className="text-xs font-medium text-[#444444] mb-2">{t.desc}</p>
+                              {t.requirements && t.requirements.length > 0 && (
+                                <div className="space-y-1">
+                                  {t.requirements.map((req, reqIdx) => (
+                                    <div key={reqIdx} className="flex items-start gap-2 text-xs font-semibold text-[#0D0D0D]">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 shrink-0 mt-0.5" />
+                                      <span>{req}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {track.submissionStructure && (
+                        <div className="mt-3 p-3 bg-amber-100 border border-amber-800/40 rounded-xl text-xs font-semibold text-amber-950">
+                          <strong>Submission Structure:</strong> {track.submissionStructure}
+                        </div>
+                      )}
+
+                      {track.candidateProfiles && (
+                        <div className="mt-3 p-3 bg-blue-50 border border-blue-800/40 rounded-xl text-xs font-semibold text-blue-950">
+                          <p className="mb-1 font-bold">{track.candidateProfiles.desc}</p>
+                          <ul className="list-disc list-inside ml-2 space-y-0.5">
+                            {track.candidateProfiles.required.map((p, pIdx) => (
+                              <li key={pIdx}>{p}</li>
+                            ))}
+                          </ul>
+                          {track.candidateProfiles.note && (
+                            <p className="mt-1 text-[11px] text-blue-800 italic">{track.candidateProfiles.note}</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -271,47 +316,53 @@ export default function DomainTaskPage({ params }: TaskPageProps) {
             )}
 
             {/* Section 3: Deliverables & Submission */}
-            <section className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 sm:p-8 shadow-[8px_8px_0_#0D0D0D] mb-8">
-              <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0D0D0D] flex items-center gap-2 mb-4 pb-3 border-b-2 border-[#0D0D0D]/10">
-                <CheckCircle2 className="w-6 h-6 text-[#F2A516]" /> 3. Required Deliverables
-              </h2>
-              <div className="space-y-2">
-                {task.deliverables.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-3 p-3 bg-[#FFEFB4] border border-[#0D0D0D] rounded-xl text-xs font-bold text-[#0D0D0D]"
-                  >
-                    <div className="w-6 h-6 rounded-full bg-[#0D0D0D] text-[#FFEFB4] font-black flex items-center justify-center shrink-0 text-[10px]">
-                      {idx + 1}
+            {task.deliverables && task.deliverables.length > 0 && (
+              <section className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 sm:p-8 shadow-[8px_8px_0_#0D0D0D] mb-8">
+                <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0D0D0D] flex items-center gap-2 mb-4 pb-3 border-b-2 border-[#0D0D0D]/10">
+                  <CheckCircle2 className="w-6 h-6 text-[#F2A516]" /> 3. Required Deliverables
+                </h2>
+                <div className="space-y-2">
+                  {task.deliverables.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-3 p-3 bg-[#FFEFB4] border border-[#0D0D0D] rounded-xl text-xs font-bold text-[#0D0D0D]"
+                    >
+                      <div className="w-6 h-6 rounded-full bg-[#0D0D0D] text-[#FFEFB4] font-black flex items-center justify-center shrink-0 text-[10px]">
+                        {idx + 1}
+                      </div>
+                      <span>{item}</span>
                     </div>
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Section 4: Evaluation Criteria */}
-            <section className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 sm:p-8 shadow-[8px_8px_0_#0D0D0D] mb-8">
-              <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0D0D0D] flex items-center gap-2 mb-4 pb-3 border-b-2 border-[#0D0D0D]/10">
-                <Award className="w-6 h-6 text-[#F2A516]" /> 4. Evaluation Rubric
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {task.evaluationCriteria.map((c, i) => (
-                  <div
-                    key={i}
-                    className="p-4 bg-[#FFF2C6] border-2 border-[#0D0D0D] rounded-2xl shadow-[2px_2px_0_#0D0D0D]"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-extrabold text-xs uppercase text-[#0D0D0D]">{c.title}</span>
-                      <span className="px-2 py-0.5 bg-[#0D0D0D] text-[#F2A516] font-black text-[10px] rounded-md">
-                        {c.weight}
-                      </span>
+            {task.evaluationCriteria && task.evaluationCriteria.length > 0 && (
+              <section className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-6 sm:p-8 shadow-[8px_8px_0_#0D0D0D] mb-8">
+                <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0D0D0D] flex items-center gap-2 mb-4 pb-3 border-b-2 border-[#0D0D0D]/10">
+                  <Award className="w-6 h-6 text-[#F2A516]" /> 4. Evaluation Rubric
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {task.evaluationCriteria.map((c, i) => (
+                    <div
+                      key={i}
+                      className="p-4 bg-[#FFF2C6] border-2 border-[#0D0D0D] rounded-2xl shadow-[2px_2px_0_#0D0D0D]"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-extrabold text-xs uppercase text-[#0D0D0D]">{c.title}</span>
+                        {c.weight && (
+                          <span className="px-2 py-0.5 bg-[#0D0D0D] text-[#F2A516] font-black text-[10px] rounded-md">
+                            {c.weight}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs font-medium text-[#444444]">{c.desc}</p>
                     </div>
-                    <p className="text-xs font-medium text-[#444444]">{c.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Section 5: FAQs */}
             {task.faq && task.faq.length > 0 && (

@@ -71,13 +71,19 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Forbidden: Only the President can promote another user to President" }, { status: 403 });
     }
 
+    const cleanDomainId = role === "DOMAIN_ADMIN" ? (domain_id ? domain_id.trim() : null) : null;
+
     const { data, error } = await supabaseAdmin
       .from("users")
-      .update({ role, domain_id: role === "DOMAIN_ADMIN" ? domain_id : null })
+      .update({ role, domain_id: cleanDomainId })
       .eq("id", targetUserId)
-      .select().single();
+      .select()
+      .single();
 
-    if (error) return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
+    if (error) {
+      console.error("Error updating user role:", error);
+      return NextResponse.json({ error: error.message || "Failed to update user" }, { status: 500 });
+    }
 
     // Invalidate target user's active session to force re-authentication with new privileges
     const { invalidateUserSessions } = await import("@/lib/session");

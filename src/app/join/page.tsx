@@ -17,11 +17,28 @@ export default function JoinPage() {
 
   // Check saved session on mount
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => res.json())
+    try {
+      const rawSession = localStorage.getItem("codekrafters_user_session");
+      if (rawSession) {
+        const parsed = JSON.parse(rawSession);
+        if (parsed?.id) {
+          setSession(parsed);
+          findUserApplication(parsed.id, parsed.email);
+        }
+      }
+    } catch {}
+
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((res) => {
+        if (!res.ok) return null;
+        return res.json();
+      })
       .then((data) => {
-        if (data.authenticated && data.user) {
+        if (data && data.authenticated && data.user) {
           setSession(data.user);
+          try {
+            localStorage.setItem("codekrafters_user_session", JSON.stringify(data.user));
+          } catch {}
           findUserApplication(data.user.id, data.user.email);
         } else {
           setIsLoading(false);
@@ -48,6 +65,9 @@ export default function JoinPage() {
   };
 
   const handleLogout = async () => {
+    try {
+      localStorage.removeItem("codekrafters_user_session");
+    } catch {}
     setSession(null);
     setUserApp(null);
     setIsEditing(false);
@@ -93,27 +113,14 @@ export default function JoinPage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D0D0D]"></div>
           </div>
         ) : !session ? (
-          /* State 2: Unauthenticated -> Login Required prompt */
-          <div className="py-20 flex flex-col items-center justify-center text-center">
-            <div className="bg-[#f9f7e5] border-3 border-[#0D0D0D] rounded-3xl p-8 sm:p-12 shadow-[8px_8px_0_#0D0D0D] max-w-lg w-full">
-              <div className="w-16 h-16 bg-[#F2A516] rounded-full border-2 border-[#0D0D0D] flex items-center justify-center mx-auto mb-6 shadow-[3px_3px_0_#0D0D0D]">
-                <svg className="w-8 h-8 text-[#0D0D0D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold uppercase text-[#0D0D0D] tracking-tight mb-2">
-                Authentication Required
-              </h2>
-              <p className="text-sm text-[#333333] font-bold mb-8">
-                You need to log in to access the recruitment portal.
-              </p>
-              <button
-                onClick={() => window.location.href = "/login?redirect=/join"}
-                className="w-full bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] border-2 border-[#0D0D0D] py-3.5 px-6 rounded-full font-black text-sm uppercase tracking-wider shadow-[4px_4px_0_#F2A516] hover:translate-y-[-2px] transition-all"
-              >
-                Go to Login Page
-              </button>
-            </div>
+          /* State 2: Unauthenticated -> Direct in-place Login Card */
+          <div className="py-6 sm:py-10">
+            <LoginCard
+              onLoginSuccess={(newSession) => {
+                setSession(newSession);
+                findUserApplication(newSession.id, newSession.email);
+              }}
+            />
           </div>
         ) : (session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT" || session.role === "DOMAIN_ADMIN") ? (
           /* State 3: Admin Session -> Admin Panel */
