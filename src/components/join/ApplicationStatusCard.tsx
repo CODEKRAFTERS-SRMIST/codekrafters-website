@@ -105,12 +105,9 @@ export function ApplicationStatusCard({
   const [currentPhase, setCurrentPhase] = useState<number>(1);
   const [tasksVisible, setTasksVisible] = useState<boolean>(false);
   const [localStatus, setLocalStatus] = useState<ApplicationStatus>(application.status || "Applied");
-  const [taskSubmissionUrl, setTaskSubmissionUrl] = useState<string>(application.taskSubmissionUrl || "");
-
   // Modal & interactive submission state
   const [showSubmitModal, setShowSubmitModal] = useState<boolean>(false);
   const [activeDomainSubmit, setActiveDomainSubmit] = useState<string>(application.primaryDomain || application.domains[0] || "General");
-  const [submissionInputUrl, setSubmissionInputUrl] = useState<string>(application.taskSubmissionUrl || "");
   const [submittingTask, setSubmittingTask] = useState<boolean>(false);
   const [submissionSuccessToast, setSubmissionSuccessToast] = useState<string | null>(null);
 
@@ -153,25 +150,20 @@ export function ApplicationStatusCard({
   const isTaskUnlocked = tasksVisible;
 
   // Handle task submission
-  async function handleConfirmTaskSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!submissionInputUrl.trim()) return;
+  async function handleConfirmTaskSubmit(e?: React.FormEvent) {
+    if (e) e.preventDefault();
     setSubmittingTask(true);
     try {
       await updateApplicationStatus(
         application.id,
-        "Task Completed",
-        undefined,
-        undefined,
-        submissionInputUrl.trim()
+        "Task Completed"
       );
-      setTaskSubmissionUrl(submissionInputUrl.trim());
       setLocalStatus("Task Completed");
       setShowSubmitModal(false);
-      setSubmissionSuccessToast("Task submitted successfully! Status updated to Task Completed.");
+      setSubmissionSuccessToast("Task marked as submitted! Status updated to Task Completed.");
       setTimeout(() => setSubmissionSuccessToast(null), 4000);
     } catch (err: any) {
-      alert(err.message || "Failed to submit task");
+      alert(err.message || "Failed to update task status");
     } finally {
       setSubmittingTask(false);
     }
@@ -395,30 +387,34 @@ export function ApplicationStatusCard({
                           <ChevronRight className="w-3.5 h-3.5" />
                         </Link>
 
-                        {/* Button 2: Interactive Task Submission Link */}
-                        {taskSubmissionUrl ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setActiveDomainSubmit(domainName);
-                              setSubmissionInputUrl(taskSubmissionUrl);
-                              setShowSubmitModal(true);
-                            }}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-100 text-emerald-950 hover:bg-emerald-200 text-xs font-black uppercase tracking-wider rounded-xl border-2 border-emerald-800 shadow-[2px_2px_0_#0D0D0D] hover:translate-y-[-1px] transition-all cursor-pointer"
+                        {/* Button 2: Official Submission Form (Synced from recruitmentTasks.ts) */}
+                        {taskInfo.submissionLink ? (
+                          <a
+                            href={taskInfo.submissionLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#F2A516] text-[#0D0D0D] hover:bg-[#e09814] text-xs font-black uppercase tracking-wider rounded-xl border-2 border-[#0D0D0D] shadow-[2px_2px_0_#0D0D0D] hover:translate-y-[-1px] transition-all cursor-pointer"
                           >
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-800" /> Task Submitted (Update)
-                          </button>
+                            <Send className="w-3.5 h-3.5 text-[#0D0D0D]" /> Open Submission Form
+                            <ExternalLink className="w-3 h-3 opacity-60" />
+                          </a>
+                        ) : null}
+
+                        {/* Button 3: Task Submitted Action */}
+                        {localStatus === "Task Completed" ? (
+                          <div className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-100 text-emerald-950 text-xs font-black uppercase tracking-wider rounded-xl border-2 border-emerald-800 shadow-[2px_2px_0_#0D0D0D]">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-800" /> Task Submitted
+                          </div>
                         ) : (
                           <button
                             type="button"
                             onClick={() => {
                               setActiveDomainSubmit(domainName);
-                              setSubmissionInputUrl("");
                               setShowSubmitModal(true);
                             }}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#FFEFB4] text-[#0D0D0D] hover:bg-[#F2A516] text-xs font-black uppercase tracking-wider rounded-xl border-2 border-[#0D0D0D] shadow-[2px_2px_0_#0D0D0D] hover:translate-y-[-1px] transition-all cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] text-xs font-black uppercase tracking-wider rounded-xl border-2 border-[#0D0D0D] shadow-[2px_2px_0_#F2A516] hover:translate-y-[-1px] transition-all cursor-pointer"
                           >
-                            <Send className="w-3.5 h-3.5" /> Submit Task Solution
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#F2A516]" /> Task Submitted
                           </button>
                         )}
                       </>
@@ -523,45 +519,65 @@ export function ApplicationStatusCard({
                 </button>
               </div>
 
-              <form onSubmit={handleConfirmTaskSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-extrabold uppercase mb-1.5 text-[#0D0D0D]">
-                    Solution Repository / Project / Live URL: <span className="text-rose-600">*</span>
-                  </label>
-                  <input
-                    type="url"
-                    required
-                    value={submissionInputUrl}
-                    onChange={(e) => setSubmissionInputUrl(e.target.value)}
-                    placeholder="https://github.com/username/domain-task-repo"
-                    className="w-full bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl p-3 text-xs sm:text-sm font-bold text-[#0D0D0D] placeholder-[#0D0D0D]/40 focus:outline-none focus:ring-2 focus:ring-[#F2A516]"
-                  />
-                  <p className="text-[11px] font-semibold text-gray-600 mt-1">
-                    Provide a public GitHub repo, Vercel/Netlify link, or public Google Drive/Figma URL.
-                  </p>
-                </div>
+              {/* Official Google Form Link Callout */}
+              {(() => {
+                const curKey = activeDomainSubmit ? normalizeDomainKey(activeDomainSubmit) : "";
+                const curTask = curKey ? DOMAIN_TASKS_DATA[curKey] : null;
+                if (!curTask?.submissionLink) return null;
+                return (
+                  <div className="p-3.5 bg-[#FFEFB4] border-2 border-[#0D0D0D] rounded-xl space-y-2 shadow-[2px_2px_0_#0D0D0D]">
+                    <div className="text-xs font-black uppercase text-[#0D0D0D] flex items-center gap-1.5">
+                      <Send className="w-3.5 h-3.5 text-[#0D0D0D]" /> Official {activeDomainSubmit} Submission Form
+                    </div>
+                    <p className="text-[11px] font-semibold text-[#333333]">
+                      Make sure you have completed the official domain form/quiz before confirming:
+                    </p>
+                    <a
+                      href={curTask.submissionLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] rounded-lg text-xs font-black uppercase tracking-wider transition-colors w-fit"
+                    >
+                      Open Official Form ➔ <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                );
+              })()}
 
-                <div className="p-3 bg-amber-50 border border-amber-900/20 rounded-xl text-[11px] font-bold text-amber-900">
-                  💡 Submitting your solution link will update your application status to <strong>Task Completed</strong> and queue it for Domain Leads review.
-                </div>
+              <div className="p-3.5 bg-amber-50 border border-amber-900/20 rounded-xl text-xs font-bold text-amber-950 space-y-1">
+                <p className="flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-[#F2A516] shrink-0" />
+                  <span>Marking your task as submitted will:</span>
+                </p>
+                <ul className="list-disc list-inside text-[11px] font-medium text-amber-900 ml-1 space-y-0.5">
+                  <li>Update your portal application status to <strong>Task Completed</strong>.</li>
+                  <li>Notify domain leads and reviewers in the Admin Dashboard with a completion timestamp.</li>
+                </ul>
+              </div>
 
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowSubmitModal(false)}
-                    className="px-4 py-2.5 rounded-xl border-2 border-[#0D0D0D] bg-white text-xs font-black uppercase tracking-wider text-[#0D0D0D] hover:bg-gray-100 cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submittingTask}
-                    className="px-5 py-2.5 rounded-xl border-2 border-[#0D0D0D] bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] text-xs font-black uppercase tracking-wider shadow-[3px_3px_0_#F2A516] hover:translate-y-[-1px] transition-all cursor-pointer flex items-center gap-1.5"
-                  >
-                    {submittingTask ? "Submitting..." : "Confirm & Submit Task"}
-                  </button>
-                </div>
-              </form>
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSubmitModal(false)}
+                  className="px-4 py-2.5 rounded-xl border-2 border-[#0D0D0D] bg-white text-xs font-black uppercase tracking-wider text-[#0D0D0D] hover:bg-gray-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleConfirmTaskSubmit()}
+                  disabled={submittingTask}
+                  className="px-5 py-2.5 rounded-xl border-2 border-[#0D0D0D] bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] text-xs font-black uppercase tracking-wider shadow-[3px_3px_0_#F2A516] hover:translate-y-[-1px] transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  {submittingTask ? (
+                    "Updating..."
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#F2A516]" /> Confirm Task Submitted
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Application, ApplicationStatus, FilterOptions, UserSession, DOMAINS_LIST, DEPARTMENTS, YEARS } from "@/types/join";
 import {
@@ -40,7 +41,11 @@ import {
   Mail,
   Send,
 } from "lucide-react";
-import { RECRUITMENT_TIMELINE_STEPS } from "@/data/recruitmentTasks";
+import {
+  RECRUITMENT_TIMELINE_STEPS,
+  DOMAIN_TASKS_DATA,
+  normalizeDomainKey,
+} from "@/data/recruitmentTasks";
 import { SendEmailModal, EmailModalMode } from "./SendEmailModal";
 
 interface AdminDashboardProps {
@@ -881,34 +886,60 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
           {/* Quick Action Email Dispatch Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Card 1: Broadcast Tasks Live */}
-            <div className="bg-[#FFF2C6] border-2 border-[#0D0D0D] rounded-2xl p-5 shadow-[4px_4px_0_#0D0D0D] flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] font-black uppercase bg-[#0D0D0D] text-[#FFEFB4] px-2.5 py-1 rounded-md">
-                    Phase 2 Announcement
-                  </span>
-                  <Sparkles className="w-4 h-4 text-[#F2A516]" />
+            {session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT" ? (
+              <div className="bg-[#FFF2C6] border-2 border-[#0D0D0D] rounded-2xl p-5 shadow-[4px_4px_0_#0D0D0D] flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[10px] font-black uppercase bg-[#0D0D0D] text-[#FFEFB4] px-2.5 py-1 rounded-md">
+                      Phase 2 Announcement
+                    </span>
+                    <Sparkles className="w-4 h-4 text-[#F2A516]" />
+                  </div>
+                  <h4 className="font-black text-base uppercase text-[#0D0D0D] mb-1">
+                    Broadcast Tasks Live Notice
+                  </h4>
+                  <p className="text-xs font-medium text-[#444444] mb-4">
+                    Notify all registered applicants that domain task problem statements and submission links are officially live on the portal.
+                  </p>
                 </div>
-                <h4 className="font-black text-base uppercase text-[#0D0D0D] mb-1">
-                  Broadcast Tasks Live Notice
-                </h4>
-                <p className="text-xs font-medium text-[#444444] mb-4">
-                  Notify all registered applicants that domain task problem statements and submission links are officially live on the portal.
-                </p>
-              </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setEmailModalMode("TASKS_LIVE_BROADCAST");
-                  setEmailTargetApp(null);
-                  setEmailModalOpen(true);
-                }}
-                className="w-full py-2.5 px-3 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] rounded-xl font-black text-xs uppercase tracking-wider shadow-[2px_2px_0_#F2A516] flex items-center justify-center gap-1.5 cursor-pointer hover:translate-y-[-1px] transition-all"
-              >
-                <Send className="w-3.5 h-3.5 text-[#F2A516]" /> Compose Task Announcement ➔
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmailModalMode("TASKS_LIVE_BROADCAST");
+                    setEmailTargetApp(null);
+                    setEmailModalOpen(true);
+                  }}
+                  className="w-full py-2.5 px-3 bg-[#0D0D0D] text-[#FFEFB4] hover:text-[#F2A516] rounded-xl font-black text-xs uppercase tracking-wider shadow-[2px_2px_0_#F2A516] flex items-center justify-center gap-1.5 cursor-pointer hover:translate-y-[-1px] transition-all"
+                >
+                  <Send className="w-3.5 h-3.5 text-[#F2A516]" /> Compose Task Announcement ➔
+                </button>
+              </div>
+            ) : (
+              <div className="bg-[#FFF2C6]/60 border-2 border-[#0D0D0D]/40 rounded-2xl p-5 shadow-[4px_4px_0_#0D0D0D]/30 flex flex-col justify-between opacity-85">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[10px] font-black uppercase bg-amber-200 text-amber-900 border border-amber-400 px-2.5 py-1 rounded-md flex items-center gap-1">
+                      🔒 Executive Only
+                    </span>
+                    <Sparkles className="w-4 h-4 text-gray-500" />
+                  </div>
+                  <h4 className="font-black text-base uppercase text-[#0D0D0D]/70 mb-1">
+                    Broadcast Tasks Live Notice
+                  </h4>
+                  <p className="text-xs font-medium text-[#555555] mb-4">
+                    Club-wide recruitment task announcement sent to all registered applicants. Restricted to President and Vice President.
+                  </p>
+                </div>
+
+                <div
+                  title="Only President and Vice President can broadcast global task announcements."
+                  className="w-full py-2.5 px-3 bg-gray-200 text-gray-500 rounded-xl font-black text-xs uppercase tracking-wider border-2 border-gray-300 flex items-center justify-center gap-1.5 cursor-not-allowed select-none"
+                >
+                  🔒 Executive Access Only (President & VP)
+                </div>
+              </div>
+            )}
 
             {/* Card 2: Shortlist & Interview Batch */}
             <div className="bg-purple-100 border-2 border-[#0D0D0D] rounded-2xl p-5 shadow-[4px_4px_0_#0D0D0D] flex flex-col justify-between">
@@ -1003,7 +1034,14 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
 
               <div className="p-3.5 bg-[#FFF2C6] rounded-xl border border-[#0D0D0D] flex flex-col justify-between">
                 <div>
-                  <h5 className="font-black text-xs uppercase text-[#0D0D0D] mb-1">2. Domain Tasks Live</h5>
+                  <div className="flex items-center justify-between gap-1 mb-1">
+                    <h5 className="font-black text-xs uppercase text-[#0D0D0D]">2. Domain Tasks Live</h5>
+                    {session.role !== "PRESIDENT" && session.role !== "VICE_PRESIDENT" && (
+                      <span className="text-[9px] font-black uppercase bg-amber-200 text-amber-900 border border-amber-400 px-1.5 py-0.5 rounded">
+                        🔒 President/VP
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[11px] text-gray-600 mb-3">Announcement that domain problem statements and portals are open.</p>
                 </div>
                 <button
@@ -1530,8 +1568,8 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                         : "bg-white text-[#0D0D0D] hover:bg-[#FFF2C6] border border-[#0D0D0D]/30"
                     }`}
                   >
-                    <CheckCircle2 className="w-3.5 h-3.5" /> 3. Domain Task Solution
-                    {selectedApp.taskSubmissionUrl && (
+                    <CheckCircle2 className="w-3.5 h-3.5" /> 3. Domain Task Status
+                    {(selectedApp.status === "Task Completed" || selectedApp.taskSubmittedAt) && (
                       <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block ml-0.5"></span>
                     )}
                   </button>
@@ -1676,42 +1714,120 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
                   </div>
                 )}
 
-                {/* TAB 3: Domain Task Solution */}
+                {/* TAB 3: Domain Task Status */}
                 {inspectorTab === "TASK" && (
                   <div className="space-y-6">
-                    {selectedApp.taskSubmissionUrl ? (
-                      <div className="bg-teal-50 border-2 border-teal-800 p-6 rounded-2xl shadow-[4px_4px_0_#0D0D0D] space-y-4">
-                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-teal-800/20 pb-3">
-                          <h4 className="text-sm font-black uppercase text-teal-950 flex items-center gap-2">
-                            <CheckCircle2 className="w-5 h-5 text-teal-700" /> Domain Challenge Repository / Solution
+                    {selectedApp.status === "Task Completed" || selectedApp.taskSubmittedAt ? (
+                      <div className="bg-emerald-50 border-2 border-emerald-800 p-6 rounded-2xl shadow-[4px_4px_0_#0D0D0D] space-y-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-emerald-800/20 pb-3">
+                          <h4 className="text-sm font-black uppercase text-emerald-950 flex items-center gap-2">
+                            <CheckCircle2 className="w-5 h-5 text-emerald-700" /> Domain Challenge Task Submitted
                           </h4>
-                          {selectedApp.taskSubmittedAt && (
-                            <span className="text-xs font-bold text-teal-900 bg-white px-3 py-1 rounded-lg border border-teal-800">
-                              Submitted: {new Date(selectedApp.taskSubmittedAt).toLocaleString()}
-                            </span>
-                          )}
+                          <span className="text-xs font-bold text-emerald-900 bg-white px-3 py-1 rounded-lg border border-emerald-800">
+                            Status: Task Completed {selectedApp.taskSubmittedAt ? `• ${new Date(selectedApp.taskSubmittedAt).toLocaleString()}` : ""}
+                          </span>
                         </div>
 
-                        <div>
-                          <span className="text-[11px] font-black uppercase text-teal-900 block mb-1">
-                            Live Project / GitHub URL:
-                          </span>
-                          <a
-                            href={selectedApp.taskSubmissionUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm font-black text-blue-700 hover:underline break-all inline-flex items-center gap-1.5 bg-white p-3 rounded-xl border border-teal-800 w-full"
-                          >
-                            {selectedApp.taskSubmissionUrl}
-                            <ExternalLink className="w-4 h-4 shrink-0" />
-                          </a>
+                        <div className="p-3 bg-white border border-emerald-800/30 rounded-xl text-xs font-semibold text-emerald-950">
+                          Candidate confirmed completion of their domain challenge. Please cross-verify their submission in the official domain Google Form / Sheet.
                         </div>
+
+                        {selectedApp.taskSubmissionUrl && safeUrl(selectedApp.taskSubmissionUrl) && (
+                          <div>
+                            <span className="text-[11px] font-black uppercase text-emerald-900 block mb-1">
+                              Recorded Solution Link:
+                            </span>
+                            <a
+                              href={safeUrl(selectedApp.taskSubmissionUrl)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm font-black text-blue-700 hover:underline break-all inline-flex items-center gap-1.5 bg-white p-3 rounded-xl border border-emerald-800 w-full"
+                            >
+                              {selectedApp.taskSubmissionUrl}
+                              <ExternalLink className="w-4 h-4 shrink-0" />
+                            </a>
+                          </div>
+                        )}
+
+                        {/* Domain Official Form Reference for Admin Verification */}
+                        {(() => {
+                          const primaryKey = selectedApp.primaryDomain
+                            ? normalizeDomainKey(selectedApp.primaryDomain)
+                            : "";
+                          const primaryTask = primaryKey ? DOMAIN_TASKS_DATA[primaryKey] : null;
+                          if (!primaryTask) return null;
+                          return (
+                            <div className="p-3.5 bg-white border border-emerald-800/40 rounded-xl flex flex-wrap items-center justify-between gap-2">
+                              <div>
+                                <span className="text-[10px] font-black uppercase text-gray-600 block">
+                                  Track: {primaryTask.domainName}
+                                </span>
+                                <span className="text-xs font-bold text-[#0D0D0D]">
+                                  Official Submission Form: {primaryTask.submissionLink || "Quiz (Distributed via Email)"}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Link
+                                  href={`/join/tasks/${primaryTask.slug}`}
+                                  target="_blank"
+                                  className="px-2.5 py-1 bg-[#0D0D0D] text-[#FFEFB4] text-[11px] font-black rounded-lg uppercase inline-flex items-center gap-1 hover:text-[#F2A516]"
+                                >
+                                  Briefing <ExternalLink className="w-3 h-3" />
+                                </Link>
+                                {primaryTask.submissionLink && (
+                                  <a
+                                    href={primaryTask.submissionLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-2.5 py-1 bg-[#F2A516] text-[#0D0D0D] text-[11px] font-black rounded-lg uppercase inline-flex items-center gap-1 hover:bg-[#e09814]"
+                                  >
+                                    Google Form <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     ) : (
-                      <div className="bg-[#FFF2C6] border-2 border-dashed border-[#0D0D0D]/40 p-8 rounded-2xl text-center">
-                        <CheckCircle2 className="w-10 h-10 text-[#0D0D0D]/40 mx-auto mb-2" />
-                        <h4 className="font-extrabold text-[#0D0D0D] uppercase text-sm">No Task Solution Submitted Yet</h4>
-                        <p className="text-xs text-gray-600 mt-1">Candidate has not submitted a repository link for this recruitment challenge.</p>
+                      <div className="bg-[#FFF2C6] border-2 border-dashed border-[#0D0D0D]/40 p-8 rounded-2xl text-center space-y-4">
+                        <Clock className="w-10 h-10 text-[#0D0D0D]/40 mx-auto mb-2" />
+                        <div>
+                          <h4 className="font-extrabold text-[#0D0D0D] uppercase text-sm">Task Submission Pending</h4>
+                          <p className="text-xs text-gray-600 mt-1">
+                            Candidate has not marked their task as submitted yet (Current status: {selectedApp.status}).
+                          </p>
+                        </div>
+
+                        {(() => {
+                          const primaryKey = selectedApp.primaryDomain
+                            ? normalizeDomainKey(selectedApp.primaryDomain)
+                            : "";
+                          const primaryTask = primaryKey ? DOMAIN_TASKS_DATA[primaryKey] : null;
+                          if (!primaryTask) return null;
+                          return (
+                            <div className="p-3.5 bg-white/80 border border-[#0D0D0D]/20 rounded-xl inline-flex flex-wrap items-center justify-between gap-3 text-left max-w-md w-full mx-auto">
+                              <div>
+                                <span className="text-[10px] font-black uppercase text-gray-600 block">
+                                  Assigned Track: {primaryTask.domainName}
+                                </span>
+                                <span className="text-xs font-semibold text-gray-800">
+                                  Check responses on the official Google Form
+                                </span>
+                              </div>
+                              {primaryTask.submissionLink && (
+                                <a
+                                  href={primaryTask.submissionLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-3 py-1.5 bg-[#F2A516] text-[#0D0D0D] text-xs font-black rounded-lg uppercase inline-flex items-center gap-1 hover:bg-[#e09814]"
+                                >
+                                  Google Form <ExternalLink className="w-3 h-3" />
+                                </a>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
@@ -1843,6 +1959,7 @@ export function AdminDashboard({ session, onLogout }: AdminDashboardProps) {
             : stats.total
         }
         onSuccess={(msg) => showToast(msg)}
+        userRole={session.role}
       />
     </div>
   );

@@ -5,7 +5,12 @@ import { getIpFromRequest, checkRateLimit } from "@/lib/rate-limit";
 import {
   sendFinalSelectionEmail,
   sendCustomBroadcastEmail,
+  sendBatchEmails,
 } from "@/lib/email";
+import {
+  generateFinalSelectionEmailHtml,
+  generateCustomBroadcastEmailHtml,
+} from "@/lib/email-templates";
 
 export async function POST(request: Request) {
   try {
@@ -41,6 +46,9 @@ export async function POST(request: Request) {
       templateType,
       applicationId,
       batch,
+      batchOffset = 0,
+      batchLimit,
+      excludeEmails = [],
       domain,
       candidateEmail,
       candidateName,
@@ -55,15 +63,24 @@ export async function POST(request: Request) {
     if (templateType === "SELECTION" && batch) {
       const query = supabaseAdmin
         .from("applications")
-        .select("*")
-        .eq("status", "Accepted");
+        .select("id, full_name, email, primary_domain, domains, status, submitted_at")
+        .eq("status", "Accepted")
+        .order("submitted_at", { ascending: true });
 
       const { data: acceptedApps, error } = await query;
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
-      let targets = acceptedApps || [];
+      const excludeSet = new Set(
+        (Array.isArray(excludeEmails) ? excludeEmails : []).map((e: string) =>
+          e.trim().toLowerCase()
+        )
+      );
+
+      let targets = (acceptedApps || []).filter(
+        (a) => !excludeSet.has((a.email || "").toLowerCase())
+      );
 
       // Filter by domain
       if (domain && domain !== "ALL") {
@@ -89,26 +106,74 @@ export async function POST(request: Request) {
         );
       }
 
-      if (targets.length === 0) {
-        return NextResponse.json(
-          { error: "No accepted candidates found for the selected domain." },
-          { status: 400 }
-        );
+      const totalPool = targets.length;
+
+      if (totalPool === 0) {
+        return NextResponse.json({
+          success: true,
+          sentCount: 0,
+          totalPool: 0,
+          totalTargeted: 0,
+          message: "No accepted candidates found for the selected criteria.",
+        });
       }
 
-      const results = await Promise.allSettled(
-        targets.map((app) =>
-          sendFinalSelectionEmail(app.email, {
-            candidateName: app.full_name || "Candidate",
-            domainName: app.primary_domain || domain || "CodeKrafters",
-            customMessage: message,
-            onboardingLink,
-          })
-        )
-      );
+      // Apply offset and batch slice
+      const startIndex = Math.max(0, parseInt(String(batchOffset), 10) || 0);
+      const sliceLimit =
+        batchLimit !== undefined && batchLimit !== null && Number(batchLimit) > 0
+          ? parseInt(String(batchLimit), 10)
+          : totalPool;
 
-      const sentCount = results.filter((r) => r.status === "fulfilled" && (r.value as any).success).length;
-      return NextResponse.json({ success: true, sentCount, totalTargets: targets.length });
+      const batchSlice = targets.slice(startIndex, startIndex + sliceLimit);
+
+      if (batchSlice.length === 0) {
+        return NextResponse.json({
+          success: true,
+          sentCount: 0,
+          totalPool,
+          totalTargeted: 0,
+          message: "No candidates remaining in this offset range.",
+        });
+      }
+
+      const batchItems = batchSlice.map((app) => {
+        const { subject: genSubject, html } = generateFinalSelectionEmailHtml({
+          candidateName: app.full_name || "Candidate",
+          domainName: app.primary_domain || domain || "CodeKrafters",
+          customMessage: message,
+          onboardingLink,
+        });
+
+        return {
+          to: app.email,
+          subject: genSubject,
+          html,
+        };
+      });
+
+      const batchResult = await sendBatchEmails(batchItems, 50);
+
+      const nextOffset = startIndex + batchSlice.length;
+      const hasMore = nextOffset < totalPool;
+
+      return NextResponse.json({
+        success: batchResult.success,
+        sentCount: batchResult.totalSent,
+        failedCount: batchResult.totalFailed,
+        totalTargeted: batchSlice.length,
+        totalPool,
+        batchOffset: startIndex,
+        batchLimit: sliceLimit,
+        nextOffset,
+        hasMore,
+        simulated: batchResult.simulated,
+        sentRecipients: batchSlice.map((c) => ({
+          name: c.full_name,
+          email: c.email,
+        })),
+        errors: batchResult.errors,
+      });
     }
 
     let targetEmail = candidateEmail;

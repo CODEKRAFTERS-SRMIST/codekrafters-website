@@ -63,7 +63,7 @@ export const applicationPatchSchema = z
       .optional(),
     adminNotes: z.string().max(5000).optional(),
     rating: z.number().min(0).max(10).optional(),
-    taskSubmissionUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+    taskSubmissionUrl: z.string().url("Must be a valid URL").optional().nullable().or(z.literal("")),
   })
   .strict();
 
