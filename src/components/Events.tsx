@@ -616,10 +616,8 @@ export default function Events() {
 
         <InfiniteScrollRow items={row1Images} direction="left" />
         <InfiniteScrollRow items={row2Images} direction="right" />
-        <div className="hidden md:flex flex-col gap-2">
-          <InfiniteScrollRow items={row3Images} direction="left" />
-          <InfiniteScrollRow items={row4Images} direction="right" />
-        </div>
+        <InfiniteScrollRow items={row3Images} direction="left" />
+        <InfiniteScrollRow items={row4Images} direction="right" />
       </div>
     </section>
   );

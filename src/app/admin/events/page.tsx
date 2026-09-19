@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import React, { useState, useEffect } from 'react';
 import { Russo_One, Montserrat } from 'next/font/google';
 import { LoginCard } from "@/components/join/LoginCard";
 import { UserSession } from "@/types/join";
@@ -11,7 +10,6 @@ const russoOne = Russo_One({ subsets: ["latin"], weight: "400" });
 const montserrat = Montserrat({ subsets: ["latin"], weight: ["800", "900"] });
 
 export default function AdminEventsPage() {
-  const supabase = useMemo(() => createClient(), []);
   const [session, setSession] = useState<UserSession | null>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -129,23 +127,21 @@ export default function AdminEventsPage() {
       let imageUrl = formData.existingImageUrl;
 
       if (formData.image) {
-        const fileExt = formData.image.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `${formData.category.replace(/\s+/g, '-').toLowerCase()}/${fileName}`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('event-images')
-          .upload(filePath, formData.image);
-          
-        if (uploadError) {
-          throw uploadError;
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", formData.image);
+        uploadFormData.append("folder", formData.category.replace(/\s+/g, '-').toLowerCase());
+
+        const uploadRes = await fetch("/api/admin/upload", {
+          method: "POST",
+          body: uploadFormData,
+        });
+
+        const uploadJson = await uploadRes.json();
+        if (!uploadRes.ok || !uploadJson.url) {
+          throw new Error(uploadJson.error || "Failed to upload image to Cloudflare R2");
         }
-        
-        const { data: publicUrlData } = supabase.storage
-          .from('event-images')
-          .getPublicUrl(filePath);
-          
-        imageUrl = publicUrlData.publicUrl;
+
+        imageUrl = uploadJson.url;
       }
 
       const method = editingId ? 'PUT' : 'POST';
