@@ -51,7 +51,7 @@ export interface CustomBroadcastEmailProps extends BaseTemplateProps {
 
 export const DEFAULT_SUPPORT_EMAIL = "support@codekraftersrmp.in";
 export const DEFAULT_WEBSITE_URL = "https://codekraftersrmp.in";
-export const DEFAULT_PORTAL_URL = "https://codekraftersrmp.in/profile";
+export const DEFAULT_PORTAL_URL = "https://codekraftersrmp.in/join";
 
 /**
  * Escapes HTML characters to prevent HTML injection in email clients
