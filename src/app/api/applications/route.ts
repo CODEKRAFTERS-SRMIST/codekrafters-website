@@ -247,23 +247,44 @@ export async function PATCH(request: Request) {
 
     const { id, status, adminNotes, rating, taskSubmissionUrl } = parsed.data;
 
-    const isGlobalAdmin = session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT";
-    const isDomainAdmin = session.role === "DOMAIN_ADMIN";
-
-    // Non-admins cannot update administrative evaluation fields
-    if (!isGlobalAdmin && !isDomainAdmin && (status !== undefined || adminNotes !== undefined || rating !== undefined)) {
-      return NextResponse.json({ error: "Forbidden: Admin only fields" }, { status: 403 });
-    }
-
-    // Fetch target application to verify ownership and domain authorization
+    // Fetch target application to verify ownership, domain authorization, and current status
     const { data: targetApp, error: fetchErr } = await supabaseAdmin
       .from("applications")
-      .select("user_id, primary_domain, domains")
+      .select("user_id, primary_domain, domains, status")
       .eq("id", id)
       .single();
 
     if (fetchErr || !targetApp) {
       return NextResponse.json({ error: "Application not found" }, { status: 404 });
+    }
+
+    const isGlobalAdmin = session.role === "PRESIDENT" || session.role === "VICE_PRESIDENT";
+    const isDomainAdmin = session.role === "DOMAIN_ADMIN";
+    const isApplicantSelf = targetApp.user_id === session.id;
+
+    // Allow applicant to transition their own application to "Task Completed"
+    // only if currently in "Applied" or "Task Ongoing" (cannot overwrite Rejected, Shortlisted, Accepted)
+    const isAllowedSelfTransition = targetApp.status === "Applied" || targetApp.status === "Task Ongoing";
+    const isSelfTaskCompletion =
+      isApplicantSelf &&
+      status === "Task Completed" &&
+      adminNotes === undefined &&
+      rating === undefined &&
+      isAllowedSelfTransition;
+
+    // Non-admins cannot update administrative evaluation fields
+    if (!isGlobalAdmin && !isDomainAdmin && !isSelfTaskCompletion) {
+      if (status !== undefined || adminNotes !== undefined || rating !== undefined) {
+        return NextResponse.json({ error: "Forbidden: Admin only fields" }, { status: 403 });
+      }
+    }
+
+    // If applicant is self-reporting task completion, verify tasks are actively unlocked
+    if (isSelfTaskCompletion) {
+      const settings = await getLiveRecruitmentSettings();
+      if (!settings.tasks_visible) {
+        return NextResponse.json({ error: "Task submissions are currently locked or closed." }, { status: 403 });
+      }
     }
 
     // Domain Admins can only evaluate candidates within their assigned domain
@@ -277,16 +298,19 @@ export async function PATCH(request: Request) {
       }
     }
 
-    // Regular applicants must own the application they are updating (e.g. submitting a task)
+    // Regular applicants must own the application they are updating
     if (!isGlobalAdmin && !isDomainAdmin && targetApp.user_id !== session.id) {
       return NextResponse.json({ error: "Forbidden: Not your application" }, { status: 403 });
     }
 
     const updates: any = { updated_at: new Date().toISOString() };
     if (status !== undefined) updates.status = status;
+    if (status === "Task Completed") {
+      updates.task_submitted_at = new Date().toISOString();
+    }
     if (adminNotes !== undefined) updates.admin_notes = encryptField(adminNotes);
     if (rating !== undefined) updates.rating = rating;
-    if (taskSubmissionUrl !== undefined) {
+    if (taskSubmissionUrl !== undefined && taskSubmissionUrl !== null && taskSubmissionUrl !== "") {
       updates.task_submission_url = taskSubmissionUrl;
       updates.task_submitted_at = new Date().toISOString();
       if (!status) {
@@ -305,12 +329,14 @@ export async function PATCH(request: Request) {
       if (error) throw error;
       return NextResponse.json({ success: true, application: mapAppFromDB(data) });
     } catch (primaryErr: any) {
-      // If error was due to missing task_submission_url column in Supabase, retry storing in admin_notes
-      if (taskSubmissionUrl !== undefined) {
+      // If error was due to missing task_submission_url or task_submitted_at column in Supabase, retry
+      if (updates.task_submission_url !== undefined || updates.task_submitted_at !== undefined) {
         delete updates.task_submission_url;
         delete updates.task_submitted_at;
         const currentNotes = adminNotes || "";
-        updates.admin_notes = encryptField(`${currentNotes}\n[Task Submission: ${taskSubmissionUrl}]`.trim());
+        if (taskSubmissionUrl) {
+          updates.admin_notes = encryptField(`${currentNotes}\n[Task Submission: ${taskSubmissionUrl}]`.trim());
+        }
 
         const { data: retryData, error: retryError } = await supabaseAdmin
           .from("applications")

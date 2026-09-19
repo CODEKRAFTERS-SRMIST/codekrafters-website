@@ -669,7 +669,7 @@ export const DOMAIN_TASKS_DATA: Record<string, DomainTaskDetail> = {
     tagline: "We create stories that refuse to be boring",
     deadline: "Thursday, September 24, 2026 • 11:59 PM IST",
     whatsappLink: "https://chat.whatsapp.com/Dm3E60crOin4kJgS19stQn?s=cl&p=i&mlu=0&ilr=4",
-    submissionLink: "https://drive.google.com/drive/folders/1ZfzU8Hqjx4AzAh07o5I4-bYVc1m3c9hC",
+    submissionLink: "https://forms.gle/gMtsCv4dWWb81Vbu8",
     overview:
       "Write a creative story paragraph that connects a given beginning and ending in an engaging, logical, and unexpected way.",
     tracks: [

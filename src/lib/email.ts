@@ -91,6 +91,91 @@ export async function sendEmail({
   }
 }
 
+export interface BatchEmailItem {
+  to: string | string[];
+  subject: string;
+  html: string;
+  replyTo?: string;
+}
+
+export interface BatchSendResult {
+  success: boolean;
+  totalSent: number;
+  totalFailed: number;
+  errors?: string[];
+  simulated?: boolean;
+}
+
+/**
+ * High-performance batch email sender using Resend Batch API (up to 100 per request)
+ * Chunks payloads into groups of 50 to ensure safe payload size and zero rate-limit drops.
+ */
+export async function sendBatchEmails(
+  items: BatchEmailItem[],
+  chunkSize = 50
+): Promise<BatchSendResult> {
+  if (!items || items.length === 0) {
+    return { success: true, totalSent: 0, totalFailed: 0 };
+  }
+
+  if (!resendApiKey || !resend) {
+    console.info(
+      `[Resend Debug Mode] Simulated sending batch of ${items.length} emails.`
+    );
+    return {
+      success: true,
+      simulated: true,
+      totalSent: items.length,
+      totalFailed: 0,
+    };
+  }
+
+  let totalSent = 0;
+  let totalFailed = 0;
+  const errors: string[] = [];
+
+  // Split into chunks
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const chunk = items.slice(i, i + chunkSize);
+    const payload = chunk.map((item) => ({
+      from: SENDER_EMAIL,
+      to: Array.isArray(item.to) ? item.to : [item.to],
+      replyTo: item.replyTo || REPLY_TO_EMAIL,
+      subject: item.subject,
+      html: item.html,
+    }));
+
+    try {
+      const { data, error } = await resend.batch.send(payload);
+
+      if (error) {
+        console.error(`[Resend Batch Error chunk ${i / chunkSize + 1}]:`, error);
+        totalFailed += chunk.length;
+        errors.push(error.message || "Batch send failed");
+      } else {
+        const sentInChunk = data?.data?.length || chunk.length;
+        totalSent += sentInChunk;
+      }
+    } catch (err: any) {
+      console.error(`[Resend Batch Exception chunk ${i / chunkSize + 1}]:`, err);
+      totalFailed += chunk.length;
+      errors.push(err.message || "Batch exception occurred");
+    }
+
+    // Small delay between chunks to avoid bursting rate limits
+    if (i + chunkSize < items.length) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+  }
+
+  return {
+    success: totalFailed === 0,
+    totalSent,
+    totalFailed,
+    errors: errors.length > 0 ? errors : undefined,
+  };
+}
+
 /**
  * Send Shortlist & Interview Email to candidate
  */
@@ -156,3 +241,4 @@ export async function sendCustomBroadcastEmail(
   const { subject, html } = generateCustomBroadcastEmailHtml(props);
   return sendEmail({ to, subject, html });
 }
+

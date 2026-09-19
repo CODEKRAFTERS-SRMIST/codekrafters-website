@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { supabaseAdmin } from "@/lib/supabase";
 import { getIpFromRequest, checkRateLimit } from "@/lib/rate-limit";
-import { sendShortlistEmail } from "@/lib/email";
+import { sendShortlistEmail, sendBatchEmails } from "@/lib/email";
+import { generateShortlistEmailHtml } from "@/lib/email-templates";
 
 export async function POST(request: Request) {
   try {
@@ -44,6 +45,9 @@ export async function POST(request: Request) {
       meetingLink,
       venue,
       batch,
+      batchOffset = 0,
+      batchLimit,
+      excludeEmails = [],
     } = body;
 
     // Batch sending mode for all shortlisted applicants in a domain
@@ -53,14 +57,22 @@ export async function POST(request: Request) {
 
       const query = supabaseAdmin
         .from("applications")
-        .select("id, full_name, email, primary_domain, domains, status")
-        .eq("status", "Shortlisted");
+        .select("id, full_name, email, primary_domain, domains, status, submitted_at")
+        .eq("status", "Shortlisted")
+        .order("submitted_at", { ascending: true });
 
       const { data: candidates, error } = await query;
       if (error) throw error;
 
-      // Filter by domain
+      const excludeSet = new Set(
+        (Array.isArray(excludeEmails) ? excludeEmails : []).map((e: string) =>
+          e.trim().toLowerCase()
+        )
+      );
+
+      // Filter by domain and exclusions
       const filtered = (candidates || []).filter((c) => {
+        if (excludeSet.has((c.email || "").toLowerCase())) return false;
         if (!targetDomain || targetDomain === "ALL") return true;
         const norm = targetDomain.toLowerCase().replace(/[^a-z0-9]/g, "");
         const matchesDomain = (d: string) =>
@@ -71,22 +83,44 @@ export async function POST(request: Request) {
         );
       });
 
-      if (filtered.length === 0) {
+      const totalPool = filtered.length;
+
+      if (totalPool === 0) {
         return NextResponse.json({
           success: true,
           sentCount: 0,
+          totalPool: 0,
+          totalTargeted: 0,
           message: "No shortlisted candidates found for the selected domain.",
         });
       }
 
-      const results = [];
-      for (const candidate of filtered) {
+      // Apply offset and batch slice
+      const startIndex = Math.max(0, parseInt(String(batchOffset), 10) || 0);
+      const sliceLimit =
+        batchLimit !== undefined && batchLimit !== null && Number(batchLimit) > 0
+          ? parseInt(String(batchLimit), 10)
+          : totalPool;
+
+      const batchSlice = filtered.slice(startIndex, startIndex + sliceLimit);
+
+      if (batchSlice.length === 0) {
+        return NextResponse.json({
+          success: true,
+          sentCount: 0,
+          totalPool,
+          totalTargeted: 0,
+          message: "No shortlisted candidates remaining in this offset range.",
+        });
+      }
+
+      const batchItems = batchSlice.map((candidate) => {
         const domainName =
           targetDomain && targetDomain !== "ALL"
             ? targetDomain
             : candidate.primary_domain || "CodeKrafters";
 
-        const res = await sendShortlistEmail(candidate.email, {
+        const { subject: genSubject, html } = generateShortlistEmailHtml({
           candidateName: candidate.full_name,
           domainName,
           subject,
@@ -97,20 +131,34 @@ export async function POST(request: Request) {
           venue,
         });
 
-        results.push({
-          email: candidate.email,
-          success: res.success,
-          error: res.error,
-        });
-      }
+        return {
+          to: candidate.email,
+          subject: genSubject,
+          html,
+        };
+      });
 
-      const successCount = results.filter((r) => r.success).length;
+      const batchResult = await sendBatchEmails(batchItems, 50);
+
+      const nextOffset = startIndex + batchSlice.length;
+      const hasMore = nextOffset < totalPool;
 
       return NextResponse.json({
-        success: true,
-        sentCount: successCount,
-        totalTargeted: filtered.length,
-        results,
+        success: batchResult.success,
+        sentCount: batchResult.totalSent,
+        failedCount: batchResult.totalFailed,
+        totalTargeted: batchSlice.length,
+        totalPool,
+        batchOffset: startIndex,
+        batchLimit: sliceLimit,
+        nextOffset,
+        hasMore,
+        simulated: batchResult.simulated,
+        sentRecipients: batchSlice.map((c) => ({
+          name: c.full_name,
+          email: c.email,
+        })),
+        errors: batchResult.errors,
       });
     }
 

@@ -68,7 +68,7 @@ export async function updateApplicationStatus(
 
 export async function submitCandidateTask(
   appId: string,
-  submissionUrl: string
+  submissionUrl?: string
 ): Promise<Application> {
   return updateApplicationStatus(appId, "Task Completed", undefined, undefined, submissionUrl);
 }

@@ -55,7 +55,7 @@ const row1Images = [
   },
   {
     id: "Qonneqt-28",
-    src: "https://ik.imagekit.io/ysfz8n1no/public/Events/Qonneqt/Builders Qoonet.png",
+    src: "https://ik.imagekit.io/ysfz8n1no/public/Events/Qonneqt/BuildersQoonet.png",
     eventTitle: "Qonneqt",
     alt: "Qonneqt Image",
     description: "Experience from Qonneqt"
@@ -177,7 +177,7 @@ const row2Images = [
   },
   {
     id: "Qonneqt-29",
-    src: "https://ik.imagekit.io/ysfz8n1no/public/Events/Qonneqt/qonneqt-001.jpg",
+    src: "https://ik.imagekit.io/ysfz8n1no/public/Events/Qonneqt/qonneqt1.jpg?tr=w-1200",
     eventTitle: "Qonneqt",
     alt: "Qonneqt Image",
     description: "Experience from Qonneqt"
@@ -285,7 +285,7 @@ const row3Images = [
   },
   {
     id: "launchpad 3.0-22",
-    src: "https://ik.imagekit.io/ysfz8n1no/public/Events/launchpad 3.0/DSC_0712.JPG",
+    src: "https://ik.imagekit.io/ysfz8n1no/public/Events/launchpad%203.0/IMG-20260911-WA0035.jpg",
     eventTitle: "Launchpad 3.0",
     alt: "Launchpad 3.0 Image",
     description: "Experience from Launchpad 3.0"
@@ -299,7 +299,7 @@ const row3Images = [
   },
   {
     id: "Qonneqt-30",
-    src: "https://ik.imagekit.io/ysfz8n1no/public/Events/Qonneqt/qonneqt-002.jpg",
+    src: "https://ik.imagekit.io/ysfz8n1no/public/Events/Qonneqt/qonneqt2.jpg?tr=w-1200",
     eventTitle: "Qonneqt",
     alt: "Qonneqt Image",
     description: "Experience from Qonneqt"
@@ -407,7 +407,7 @@ const row4Images = [
   },
   {
     id: "launchpad 3.0-23",
-    src: "https://ik.imagekit.io/ysfz8n1no/public/Events/launchpad 3.0/DSC_0767.JPG",
+    src: "https://ik.imagekit.io/ysfz8n1no/public/Events/launchpad%203.0/IMG-20260911-WA0186.jpg",
     eventTitle: "Launchpad 3.0",
     alt: "Launchpad 3.0 Image",
     description: "Experience from Launchpad 3.0"
@@ -421,7 +421,7 @@ const row4Images = [
   },
   {
     id: "Qonneqt-31",
-    src: "https://ik.imagekit.io/ysfz8n1no/public/Events/Qonneqt/qonneqt-003.jpg",
+    src: "https://ik.imagekit.io/ysfz8n1no/public/Events/Qonneqt/qonneqt3.jpg?tr=w-1200",
     eventTitle: "Qonneqt",
     alt: "Qonneqt Image",
     description: "Experience from Qonneqt"
